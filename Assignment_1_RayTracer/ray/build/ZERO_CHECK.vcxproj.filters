@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\build\CMakeFiles\be017c5109a3e58d9a300059a092d3d6\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{9B7064A6-AF05-3409-B8A5-5801E5FE2D6C}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
