@@ -55,13 +55,15 @@ public:
 
 	bool stopTrace;
 
+	// function that each worker thread executes
+	void thread_function(int thread_id, int start_row, int end_row, int row_len);
+
 private:
 	glm::dvec3 trace(double x, double y);
 
 	std::vector<unsigned char> buffer;
 	int buffer_width, buffer_height;
 	int bufferSize;
-	unsigned int threads;
 	int block_size;
 	double thresh;
 	double aaThresh;
@@ -70,6 +72,11 @@ private:
 
 	bool m_bBufferReady;
 
+	// variables used for multi-threading
+	unsigned int num_threads;
+	std::vector<std::thread> threads;
+	std::vector<int> thread_done;
+	std::mutex mtx;
 };
 
 #endif // __RAYTRACER_H__

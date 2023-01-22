@@ -19,6 +19,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <thread>
+#include <mutex>
 
 using namespace std;
 extern TraceUI* traceUI;
@@ -79,7 +81,8 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 	std::cerr << "== current depth: " << depth << std::endl;
 #endif
 
-	if(scene->intersect(r, i)) {
+	if(scene->intersect(r, i)) 
+	{
 		// YOUR CODE HERE
 
 		// An intersection occurred!  We've got work to do.  For now,
@@ -91,9 +94,45 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		// more steps: add in the contributions from reflected and refracted
 		// rays.
 
+		// intersection point
+		glm::dvec3 inter_p = r.at(i);
+
+		// material of object hit
 		const Material& m = i.getMaterial();
+
+		// total light contribution
+		glm::dvec3 total_light_con(0, 0, 0);
+
+		// for each light l, shoot shadow ray from intersection point i to l
+		int total_lights = scene->getAllLights().size();
+		// std::cout << "found " << total_lights << " lights in scene" << std::endl;
+		for (int l = 0; l < total_lights; l++)
+		{
+			// get direction of light
+			glm::dvec3 light_dir = scene->getAllLights()[l].get()->getDirection(inter_p);
+
+			// shoot shadow ray and check for intersection w/ objects
+			ray light_r(inter_p, light_dir, glm::dvec3(1, 1, 1), ray::SHADOW);
+			isect shadow_i;
+			if (!scene->intersect(light_r, shadow_i))
+			{
+				// nothing blocking light, calculate light contribution
+				// I_out = kd * abs(dot(l, n)) * I_in
+				double dot_abs_result = abs(glm::dot(light_r.getDirection(), i.getN()));
+				glm::dvec3 light_color = scene->getAllLights()[l].get()->getColor();
+				glm::dvec3 light_con = light_color * dot_abs_result * m.kd(i);
+				// add to total light contribution
+				total_light_con += light_con;
+			}
+		}
+		
+		// get color of object's matrial at intersection i
 		colorC = m.shade(scene.get(), r, i);
-	} else {
+		// add total light contributiuon
+		colorC += total_light_con;
+	} 
+	else 
+	{
 		// No intersection.  This ray travels to infinity, so we color
 		// it according to the background color, which in this (simple) case
 		// is just black.
@@ -191,8 +230,10 @@ void RayTracer::traceSetup(int w, int h)
 	/*
 	 * Sync with TraceUI
 	 */
+	// set none of the render vectors to be done
+	thread_done.clear();
 
-	threads = traceUI->getThreads();
+	num_threads = traceUI->getThreads();
 	block_size = traceUI->getBlockSize();
 	thresh = traceUI->getThreshold();
 	samples = traceUI->getSuperSamples();
@@ -200,6 +241,22 @@ void RayTracer::traceSetup(int w, int h)
 
 	// YOUR CODE HERE
 	// FIXME: Additional initializations
+}
+
+void RayTracer::thread_function(int thread_id, int start_row, int end_row, int row_len)
+{
+	// trace each pixel from start to end row
+	for (int y = start_row; y < end_row; y++)
+	{
+		for (int x = 0; x < row_len; x++)
+		{
+			tracePixel(x, y);
+		}
+	}
+	// signal that this thread is done (must be in mutex)
+	mtx.lock();
+	thread_done.push_back(thread_id);
+	mtx.unlock();
 }
 
 /*
@@ -225,6 +282,26 @@ void RayTracer::traceImage(int w, int h)
 	//
 	//       An asynchronous traceImage lets the GUI update your results
 	//       while rendering.
+
+	// determine how many rows per thread + remainder rows
+	int rows_per_thread = h / num_threads;
+	int row_rem = h % num_threads;
+
+	// start x threads to trace image rows
+	for (int t_id = 0; t_id < num_threads; t_id++)
+	{
+		// designate start and end rows for each thread
+		int start_row = rows_per_thread * t_id;
+		int end_row = start_row + rows_per_thread;
+		// add remainder rows if last thread
+		if (t_id == num_threads - 1)
+		{
+			end_row += row_rem;
+		}
+
+		// start thread
+		threads.push_back(std::thread(&RayTracer::thread_function, this, t_id, start_row, end_row, w));
+	}
 }
 
 int RayTracer::aaImage()
@@ -245,7 +322,12 @@ bool RayTracer::checkRender()
 	//
 	// TIPS: Introduce an array to track the status of each worker thread.
 	//       This array is maintained by the worker threads.
-	return true;
+
+	// return true if all threads are complete
+	if (thread_done.size() >= num_threads)
+		return true;
+	// else return false by default
+	return false;
 }
 
 void RayTracer::waitRender()
@@ -256,6 +338,11 @@ void RayTracer::waitRender()
 	//        traceImage implementation.
 	//
 	// TIPS: Join all worker threads here.
+
+	for (int i = 0; i < num_threads; i++)
+	{
+		threads[i].join();
+	}
 }
 
 
