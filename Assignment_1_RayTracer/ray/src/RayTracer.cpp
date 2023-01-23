@@ -28,7 +28,7 @@ extern TraceUI* traceUI;
 // Use this variable to decide if you want to print out
 // debugging messages.  Gets set in the "trace single ray" mode
 // in TraceGLWindow, for example.
-bool debugMode = false;
+bool debugMode = true;
 
 // Trace a top-level ray through pixel(i,j), i.e. normalized window coordinates (x,y),
 // through the projection plane, and out into the scene.  All we do is
@@ -73,10 +73,17 @@ glm::dvec3 RayTracer::tracePixel(int i, int j)
 
 // Do recursive ray tracing!  You'll want to insert a lot of code here
 // (or places called from here) to handle reflection, refraction, etc etc.
-glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, double& t )
+glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, double& t)
 {
+	// return (0, 0, 0) if at max depth
+	if (depth >= traceUI->getMaxDepth())
+	{
+		return glm::dvec3(0, 0, 0);
+	}
+
 	isect i;
 	glm::dvec3 colorC;
+
 #if VERBOSE
 	std::cerr << "== current depth: " << depth << std::endl;
 #endif
@@ -100,36 +107,62 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		// material of object hit
 		const Material& m = i.getMaterial();
 
+		// calculate important vectors
+		glm::dvec3 in_vec = r.getDirection();
+		glm::dvec3 out_vec = in_vec * -1.0;
+		glm::dvec3 norm_vec = i.getN();
+		glm::dvec3 refl_vec = glm::reflect(in_vec, norm_vec); // 2.0 * glm::dot(out_vec, norm_vec) * (norm_vec - out_vec);
+		glm::dvec3 refra_vec = glm::refract(in_vec, norm_vec, m.index(i));
+
 		// total light contribution
-		glm::dvec3 total_light_con(0, 0, 0);
+		glm::dvec3 total_I_phong(0, 0, 0);
 
 		// for each light l, shoot shadow ray from intersection point i to l
 		int total_lights = scene->getAllLights().size();
-		// std::cout << "found " << total_lights << " lights in scene" << std::endl;
 		for (int l = 0; l < total_lights; l++)
 		{
 			// get direction of light
-			glm::dvec3 light_dir = scene->getAllLights()[l].get()->getDirection(inter_p);
+			glm::dvec3 light_vec = scene->getAllLights()[l].get()->getDirection(inter_p);
+
+			// calculate ambient term
+			glm::dvec3 I_ambient = m.ka(i) * scene->ambient();
 
 			// shoot shadow ray and check for intersection w/ objects
-			ray light_r(inter_p, light_dir, glm::dvec3(1, 1, 1), ray::SHADOW);
+			ray light_r(inter_p, light_vec, glm::dvec3(1, 1, 1), ray::SHADOW);
 			isect shadow_i;
 			if (!scene->intersect(light_r, shadow_i))
 			{
-				// nothing blocking light, calculate light contribution
-				// I_out = kd * abs(dot(l, n)) * I_in
-				double dot_abs_result = abs(glm::dot(light_r.getDirection(), i.getN()));
+				// calculate diffuse term (nothing blocking light)
+				// I_d = kd * abs(dot(l, n)) * I_in
+				double dot_abs_result = abs(glm::dot(light_vec, norm_vec));
+				glm::dvec3 I_diffuse = m.kd(i) * dot_abs_result;
+				
+				// calculate specular term
+				// I_s = ks * max(dot(v, r), 0)^alpha * I_in
+				double dot_result = glm::dot(in_vec, refl_vec);
+				double max_result = max(dot_result, 0.0);
+				double pow_result = pow(max_result, m.shininess(i));
+				glm::dvec3 I_specular = m.ks(i) * pow_result;
+
+				// calculate light contribution
+				// I = I_ambient + [I_diffuse + I_specular] * I_in
 				glm::dvec3 light_color = scene->getAllLights()[l].get()->getColor();
-				glm::dvec3 light_con = light_color * dot_abs_result * m.kd(i);
-				// add to total light contribution
-				total_light_con += light_con;
+				glm::dvec3 I_phong = I_ambient + ((I_diffuse + I_specular) * light_color); 
+				total_I_phong += I_phong;
 			}
 		}
+
+		// shoot reflective ray
+		ray ref_r(inter_p, refl_vec, glm::dvec3(1, 1, 1), ray::REFLECTION);
+		glm::dvec3 ref_color = traceRay(ref_r, thresh, depth + 1, t);
+		glm::dvec3 I_ref = m.kr(i) * ref_color;
+
+		// shoot transmissive ray
 		
 		// get color of object's matrial at intersection i
-		colorC = m.shade(scene.get(), r, i);
-		// add total light contributiuon
-		colorC += total_light_con;
+		glm::dvec3 mat_color = m.shade(scene.get(), r, i);
+		// add total light contributiuon and reflected light
+		colorC = mat_color + total_I_phong + I_ref;
 	} 
 	else 
 	{
