@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include "../ui/TraceUI.h"
+#include <iostream>
 extern TraceUI* traceUI;
 
 using namespace std;
@@ -93,10 +94,74 @@ bool TrimeshFace::intersect(ray& r, isect& i) const
 // intersection in u (alpha) and v (beta).
 bool TrimeshFace::intersectLocal(ray& r, isect& i) const
 {
-	// YOUR CODE HERE
-	//
-	// FIXME: Add ray-trimesh intersection
+	// get point at which ray r intersects the plane created by triangle abc
+	//std::cout << "1" << std::endl;
+	// get imporntant points and vectors for calculations
+	glm::dvec3 n = parent->getNormal();
+	glm::dvec3 q = parent->vertices[0];
+	glm::dvec3 v = r.getDirection();
+	glm::dvec3 o = r.getPosition();
 
+	//std::cout << "2" << std::endl;
+
+	double den = glm::dot(v, n);
+	// if dot(v, n) is 0, ray and plane are parallel
+	if (den == 0)
+	{
+		return false;
+	}
+
+	//std::cout << "3" << std::endl;
+
+	double t = glm::dot((q - o), n) / den;
+	// if t is negative, plane is behind ray
+	if (t < 0)
+	{
+		return false;
+	}
+
+	//std::cout << "4" << std::endl;
+
+	// set t for intersection and get point p on plane
+	i.setT(t);
+	glm::dvec3 p = r.at(i);
+
+	//std::cout << "5" << std::endl;
+
+	// get triangle vertices
+	glm::dvec3 a = parent->vertices[0];
+	glm::dvec3 b = parent->vertices[1];
+	glm::dvec3 c = parent->vertices[2];
+
+	//std::cout << "6" << std::endl;
+
+	double ab = glm::dot(glm::cross((b - a), (p - a)), n);
+	double bc = glm::dot(glm::cross((c - b), (p - b)), n);
+	double ca = glm::dot(glm::cross((a - c), (p - c)), n);
+
+	//std::cout << "7" << std::endl;
+
+	if (ab >= 0 && bc >= 0 && ca >= 0)
+	{
+		// calculate barycentric coords
+		glm::mat2 m1 = glm::mat2(glm::dvec2(glm::dot((b - a), (b - a)), glm::dot((c - a), (b - a))), glm::dvec2(glm::dot((b - a), (c - a)), glm::dot((c - a), (c - a))));
+
+		//m1[0] = glm::dvec2(glm::dot((b - a), (b - a)), glm::dot((c - a), (b - a)));
+		//m1[1] = glm::dvec2(glm::dot((b - a), (c - a)), glm::dot((c - a), (c - a)));
+
+		//std::cout << "8" << std::endl;
+
+		glm::vec2 m2 = glm::dvec2(glm::dot((p - a), (b - a)), glm::dot((p - a), (c - a)));
+
+		//std::cout << "9" << std::endl;
+
+		glm::vec2 bary = glm::inverse(m1) * m2;
+		std::cout << "bary coords: " << bary.x << ", " << bary.y << std::endl;
+		i.setUVCoordinates(bary);
+		i.setMaterial(parent->getMaterial());
+		i.setN(n);
+		return true;
+	}
 	return false;
 }
 

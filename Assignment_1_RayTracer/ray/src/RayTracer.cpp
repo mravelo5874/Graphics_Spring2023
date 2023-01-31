@@ -46,7 +46,7 @@ glm::dvec3 RayTracer::trace(double x, double y)
 	ray r(glm::dvec3(0,0,0), glm::dvec3(0,0,0), glm::dvec3(1,1,1), ray::VISIBILITY);
 	scene->getCamera().rayThrough(x,y,r);
 	double dummy;
-	glm::dvec3 ret = traceRay(r, glm::dvec3(1.0,1.0,1.0), traceUI->getDepth(), dummy);
+	glm::dvec3 ret = traceRay(r, glm::dvec3(1.0,1.0,1.0), 0, dummy);
 	ret = glm::clamp(ret, 0.0, 1.0);
 	return ret;
 }
@@ -75,8 +75,11 @@ glm::dvec3 RayTracer::tracePixel(int i, int j)
 // (or places called from here) to handle reflection, refraction, etc etc.
 glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, double& t)
 {
+
+	//std::cout << "depth: " << depth << ", traceUI->getDepth(): " << traceUI->getDepth() << ", traceUI->getMaxDepth(): " << traceUI->getMaxDepth() << std::endl;
+
 	// return (0, 0, 0) if at max depth
-	if (depth >= traceUI->getMaxDepth())
+	if (depth > traceUI->getDepth())
 	{
 		return glm::dvec3(0, 0, 0);
 	}
@@ -101,6 +104,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		// more steps: add in the contributions from reflected and refracted
 		// rays.
 
+
 		// intersection point
 		glm::dvec3 inter_p = r.at(i);
 
@@ -110,13 +114,22 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		// calculate important vectors
 		glm::dvec3 in_vec = r.getDirection();
 		glm::dvec3 out_vec = in_vec * -1.0;
-		glm::dvec3 norm_vec = i.getN();
-		glm::dvec3 refl_vec = glm::reflect(in_vec, norm_vec); // 2.0 * glm::dot(out_vec, norm_vec) * (norm_vec - out_vec);
+
+		glm::dvec3 norm_vec = glm::normalize(i.getN());
+		glm::dvec3 refl_vec = glm::reflect(in_vec, norm_vec); // in_vec - 2.0 * glm::dot(norm_vec, in_vec) * norm_vec;
 		glm::dvec3 refra_vec = glm::refract(in_vec, norm_vec, m.index(i));
 
-		// total light contribution
-		glm::dvec3 total_I_phong(0, 0, 0);
+		// calculate ambient term
+		glm::dvec3 I_ambient = m.ka(i) * scene->ambient();
+		// calculate emmision term
+		glm::dvec3 I_emissive = m.ke(i) * m.shade(scene.get(), r, i);
+		// variables for other light terms
+		glm::dvec3 I_diffuse(0.0, 0.0, 0.0);
+		glm::dvec3 I_specular(0.0, 0.0, 0.0);
 
+		// get point slightly off the surface of intersection
+		//glm::dvec3 shadow_p = inter_p - (norm_vec * 0.0001);
+		
 		// for each light l, shoot shadow ray from intersection point i to l
 		int total_lights = scene->getAllLights().size();
 		for (int l = 0; l < total_lights; l++)
@@ -124,45 +137,60 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 			// get direction of light
 			glm::dvec3 light_vec = scene->getAllLights()[l].get()->getDirection(inter_p);
 
-			// calculate ambient term
-			glm::dvec3 I_ambient = m.ka(i) * scene->ambient();
-
 			// shoot shadow ray and check for intersection w/ objects
-			ray light_r(inter_p, light_vec, glm::dvec3(1, 1, 1), ray::SHADOW);
+			ray shadow_r(inter_p, light_vec, glm::dvec3(1, 1, 1), ray::SHADOW);
 			isect shadow_i;
-			if (!scene->intersect(light_r, shadow_i))
+			bool hit = scene->intersect(shadow_r, shadow_i);
+			// make sure intersection object is between light and this object
+			if (hit)
 			{
-				// calculate diffuse term (nothing blocking light)
+				glm::dvec3 light_dir = scene->getAllLights()[l].get()->getDirection(shadow_r.at(shadow_i));
+				hit = glm::dot(light_dir, light_vec) > 0.0;
+			}
+			// (nothing blocking light)
+			if (!hit)
+			{
+				// get light color
+				glm::dvec3 light_color = scene->getAllLights()[l].get()->getColor();
+
+				// calculate light attenuation
+				//double light_atten = 1.0 / ()
+
+				// calculate diffuse term 
 				// I_d = kd * abs(dot(l, n)) * I_in
-				double dot_abs_result = abs(glm::dot(light_vec, norm_vec));
-				glm::dvec3 I_diffuse = m.kd(i) * dot_abs_result;
-				
+				double res_d = glm::max(glm::dot(light_vec, norm_vec), 0.0);
+				I_diffuse += m.kd(i) * res_d * light_color;
+
 				// calculate specular term
 				// I_s = ks * max(dot(v, r), 0)^alpha * I_in
-				double dot_result = glm::dot(in_vec, refl_vec);
-				double max_result = max(dot_result, 0.0);
-				double pow_result = pow(max_result, m.shininess(i));
-				glm::dvec3 I_specular = m.ks(i) * pow_result;
-
-				// calculate light contribution
-				// I = I_ambient + [I_diffuse + I_specular] * I_in
-				glm::dvec3 light_color = scene->getAllLights()[l].get()->getColor();
-				glm::dvec3 I_phong = I_ambient + ((I_diffuse + I_specular) * light_color); 
-				total_I_phong += I_phong;
+				glm::dvec3 light_in_vect = light_vec * -1.0;
+				glm::dvec3 light_refl_vec = glm::reflect(light_in_vect, norm_vec);
+				double res_s = glm::pow(glm::max(glm::dot(out_vec, light_refl_vec), 0.0), m.shininess(i));
+				I_specular += m.ks(i) * res_s * light_color;
 			}
 		}
 
+		// calculate light contribution
+		// I_phong = I_emissive + I_ambient + [I_diffuse + I_specular] * I_in
+		glm::dvec3 I_phong = I_emissive + I_ambient + I_diffuse + I_specular;
+
 		// shoot reflective ray
-		ray ref_r(inter_p, refl_vec, glm::dvec3(1, 1, 1), ray::REFLECTION);
-		glm::dvec3 ref_color = traceRay(ref_r, thresh, depth + 1, t);
-		glm::dvec3 I_ref = m.kr(i) * ref_color;
+		glm::dvec3 I_refl(0.0, 0.0, 0.0);
+		if (m.Refl())
+		{
+			ray ref_r(inter_p, refl_vec, glm::dvec3(1, 1, 1), ray::REFLECTION);
+			glm::dvec3 ref_color = traceRay(ref_r, thresh, depth + 1, t);
+			I_refl = m.kr(i) * ref_color;
+		}
 
 		// shoot transmissive ray
+		if (m.Trans())
+		{
+			
+		}
 		
-		// get color of object's matrial at intersection i
-		glm::dvec3 mat_color = m.shade(scene.get(), r, i);
 		// add total light contributiuon and reflected light
-		colorC = mat_color + total_I_phong + I_ref;
+		colorC = I_phong + I_refl;
 	} 
 	else 
 	{
