@@ -156,7 +156,7 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
 		//std::cout << "9" << std::endl;
 
 		glm::vec2 bary = glm::inverse(m1) * m2;
-		std::cout << "bary coords: " << bary.x << ", " << bary.y << std::endl;
+		//TODO: std::cout << "bary coords: " << bary.x << ", " << bary.y << std::endl;
 		i.setUVCoordinates(bary);
 		i.setMaterial(parent->getMaterial());
 		i.setN(n);

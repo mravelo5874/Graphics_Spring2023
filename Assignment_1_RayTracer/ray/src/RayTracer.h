@@ -58,6 +58,8 @@ public:
 	// function that each worker thread executes
 	void thread_function(int thread_id, int start_row, int end_row, int row_len);
 
+	glm::dvec3 boxFilter(int x, int y, int smpls, double thresh);
+
 private:
 	glm::dvec3 trace(double x, double y);
 

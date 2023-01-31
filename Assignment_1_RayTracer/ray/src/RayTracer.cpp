@@ -112,20 +112,20 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		const Material& m = i.getMaterial();
 
 		// calculate important vectors
-		glm::dvec3 in_vec = r.getDirection();
+		glm::dvec3 in_vec = glm::normalize(r.getDirection());
 		glm::dvec3 out_vec = in_vec * -1.0;
 
 		glm::dvec3 norm_vec = glm::normalize(i.getN());
 		glm::dvec3 refl_vec = glm::reflect(in_vec, norm_vec); // in_vec - 2.0 * glm::dot(norm_vec, in_vec) * norm_vec;
-		glm::dvec3 refra_vec = glm::refract(in_vec, norm_vec, m.index(i));
 
 		// calculate ambient term
 		glm::dvec3 I_ambient = m.ka(i) * scene->ambient();
 		// calculate emmision term
-		glm::dvec3 I_emissive = m.ke(i) * m.shade(scene.get(), r, i);
+		glm::dvec3 I_emissive = m.ke(i);
 		// variables for other light terms
 		glm::dvec3 I_diffuse(0.0, 0.0, 0.0);
 		glm::dvec3 I_specular(0.0, 0.0, 0.0);
+		glm::dvec3 I_shade(0.0, 0.0, 0.0);
 
 		// get point slightly off the surface of intersection
 		//glm::dvec3 shadow_p = inter_p - (norm_vec * 0.0001);
@@ -147,26 +147,44 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 				glm::dvec3 light_dir = scene->getAllLights()[l].get()->getDirection(shadow_r.at(shadow_i));
 				hit = glm::dot(light_dir, light_vec) > 0.0;
 			}
+
+			// get light color
+			glm::dvec3 light_color = scene->getAllLights()[l].get()->getColor();
+
 			// (nothing blocking light)
 			if (!hit)
 			{
-				// get light color
-				glm::dvec3 light_color = scene->getAllLights()[l].get()->getColor();
-
 				// calculate light attenuation
-				//double light_atten = 1.0 / ()
+				double dist_atten = scene->getAllLights()[l].get()->distanceAttenuation(inter_p);
 
 				// calculate diffuse term 
 				// I_d = kd * abs(dot(l, n)) * I_in
 				double res_d = glm::max(glm::dot(light_vec, norm_vec), 0.0);
-				I_diffuse += m.kd(i) * res_d * light_color;
+				I_diffuse += m.kd(i) * res_d * light_color * dist_atten;
 
 				// calculate specular term
 				// I_s = ks * max(dot(v, r), 0)^alpha * I_in
 				glm::dvec3 light_in_vect = light_vec * -1.0;
 				glm::dvec3 light_refl_vec = glm::reflect(light_in_vect, norm_vec);
 				double res_s = glm::pow(glm::max(glm::dot(out_vec, light_refl_vec), 0.0), m.shininess(i));
-				I_specular += m.ks(i) * res_s * light_color;
+				I_specular += m.ks(i) * res_s * light_color * dist_atten;
+			}
+			// something blocking light - shadow attenuation
+			else
+			{
+				glm::dvec3 shadow_atten = scene->getAllLights()[l].get()->shadowAttenuation(shadow_r, inter_p, 8);
+
+				// calculate diffuse term 
+				// I_d = kd * abs(dot(l, n)) * I_in
+				double res_d = glm::max(glm::dot(light_vec, norm_vec), 0.0);
+				I_diffuse += m.kd(i) * res_d * light_color * shadow_atten;
+
+				// calculate specular term
+				// I_s = ks * max(dot(v, r), 0)^alpha * I_in
+				glm::dvec3 light_in_vect = light_vec * -1.0;
+				glm::dvec3 light_refl_vec = glm::reflect(light_in_vect, norm_vec);
+				double res_s = glm::pow(glm::max(glm::dot(out_vec, light_refl_vec), 0.0), m.shininess(i));
+				I_specular += m.ks(i) * res_s * light_color * shadow_atten;
 			}
 		}
 
@@ -178,19 +196,36 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		glm::dvec3 I_refl(0.0, 0.0, 0.0);
 		if (m.Refl())
 		{
-			ray ref_r(inter_p, refl_vec, glm::dvec3(1, 1, 1), ray::REFLECTION);
-			glm::dvec3 ref_color = traceRay(ref_r, thresh, depth + 1, t);
-			I_refl = m.kr(i) * ref_color;
+			ray refl_r(inter_p, refl_vec, glm::dvec3(1, 1, 1), ray::REFLECTION);
+			glm::dvec3 refl_color = traceRay(refl_r, thresh, depth + 1, t);
+			I_refl = m.kr(i) * refl_color;
 		}
 
 		// shoot transmissive ray
+		glm::dvec3 I_refra(0.0, 0.0, 0.0);
 		if (m.Trans())
 		{
-			
+			double dist = 1.0;
+			double refra_index = 1.0 / m.index(i);
+			ray::RayType rt = ray::RayType::REFRACTION;
+			glm::dvec3 norm = norm_vec;
+
+			if (r.type() == ray::RayType::REFRACTION)
+			{
+				refra_index = 1.0 / refra_index;
+				rt = ray::RayType::VISIBILITY;
+				norm *= -1.0;
+				dist = glm::distance(r.getPosition(), inter_p);
+			}
+			// send ray and determine color
+			glm::dvec3 refra_vec = glm::refract(in_vec, norm, refra_index);
+			ray refra_r(inter_p, refra_vec, glm::dvec3(1, 1, 1), rt);
+			glm::dvec3 refra_color = traceRay(refra_r, thresh, depth + 1, t);
+			I_refra = glm::pow(m.kt(i), glm::dvec3(dist)) * refra_color;
 		}
 		
 		// add total light contributiuon and reflected light
-		colorC = I_phong + I_refl;
+		colorC = I_phong + I_refl + I_refra;
 	} 
 	else 
 	{
@@ -291,6 +326,7 @@ void RayTracer::traceSetup(int w, int h)
 	/*
 	 * Sync with TraceUI
 	 */
+
 	// set none of the render vectors to be done
 	thread_done.clear();
 
@@ -365,19 +401,63 @@ void RayTracer::traceImage(int w, int h)
 	}
 }
 
+
+glm::dvec3 RayTracer::boxFilter(int x, int y, int smpls, double thresh)
+{
+	int offset = max(1, smpls / 2);
+	int y_start = y - offset;
+	int y_end = y + offset;
+	int x_start = x - offset;
+	int x_end = x + offset;
+
+	glm::dvec3 average(0.0, 0.0, 0.0);
+	int count = 0;
+	for (int j = y_start; j < y_end; j++)
+	{
+		if (j >= 0 && j < buffer_height)
+		{
+			for (int i = x_start; i < x_end; i++)
+			{
+				if (i >= 0 && i < buffer_width)
+				{
+					average += getPixel(i, j);
+					count++;
+				}
+			}
+		}
+	}
+	average =  average * (1.0/count);
+	return average;
+}
+
 int RayTracer::aaImage()
 {
-	// YOUR CODE HERE
 	// FIXME: Implement Anti-aliasing here
 	//
 	// TIP: samples and aaThresh have been synchronized with TraceUI by
 	//      RayTracer::traceSetup() function
+
+	if (checkRender())
+	{
+		int smpls = samples;
+		double thresh = aaThresh;
+		for (int y = 0; y < buffer_height; y++)
+		{
+			for (int x = 0; x < buffer_width; x++)
+			{
+				glm::dvec3 old_pixel = getPixel(x, y);
+				glm::dvec3 box_filter = boxFilter(x, y, smpls, thresh);
+				glm::dvec3 new_pixel = (old_pixel * aaThresh) + (box_filter * (1 - aaThresh));
+				setPixel(x, y, new_pixel);
+			}
+		}
+	}
+
 	return 0;
 }
 
 bool RayTracer::checkRender()
 {
-	// YOUR CODE HERE
 	// FIXME: Return true if tracing is done.
 	//        This is a helper routine for GUI.
 	//
