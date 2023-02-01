@@ -1,0 +1,10 @@
+^C:\USERS\MARCO\DOCUMENTS\GITHUB\GRAPHICS_SPRING2023\ASSIGNMENT_1_RAYTRACER\RAY\CMAKEFILES\17BA959FC661A32E491A9771FFB726E9\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/Marco/Documents/GitHub/Graphics_Spring2023/Assignment_1_RayTracer/ray -BC:/Users/Marco/Documents/GitHub/Graphics_Spring2023/Assignment_1_RayTracer/ray --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/Marco/Documents/GitHub/Graphics_Spring2023/Assignment_1_RayTracer/ray/GLSL.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

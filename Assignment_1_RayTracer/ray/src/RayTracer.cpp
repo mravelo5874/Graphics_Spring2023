@@ -209,7 +209,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 			I_refl = m.kr(i) * refl_color;
 		}
 
-		// shoot transmissive ray
+		// shoot refractive ray (if not already refractive)
 		glm::dvec3 I_refra(0.0, 0.0, 0.0);
 		if (m.Trans() && r.type() != ray::REFLECTION)
 		{
@@ -218,6 +218,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 			ray::RayType rt = ray::RayType::REFRACTION;
 			glm::dvec3 norm = norm_vec;
 
+			// this assumes that the refraction ray is exiting an object
 			if (r.type() == ray::RayType::REFRACTION)
 			{
 				refra_index = 1.0 / refra_index;

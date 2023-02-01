@@ -1,0 +1,3 @@
+C:/Users/Marco/Documents/GitHub/Graphics_Spring2023/Assignment_1_RayTracer/ray/CMakeFiles/ALL_BUILD.dir
+C:/Users/Marco/Documents/GitHub/Graphics_Spring2023/Assignment_1_RayTracer/ray/CMakeFiles/ZERO_CHECK.dir
+C:/Users/Marco/Documents/GitHub/Graphics_Spring2023/Assignment_1_RayTracer/ray/src/CMakeFiles/ray.dir
