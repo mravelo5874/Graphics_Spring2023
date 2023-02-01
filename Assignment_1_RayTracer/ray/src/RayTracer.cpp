@@ -151,6 +151,13 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 
 			// get light color
 			glm::dvec3 light_color = scene->getAllLights()[l].get()->getColor();
+			
+			// change normal direction if ray is refraction and facing the same direction as vector
+			glm::dvec3 l_norm = norm_vec;
+			if (glm::dot(in_vec, norm_vec) > 0 && r.type() == ray::REFRACTION)
+			{
+				l_norm *= -1.0;
+			}
 
 			// (nothing blocking light)
 			if (!hit)
@@ -160,30 +167,30 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 
 				// calculate diffuse term 
 				// I_d = kd * abs(dot(l, n)) * I_in
-				double res_d = glm::max(glm::dot(light_vec, norm_vec), 0.0);
+				double res_d = glm::max(glm::dot(light_vec, l_norm), 0.0);
 				I_diffuse += m.kd(i) * res_d * light_color * dist_atten;
 
 				// calculate specular term
 				// I_s = ks * max(dot(v, r), 0)^alpha * I_in
 				glm::dvec3 light_in_vect = light_vec * -1.0;
-				glm::dvec3 light_refl_vec = glm::reflect(light_in_vect, norm_vec);
+				glm::dvec3 light_refl_vec = glm::reflect(light_in_vect, l_norm);
 				double res_s = glm::pow(glm::max(glm::dot(out_vec, light_refl_vec), 0.0), m.shininess(i));
 				I_specular += m.ks(i) * res_s * light_color * dist_atten;
 			}
 			// something blocking light - shadow attenuation
 			else
 			{
-				glm::dvec3 shadow_atten = scene->getAllLights()[l].get()->shadowAttenuation(shadow_r, shadow_p, 8);
+				glm::dvec3 shadow_atten = scene->getAllLights()[l].get()->shadowAttenuation(shadow_r, shadow_p, 2);
 
 				// calculate diffuse term 
 				// I_d = kd * abs(dot(l, n)) * I_in
-				double res_d = glm::max(glm::dot(light_vec, norm_vec), 0.0);
+				double res_d = glm::max(glm::dot(light_vec, l_norm), 0.0);
 				I_diffuse += m.kd(i) * res_d * light_color * shadow_atten;
 
 				// calculate specular term
 				// I_s = ks * max(dot(v, r), 0)^alpha * I_in
 				glm::dvec3 light_in_vect = light_vec * -1.0;
-				glm::dvec3 light_refl_vec = glm::reflect(light_in_vect, norm_vec);
+				glm::dvec3 light_refl_vec = glm::reflect(light_in_vect, l_norm);
 				double res_s = glm::pow(glm::max(glm::dot(out_vec, light_refl_vec), 0.0), m.shininess(i));
 				I_specular += m.ks(i) * res_s * light_color * shadow_atten;
 			}
@@ -204,7 +211,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 
 		// shoot transmissive ray
 		glm::dvec3 I_refra(0.0, 0.0, 0.0);
-		if (m.Trans())
+		if (m.Trans() && r.type() != ray::REFLECTION)
 		{
 			double dist = 1.0;
 			double refra_index = 1.0 / m.index(i);
