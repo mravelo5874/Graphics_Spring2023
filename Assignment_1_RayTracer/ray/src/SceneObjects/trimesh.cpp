@@ -94,72 +94,89 @@ bool TrimeshFace::intersect(ray& r, isect& i) const
 // intersection in u (alpha) and v (beta).
 bool TrimeshFace::intersectLocal(ray& r, isect& i) const
 {
-	// get point at which ray r intersects the plane created by triangle abc
-	//std::cout << "1" << std::endl;
 	// get imporntant points and vectors for calculations
-	glm::dvec3 n = parent->getNormal();
-	glm::dvec3 q = parent->vertices[0];
+	glm::dvec3 a_coords = parent->vertices[ids[0]];
+	glm::dvec3 b_coords = parent->vertices[ids[1]];
+	glm::dvec3 c_coords = parent->vertices[ids[2]];
+	glm::dvec3 n = glm::cross(b_coords - a_coords, c_coords - a_coords);
+	n = glm::normalize(n);
+	glm::dvec3 q = a_coords;
 	glm::dvec3 v = r.getDirection();
 	glm::dvec3 o = r.getPosition();
 
-	//std::cout << "2" << std::endl;
-
-	double den = glm::dot(v, n);
+	double denom = glm::dot(v, n);
 	// if dot(v, n) is 0, ray and plane are parallel
-	if (den == 0)
+	if (denom == 0)
 	{
 		return false;
 	}
 
-	//std::cout << "3" << std::endl;
-
-	double t = glm::dot((q - o), n) / den;
+	double t = glm::dot((q - o), n) / denom;
 	// if t is negative, plane is behind ray
 	if (t < 0)
 	{
 		return false;
 	}
 
-	//std::cout << "4" << std::endl;
-
 	// set t for intersection and get point p on plane
 	i.setT(t);
 	glm::dvec3 p = r.at(i);
 
-	//std::cout << "5" << std::endl;
-
-	// get triangle vertices
-	glm::dvec3 a = parent->vertices[0];
-	glm::dvec3 b = parent->vertices[1];
-	glm::dvec3 c = parent->vertices[2];
-
-	//std::cout << "6" << std::endl;
-
-	double ab = glm::dot(glm::cross((b - a), (p - a)), n);
-	double bc = glm::dot(glm::cross((c - b), (p - b)), n);
-	double ca = glm::dot(glm::cross((a - c), (p - c)), n);
-
-	//std::cout << "7" << std::endl;
+	double ab = glm::dot(glm::cross((b_coords - a_coords), (p - a_coords)), n);
+	double bc = glm::dot(glm::cross((c_coords - b_coords), (p - b_coords)), n);
+	double ca = glm::dot(glm::cross((a_coords - c_coords), (p - c_coords)), n);
 
 	if (ab >= 0 && bc >= 0 && ca >= 0)
 	{
-		// calculate barycentric coords
-		glm::mat2 m1 = glm::mat2(glm::dvec2(glm::dot((b - a), (b - a)), glm::dot((c - a), (b - a))), glm::dvec2(glm::dot((b - a), (c - a)), glm::dot((c - a), (c - a))));
-
-		//m1[0] = glm::dvec2(glm::dot((b - a), (b - a)), glm::dot((c - a), (b - a)));
-		//m1[1] = glm::dvec2(glm::dot((b - a), (c - a)), glm::dot((c - a), (c - a)));
-
-		//std::cout << "8" << std::endl;
-
-		glm::vec2 m2 = glm::dvec2(glm::dot((p - a), (b - a)), glm::dot((p - a), (c - a)));
-
-		//std::cout << "9" << std::endl;
-
+		glm::mat2 m1(1.0);
+		m1[0][0] = glm::dot((b_coords - a_coords), (b_coords - a_coords));
+		m1[0][1] = glm::dot((c_coords - a_coords), (b_coords - a_coords));
+		m1[1][0] = glm::dot((b_coords - a_coords), (c_coords - a_coords));
+		m1[1][1] = glm::dot((c_coords - a_coords), (c_coords - a_coords));
+		// perform linear algebra
+		glm::vec2 m2(glm::dot((p - a_coords), (b_coords - a_coords)), glm::dot((p - a_coords), (c_coords - a_coords)));
 		glm::vec2 bary = glm::inverse(m1) * m2;
-		//TODO: std::cout << "bary coords: " << bary.x << ", " << bary.y << std::endl;
+		// get barycentric coordinates
+		double bary_coord_a = bary.x;
+		double bary_coord_b = bary.y;
+		double bary_coord_c = 1 - bary.x - bary.y;
+		// set i values
 		i.setUVCoordinates(bary);
+		i.setMaterial(this->getMaterial());
 		i.setMaterial(parent->getMaterial());
 		i.setN(n);
+		// using barycentric coordinates, 
+		// determine phong interpolation of normal of intersection (only for meshes w/ per-vertex normals)
+		if (parent->vertNorms)
+		{
+			// get per-vertex normals
+			glm::dvec3 a_norm = parent->normals[ids[1]];
+			glm::dvec3 b_norm = parent->normals[ids[2]];
+			glm::dvec3 c_norm = parent->normals[ids[0]];
+			// compute interpolated normal
+			glm::dvec3 inter_norm = (a_norm * bary_coord_a) + (b_norm * bary_coord_b) + (c_norm * bary_coord_c);
+			inter_norm = glm::normalize(inter_norm);
+			i.setN(inter_norm);
+		}
+		// as well as interpolation of material (without renormalization) (only for meshes w/ per-vertex materials)
+		if (parent->materials.size() > 2)
+		{
+			// get per-vertex material
+			Material* a_mat = parent->materials[ids[1]];
+			Material* b_mat = parent->materials[ids[2]];
+			Material* c_mat = parent->materials[ids[0]];
+			// compute interpolated material
+			Material inter_mat;
+			inter_mat.setEmissive((a_mat->ke(i) * bary_coord_a) + (b_mat->ke(i) * bary_coord_b) + (c_mat->ke(i) * bary_coord_c));
+			inter_mat.setAmbient((a_mat->ka(i) * bary_coord_a) + (b_mat->ka(i) * bary_coord_b) + (c_mat->ka(i) * bary_coord_c));
+			inter_mat.setSpecular((a_mat->ks(i) * bary_coord_a) + (b_mat->ks(i) * bary_coord_b) + (c_mat->ks(i) * bary_coord_c));
+			inter_mat.setDiffuse((a_mat->kd(i) * bary_coord_a) + (b_mat->kd(i) * bary_coord_b) + (c_mat->kd(i) * bary_coord_c));
+			inter_mat.setReflective((a_mat->kr(i) * bary_coord_a) + (b_mat->kr(i) * bary_coord_b) + (c_mat->kr(i) * bary_coord_c));
+			inter_mat.setTransmissive((a_mat->kt(i) * bary_coord_a) + (b_mat->kt(i) * bary_coord_b) + (c_mat->kt(i) * bary_coord_c));
+			inter_mat.setIndex((a_mat->index(i) * bary_coord_a) + (b_mat->index(i) * bary_coord_b) + (c_mat->index(i) * bary_coord_c));
+			inter_mat.setShininess((a_mat->shininess(i) * bary_coord_a) + (b_mat->shininess(i) * bary_coord_b) + (c_mat->shininess(i) * bary_coord_c));
+			i.setMaterial(inter_mat);
+		}
 		return true;
 	}
 	return false;

@@ -104,6 +104,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		// more steps: add in the contributions from reflected and refracted
 		// rays.
 
+		const double EPSILON = 0.000001;
 
 		// intersection point
 		glm::dvec3 inter_p = r.at(i);
@@ -128,17 +129,17 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		glm::dvec3 I_shade(0.0, 0.0, 0.0);
 
 		// get point slightly off the surface of intersection
-		//glm::dvec3 shadow_p = inter_p - (norm_vec * 0.0001);
+		glm::dvec3 shadow_p = inter_p + (out_vec * EPSILON);
 		
 		// for each light l, shoot shadow ray from intersection point i to l
 		int total_lights = scene->getAllLights().size();
 		for (int l = 0; l < total_lights; l++)
 		{
 			// get direction of light
-			glm::dvec3 light_vec = scene->getAllLights()[l].get()->getDirection(inter_p);
+			glm::dvec3 light_vec = scene->getAllLights()[l].get()->getDirection(shadow_p);
 
 			// shoot shadow ray and check for intersection w/ objects
-			ray shadow_r(inter_p, light_vec, glm::dvec3(1, 1, 1), ray::SHADOW);
+			ray shadow_r(shadow_p, light_vec, glm::dvec3(1, 1, 1), ray::SHADOW);
 			isect shadow_i;
 			bool hit = scene->intersect(shadow_r, shadow_i);
 			// make sure intersection object is between light and this object
@@ -172,7 +173,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 			// something blocking light - shadow attenuation
 			else
 			{
-				glm::dvec3 shadow_atten = scene->getAllLights()[l].get()->shadowAttenuation(shadow_r, inter_p, 8);
+				glm::dvec3 shadow_atten = scene->getAllLights()[l].get()->shadowAttenuation(shadow_r, shadow_p, 8);
 
 				// calculate diffuse term 
 				// I_d = kd * abs(dot(l, n)) * I_in
@@ -219,7 +220,9 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 			}
 			// send ray and determine color
 			glm::dvec3 refra_vec = glm::refract(in_vec, norm, refra_index);
-			ray refra_r(inter_p, refra_vec, glm::dvec3(1, 1, 1), rt);
+			refra_vec = glm::normalize(refra_vec);
+			glm::dvec3 refra_p = inter_p + (refra_vec * EPSILON);
+			ray refra_r(refra_p, refra_vec, glm::dvec3(1, 1, 1), rt);
 			glm::dvec3 refra_color = traceRay(refra_r, thresh, depth + 1, t);
 			I_refra = glm::pow(m.kt(i), glm::dvec3(dist)) * refra_color;
 		}
@@ -371,7 +374,6 @@ void RayTracer::traceImage(int w, int h)
 	// Always call traceSetup before rendering anything.
 	traceSetup(w,h);
 
-	// YOUR CODE HERE
 	// FIXME: Start one or more threads for ray tracing
 	//
 	// TIPS: Ideally, the traceImage should be executed asynchronously,
@@ -404,11 +406,10 @@ void RayTracer::traceImage(int w, int h)
 
 glm::dvec3 RayTracer::boxFilter(int x, int y, int smpls, double thresh)
 {
-	int offset = max(1, smpls / 2);
-	int y_start = y - offset;
-	int y_end = y + offset;
-	int x_start = x - offset;
-	int x_end = x + offset;
+	int y_start = y - smpls;
+	int y_end = y + smpls;
+	int x_start = x - smpls;
+	int x_end = x + smpls;
 
 	glm::dvec3 average(0.0, 0.0, 0.0);
 	int count = 0;
