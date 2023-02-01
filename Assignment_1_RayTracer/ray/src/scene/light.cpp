@@ -14,7 +14,6 @@ double DirectionalLight::distanceAttenuation(const glm::dvec3& P) const
 	return 1.0;
 }
 
-const double EPSILON = 0.000001;
 
 glm::dvec3 DirectionalLight::shadowAttenuation(const ray& r, const glm::dvec3& p, const int depth) const
 {	
@@ -53,8 +52,6 @@ glm::dvec3 DirectionalLight::shadowAttenuation(const ray& r, const glm::dvec3& p
 			// object is translucent!
 			// send ray through object to calculate how much light gets through
 			glm::dvec3 in_p = shadow_r.at(shadow_i);
-			// get point slightly into the surface of intersection
-			in_p = in_p + (light_dir * EPSILON);
 			ray inside_r(in_p, light_dir, glm::dvec3(1, 1, 1), ray::SHADOW);
 			isect inside_i;
 			bool hit = scene->intersect(inside_r, inside_i);
@@ -67,8 +64,6 @@ glm::dvec3 DirectionalLight::shadowAttenuation(const ray& r, const glm::dvec3& p
 			if (hit)
 			{
 				glm::dvec3 out_p = inside_r.at(inside_i);
-				// get point slightly out of the surface of intersection
-				out_p = out_p + (light_dir * EPSILON);
 				// calculate how much distance the ray traveled
 				double dist = glm::distance(in_p, out_p);
 				// return recursive shadow light * (kt)^dist
@@ -148,8 +143,6 @@ glm::dvec3 PointLight::shadowAttenuation(const ray& r, const glm::dvec3& p, cons
 			// object is translucent!
 			// send ray through object to calculate how much light gets through
 			glm::dvec3 in_p = shadow_r.at(shadow_i);
-			// get point slightly into the surface of intersection
-			in_p = in_p + (light_dir * EPSILON);
 			ray inside_r(in_p, light_dir, glm::dvec3(1, 1, 1), ray::SHADOW);
 			isect inside_i;
 			bool hit = scene->intersect(inside_r, inside_i);
@@ -162,8 +155,6 @@ glm::dvec3 PointLight::shadowAttenuation(const ray& r, const glm::dvec3& p, cons
 			if (hit)
 			{
 				glm::dvec3 out_p = inside_r.at(inside_i);
-				// get point slightly out of the surface of intersection
-				out_p = out_p + (light_dir * EPSILON);
 				// calculate how much distance the ray traveled
 				double dist = glm::distance(in_p, out_p);
 				// return recursive shadow light * (kt)^dist

@@ -1,40 +1,6 @@
-﻿  trimesh.cpp
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\SceneObjects\trimesh.cpp(40,28): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\SceneObjects\trimesh.cpp(143,22): warning C4244: '=': conversion from 'T' to 'T', possible loss of data
-          with
-          [
-              T=double
-          ]
-          and
-          [
-              T=float
-          ]
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\SceneObjects\trimesh.cpp(144,22): warning C4244: '=': conversion from 'T' to 'T', possible loss of data
-          with
-          [
-              T=double
-          ]
-          and
-          [
-              T=float
-          ]
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\SceneObjects\trimesh.cpp(145,22): warning C4244: '=': conversion from 'T' to 'T', possible loss of data
-          with
-          [
-              T=double
-          ]
-          and
-          [
-              T=float
-          ]
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\SceneObjects\trimesh.cpp(146,22): warning C4244: '=': conversion from 'T' to 'T', possible loss of data
-          with
-          [
-              T=double
-          ]
-          and
-          [
-              T=float
-          ]
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\SceneObjects\trimesh.cpp(200,27): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+﻿  RayTracer.cpp
+C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(134,50): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(318,29): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(388,26): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(483,20): warning C4018: '<': signed/unsigned mismatch
   ray.vcxproj -> C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\build\bin\Debug\ray.exe

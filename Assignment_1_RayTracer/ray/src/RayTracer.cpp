@@ -75,6 +75,9 @@ glm::dvec3 RayTracer::tracePixel(int i, int j)
 // (or places called from here) to handle reflection, refraction, etc etc.
 glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, double& t)
 {
+
+	//std::cout << "depth: " << depth << ", traceUI->getDepth(): " << traceUI->getDepth() << ", traceUI->getMaxDepth(): " << traceUI->getMaxDepth() << std::endl;
+
 	// return (0, 0, 0) if at max depth
 	if (depth > traceUI->getDepth())
 	{
@@ -90,6 +93,8 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 
 	if(scene->intersect(r, i)) 
 	{
+		// YOUR CODE HERE
+
 		// An intersection occurred!  We've got work to do.  For now,
 		// this code gets the material for the surface that was intersected,
 		// and asks that material to provide a color for the ray.
@@ -98,7 +103,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		// Instead of just returning the result of shade(), add some
 		// more steps: add in the contributions from reflected and refracted
 		// rays.
-		const double EPSILON = 0.000001;
+
 
 		// intersection point
 		glm::dvec3 inter_p = r.at(i);
@@ -123,17 +128,17 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		glm::dvec3 I_shade(0.0, 0.0, 0.0);
 
 		// get point slightly off the surface of intersection
-		glm::dvec3 shadow_p = inter_p + (out_vec * EPSILON);
+		//glm::dvec3 shadow_p = inter_p - (norm_vec * 0.0001);
 		
 		// for each light l, shoot shadow ray from intersection point i to l
 		int total_lights = scene->getAllLights().size();
 		for (int l = 0; l < total_lights; l++)
 		{
 			// get direction of light
-			glm::dvec3 light_vec = scene->getAllLights()[l].get()->getDirection(shadow_p);
+			glm::dvec3 light_vec = scene->getAllLights()[l].get()->getDirection(inter_p);
 
 			// shoot shadow ray and check for intersection w/ objects
-			ray shadow_r(shadow_p, light_vec, glm::dvec3(1, 1, 1), ray::SHADOW);
+			ray shadow_r(inter_p, light_vec, glm::dvec3(1, 1, 1), ray::SHADOW);
 			isect shadow_i;
 			bool hit = scene->intersect(shadow_r, shadow_i);
 			// make sure intersection object is between light and this object
@@ -167,8 +172,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 			// something blocking light - shadow attenuation
 			else
 			{
-				// calculate shadow attenuation
-				glm::dvec3 shadow_atten = scene->getAllLights()[l].get()->shadowAttenuation(shadow_r, shadow_p, 8);
+				glm::dvec3 shadow_atten = scene->getAllLights()[l].get()->shadowAttenuation(shadow_r, inter_p, 8);
 
 				// calculate diffuse term 
 				// I_d = kd * abs(dot(l, n)) * I_in
@@ -215,9 +219,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 			}
 			// send ray and determine color
 			glm::dvec3 refra_vec = glm::refract(in_vec, norm, refra_index);
-			refra_vec = glm::normalize(refra_vec);
-			glm::dvec3 refra_p = inter_p + (refra_vec * EPSILON);
-			ray refra_r(refra_p, refra_vec, glm::dvec3(1, 1, 1), rt);
+			ray refra_r(inter_p, refra_vec, glm::dvec3(1, 1, 1), rt);
 			glm::dvec3 refra_color = traceRay(refra_r, thresh, depth + 1, t);
 			I_refra = glm::pow(m.kt(i), glm::dvec3(dist)) * refra_color;
 		}
@@ -402,10 +404,11 @@ void RayTracer::traceImage(int w, int h)
 
 glm::dvec3 RayTracer::boxFilter(int x, int y, int smpls, double thresh)
 {
-	int y_start = y - smpls;
-	int y_end = y + smpls;
-	int x_start = x - smpls;
-	int x_end = x + smpls;
+	int offset = max(1, smpls / 2);
+	int y_start = y - offset;
+	int y_end = y + offset;
+	int x_start = x - offset;
+	int x_end = x + offset;
 
 	glm::dvec3 average(0.0, 0.0, 0.0);
 	int count = 0;
