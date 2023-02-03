@@ -1,0 +1,10 @@
+^C:\USERS\MARCO\DESKTOP\RAY\RAY\CMAKEFILES\7C05E61E5887FB3804C935F902B96DD3\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/Marco/Desktop/ray/ray -BC:/Users/Marco/Desktop/ray/ray --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/Marco/Desktop/ray/ray/GLSL.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

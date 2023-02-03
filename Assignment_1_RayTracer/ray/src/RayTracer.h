@@ -58,8 +58,6 @@ public:
 	// function that each worker thread executes
 	void thread_function(int thread_id, int start_row, int end_row, int row_len);
 
-	glm::dvec3 boxFilter(int x, int y, int smpls, double thresh);
-
 private:
 	glm::dvec3 trace(double x, double y);
 
@@ -68,8 +66,6 @@ private:
 	int bufferSize;
 	int block_size;
 	double thresh;
-	double aaThresh;
-	int samples;
 	std::unique_ptr<Scene> scene;
 
 	bool m_bBufferReady;
@@ -79,6 +75,11 @@ private:
 	std::vector<std::thread> threads;
 	std::vector<int> thread_done;
 	std::mutex mtx;
+
+	// variables for AA
+	bool computeAA;
+	double aaThresh;
+	int samples;
 };
 
 #endif // __RAYTRACER_H__

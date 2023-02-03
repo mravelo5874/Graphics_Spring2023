@@ -1,0 +1,10 @@
+^C:\USERS\MARCO\DESKTOP\RAY\RAY\SRC\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/Marco/Desktop/ray/ray -BC:/Users/Marco/Desktop/ray/ray --check-stamp-file C:/Users/Marco/Desktop/ray/ray/src/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

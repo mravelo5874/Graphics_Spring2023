@@ -1,6 +1,15 @@
 ﻿  RayTracer.cpp
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(135,50): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(329,29): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(398,26): warning C4018: '<': signed/unsigned mismatch
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(492,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(160,50): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(351,29): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(424,26): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(518,20): warning C4018: '<': signed/unsigned mismatch
+  main.cpp
+  CommandLineUI.cpp
+  CubeMapChooser.cxx
+  GraphicalUI.cpp
+  TraceGLWindow.cpp
+  debuggingView.cpp
+C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\ui\debuggingView.cpp(107,55): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+  Generating Code...
+C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(86): warning C4715: 'RayTracer::tracePixel': not all control paths return a value
   ray.vcxproj -> C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\build\bin\Debug\ray.exe

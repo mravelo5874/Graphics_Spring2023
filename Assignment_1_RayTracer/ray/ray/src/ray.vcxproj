@@ -1,0 +1,418 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{29D4554D-1387-3E8F-9F28-01FA3AC88091}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <VcpkgEnabled>false</VcpkgEnabled>
+    <WindowsTargetPlatformVersion>10.0.22000.0</WindowsTargetPlatformVersion>
+    <Platform>x64</Platform>
+    <ProjectName>ray</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="do_not_import_user.props" Condition="exists('do_not_import_user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\Marco\Desktop\ray\ray\bin\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ray.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ray</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\Marco\Desktop\ray\ray\bin\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ray.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ray</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\Marco\Desktop\ray\ray\bin\MinSizeRel\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">ray.dir\MinSizeRel\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">ray</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\Marco\Desktop\ray\ray\bin\RelWithDebInfo\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">ray.dir\RelWithDebInfo\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">ray</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</GenerateManifest>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>\usr\local\include;\opt\local\include;C:\Users\Marco\Desktop\ray\ray\lib;C:\Users\Marco\Documents\GitHub\fltk\build;C:\Users\Marco\Documents\GitHub\fltk;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/Users/Marco/Desktop/ray/ray/third-party/glm"</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;GLM_ENABLE_EXPERIMENTAL;GLM_FORCE_SIZE_FUNC=1;GLM_FORCE_RADIANS=1;NOMINMAX;_USE_MATH_DEFINES;CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;GLM_ENABLE_EXPERIMENTAL;GLM_FORCE_SIZE_FUNC=1;GLM_FORCE_RADIANS=1;NOMINMAX;_USE_MATH_DEFINES;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>\usr\local\include;\opt\local\include;C:\Users\Marco\Desktop\ray\ray\lib;C:\Users\Marco\Documents\GitHub\fltk\build;C:\Users\Marco\Documents\GitHub\fltk;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\include;C:\Users\Marco\Desktop\ray\ray\third-party\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>\usr\local\include;\opt\local\include;C:\Users\Marco\Desktop\ray\ray\lib;C:\Users\Marco\Documents\GitHub\fltk\build;C:\Users\Marco\Documents\GitHub\fltk;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\include;C:\Users\Marco\Desktop\ray\ray\third-party\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <PostBuildEvent>
+      <Message></Message>
+      <Command>setlocal
+C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -noprofile -executionpolicy Bypass -file C:/Users/Marco/Documents/GitHub/vcpkg/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary C:/Users/Marco/Desktop/ray/ray/bin/Debug/ray.exe -installedDir C:/Users/Marco/Documents/GitHub/vcpkg/installed/x64-windows/debug/bin -OutVariable out
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+    </PostBuildEvent>
+    <Link>
+      <AdditionalDependencies>opengl32.lib;C:\Users\Marco\Documents\GitHub\fltk\build\lib\Debug\fltkd.lib;C:\Users\Marco\Documents\GitHub\fltk\build\lib\Debug\fltk_gld.lib;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\debug\lib\jpeg.lib;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\debug\lib\libpng16d.lib;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\debug\lib\zlibd.lib;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\debug\lib\zlibd.lib;glu32.lib;opengl32.lib;C:\Users\Marco\Documents\GitHub\fltk\build\lib\Debug\fltkd.lib;comctl32.lib;ws2_32.lib;gdiplus.lib;glu32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>/usr/local/lib;/usr/local/lib/$(Configuration);/opt/local/lib;/opt/local/lib/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Users/Marco/Desktop/ray/ray/bin/Debug/ray.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/Marco/Desktop/ray/ray/bin/Debug/ray.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>\usr\local\include;\opt\local\include;C:\Users\Marco\Desktop\ray\ray\lib;C:\Users\Marco\Documents\GitHub\fltk\build;C:\Users\Marco\Documents\GitHub\fltk;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/Users/Marco/Desktop/ray/ray/third-party/glm"</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;GLM_ENABLE_EXPERIMENTAL;GLM_FORCE_SIZE_FUNC=1;GLM_FORCE_RADIANS=1;NOMINMAX;_USE_MATH_DEFINES;CMAKE_INTDIR="Release"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;GLM_ENABLE_EXPERIMENTAL;GLM_FORCE_SIZE_FUNC=1;GLM_FORCE_RADIANS=1;NOMINMAX;_USE_MATH_DEFINES;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>\usr\local\include;\opt\local\include;C:\Users\Marco\Desktop\ray\ray\lib;C:\Users\Marco\Documents\GitHub\fltk\build;C:\Users\Marco\Documents\GitHub\fltk;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\include;C:\Users\Marco\Desktop\ray\ray\third-party\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>\usr\local\include;\opt\local\include;C:\Users\Marco\Desktop\ray\ray\lib;C:\Users\Marco\Documents\GitHub\fltk\build;C:\Users\Marco\Documents\GitHub\fltk;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\include;C:\Users\Marco\Desktop\ray\ray\third-party\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <PostBuildEvent>
+      <Message></Message>
+      <Command>setlocal
+C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -noprofile -executionpolicy Bypass -file C:/Users/Marco/Documents/GitHub/vcpkg/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary C:/Users/Marco/Desktop/ray/ray/bin/Release/ray.exe -installedDir C:/Users/Marco/Documents/GitHub/vcpkg/installed/x64-windows/bin -OutVariable out
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+    </PostBuildEvent>
+    <Link>
+      <AdditionalDependencies>opengl32.lib;C:\Users\Marco\Documents\GitHub\fltk\build\lib\Release\fltk.lib;C:\Users\Marco\Documents\GitHub\fltk\build\lib\Release\fltk_gl.lib;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\lib\jpeg.lib;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\lib\libpng16.lib;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\lib\zlib.lib;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\lib\zlib.lib;glu32.lib;opengl32.lib;C:\Users\Marco\Documents\GitHub\fltk\build\lib\Release\fltk.lib;comctl32.lib;ws2_32.lib;gdiplus.lib;glu32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>/usr/local/lib;/usr/local/lib/$(Configuration);/opt/local/lib;/opt/local/lib/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Users/Marco/Desktop/ray/ray/bin/Release/ray.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/Marco/Desktop/ray/ray/bin/Release/ray.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>\usr\local\include;\opt\local\include;C:\Users\Marco\Desktop\ray\ray\lib;C:\Users\Marco\Documents\GitHub\fltk\build;C:\Users\Marco\Documents\GitHub\fltk;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/Users/Marco/Desktop/ray/ray/third-party/glm"</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <Optimization>MinSpace</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;GLM_ENABLE_EXPERIMENTAL;GLM_FORCE_SIZE_FUNC=1;GLM_FORCE_RADIANS=1;NOMINMAX;_USE_MATH_DEFINES;CMAKE_INTDIR="MinSizeRel"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;GLM_ENABLE_EXPERIMENTAL;GLM_FORCE_SIZE_FUNC=1;GLM_FORCE_RADIANS=1;NOMINMAX;_USE_MATH_DEFINES;CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>\usr\local\include;\opt\local\include;C:\Users\Marco\Desktop\ray\ray\lib;C:\Users\Marco\Documents\GitHub\fltk\build;C:\Users\Marco\Documents\GitHub\fltk;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\include;C:\Users\Marco\Desktop\ray\ray\third-party\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>\usr\local\include;\opt\local\include;C:\Users\Marco\Desktop\ray\ray\lib;C:\Users\Marco\Documents\GitHub\fltk\build;C:\Users\Marco\Documents\GitHub\fltk;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\include;C:\Users\Marco\Desktop\ray\ray\third-party\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <PostBuildEvent>
+      <Message></Message>
+      <Command>setlocal
+C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -noprofile -executionpolicy Bypass -file C:/Users/Marco/Documents/GitHub/vcpkg/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary C:/Users/Marco/Desktop/ray/ray/bin/MinSizeRel/ray.exe -installedDir C:/Users/Marco/Documents/GitHub/vcpkg/installed/x64-windows/bin -OutVariable out
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+    </PostBuildEvent>
+    <Link>
+      <AdditionalDependencies>opengl32.lib;C:\Users\Marco\Documents\GitHub\fltk\build\lib\MinSizeRel\fltk.lib;C:\Users\Marco\Documents\GitHub\fltk\build\lib\MinSizeRel\fltk_gl.lib;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\lib\jpeg.lib;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\lib\libpng16.lib;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\lib\zlib.lib;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\lib\zlib.lib;glu32.lib;opengl32.lib;C:\Users\Marco\Documents\GitHub\fltk\build\lib\MinSizeRel\fltk.lib;comctl32.lib;ws2_32.lib;gdiplus.lib;glu32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>/usr/local/lib;/usr/local/lib/$(Configuration);/opt/local/lib;/opt/local/lib/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Users/Marco/Desktop/ray/ray/bin/MinSizeRel/ray.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/Marco/Desktop/ray/ray/bin/MinSizeRel/ray.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>\usr\local\include;\opt\local\include;C:\Users\Marco\Desktop\ray\ray\lib;C:\Users\Marco\Documents\GitHub\fltk\build;C:\Users\Marco\Documents\GitHub\fltk;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/Users/Marco/Desktop/ray/ray/third-party/glm"</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;GLM_ENABLE_EXPERIMENTAL;GLM_FORCE_SIZE_FUNC=1;GLM_FORCE_RADIANS=1;NOMINMAX;_USE_MATH_DEFINES;CMAKE_INTDIR="RelWithDebInfo"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;GLM_ENABLE_EXPERIMENTAL;GLM_FORCE_SIZE_FUNC=1;GLM_FORCE_RADIANS=1;NOMINMAX;_USE_MATH_DEFINES;CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>\usr\local\include;\opt\local\include;C:\Users\Marco\Desktop\ray\ray\lib;C:\Users\Marco\Documents\GitHub\fltk\build;C:\Users\Marco\Documents\GitHub\fltk;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\include;C:\Users\Marco\Desktop\ray\ray\third-party\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>\usr\local\include;\opt\local\include;C:\Users\Marco\Desktop\ray\ray\lib;C:\Users\Marco\Documents\GitHub\fltk\build;C:\Users\Marco\Documents\GitHub\fltk;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\include;C:\Users\Marco\Desktop\ray\ray\third-party\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <PostBuildEvent>
+      <Message></Message>
+      <Command>setlocal
+C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -noprofile -executionpolicy Bypass -file C:/Users/Marco/Documents/GitHub/vcpkg/scripts/buildsystems/msbuild/applocal.ps1 -targetBinary C:/Users/Marco/Desktop/ray/ray/bin/RelWithDebInfo/ray.exe -installedDir C:/Users/Marco/Documents/GitHub/vcpkg/installed/x64-windows/bin -OutVariable out
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+    </PostBuildEvent>
+    <Link>
+      <AdditionalDependencies>opengl32.lib;C:\Users\Marco\Documents\GitHub\fltk\build\lib\RelWithDebInfo\fltk.lib;C:\Users\Marco\Documents\GitHub\fltk\build\lib\RelWithDebInfo\fltk_gl.lib;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\lib\jpeg.lib;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\lib\libpng16.lib;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\lib\zlib.lib;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\lib\zlib.lib;glu32.lib;opengl32.lib;C:\Users\Marco\Documents\GitHub\fltk\build\lib\RelWithDebInfo\fltk.lib;comctl32.lib;ws2_32.lib;gdiplus.lib;glu32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>/usr/local/lib;/usr/local/lib/$(Configuration);/opt/local/lib;/opt/local/lib/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Users/Marco/Desktop/ray/ray/bin/RelWithDebInfo/ray.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/Marco/Desktop/ray/ray/bin/RelWithDebInfo/ray.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Marco\Desktop\ray\ray\src\CMakeLists.txt">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Users/Marco/Desktop/ray/ray/src/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/Marco/Desktop/ray/ray -BC:/Users/Marco/Desktop/ray/ray --check-stamp-file C:/Users/Marco/Desktop/ray/ray/src/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files\CMake\share\cmake-3.25\Modules\FindFLTK.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindJPEG.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindOpenGL.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindPNG.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindZLIB.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\SelectLibraryConfigurations.cmake;C:\Users\Marco\Documents\GitHub\fltk\build\FLTK-Targets.cmake;C:\Users\Marco\Documents\GitHub\fltk\build\FLTKConfig.cmake;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\share\jpeg\vcpkg-cmake-wrapper.cmake;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\share\png\vcpkg-cmake-wrapper.cmake;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\share\zlib\vcpkg-cmake-wrapper.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\Marco\Desktop\ray\ray\src\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/Users/Marco/Desktop/ray/ray/src/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/Marco/Desktop/ray/ray -BC:/Users/Marco/Desktop/ray/ray --check-stamp-file C:/Users/Marco/Desktop/ray/ray/src/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files\CMake\share\cmake-3.25\Modules\FindFLTK.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindJPEG.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindOpenGL.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindPNG.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindZLIB.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\SelectLibraryConfigurations.cmake;C:\Users\Marco\Documents\GitHub\fltk\build\FLTK-Targets.cmake;C:\Users\Marco\Documents\GitHub\fltk\build\FLTKConfig.cmake;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\share\jpeg\vcpkg-cmake-wrapper.cmake;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\share\png\vcpkg-cmake-wrapper.cmake;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\share\zlib\vcpkg-cmake-wrapper.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\Marco\Desktop\ray\ray\src\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule C:/Users/Marco/Desktop/ray/ray/src/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/Marco/Desktop/ray/ray -BC:/Users/Marco/Desktop/ray/ray --check-stamp-file C:/Users/Marco/Desktop/ray/ray/src/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Program Files\CMake\share\cmake-3.25\Modules\FindFLTK.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindJPEG.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindOpenGL.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindPNG.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindZLIB.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\SelectLibraryConfigurations.cmake;C:\Users\Marco\Documents\GitHub\fltk\build\FLTK-Targets.cmake;C:\Users\Marco\Documents\GitHub\fltk\build\FLTKConfig.cmake;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\share\jpeg\vcpkg-cmake-wrapper.cmake;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\share\png\vcpkg-cmake-wrapper.cmake;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\share\zlib\vcpkg-cmake-wrapper.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\Marco\Desktop\ray\ray\src\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule C:/Users/Marco/Desktop/ray/ray/src/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/Marco/Desktop/ray/ray -BC:/Users/Marco/Desktop/ray/ray --check-stamp-file C:/Users/Marco/Desktop/ray/ray/src/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Program Files\CMake\share\cmake-3.25\Modules\FindFLTK.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindJPEG.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindOpenGL.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindPNG.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\FindZLIB.cmake;C:\Program Files\CMake\share\cmake-3.25\Modules\SelectLibraryConfigurations.cmake;C:\Users\Marco\Documents\GitHub\fltk\build\FLTK-Targets.cmake;C:\Users\Marco\Documents\GitHub\fltk\build\FLTKConfig.cmake;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\share\jpeg\vcpkg-cmake-wrapper.cmake;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\share\png\vcpkg-cmake-wrapper.cmake;C:\Users\Marco\Documents\GitHub\vcpkg\installed\x64-windows\share\zlib\vcpkg-cmake-wrapper.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\Marco\Desktop\ray\ray\src\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\RayTracer.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\main.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\fileio\bitmap.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\fileio\buffer.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\fileio\images.cc" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\fileio\pngimage.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\parser\Parser.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\parser\ParserException.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\parser\Token.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\parser\Tokenizer.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\scene\bbox.cc" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\scene\camera.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\scene\cubeMap.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\scene\light.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\scene\material.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\scene\ray.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\scene\scene.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\SceneObjects\Box.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\SceneObjects\Cone.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\SceneObjects\Cylinder.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\SceneObjects\Sphere.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\SceneObjects\Square.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\SceneObjects\trimesh.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\ui\CommandLineUI.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\ui\CubeMapChooser.cxx" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\ui\GraphicalUI.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\ui\ModelerCamera.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\ui\TraceGLWindow.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\ui\TraceUI.cc" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\ui\debuggingView.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\ui\debuggingWindow.cxx" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\ui\glObjects.cpp" />
+    <ClCompile Include="C:\Users\Marco\Desktop\ray\ray\src\win32\getopt.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\Users\Marco\Desktop\ray\ray\ZERO_CHECK.vcxproj">
+      <Project>{CC1188A0-E9D0-36FE-8CB8-456A5CC3FCCC}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

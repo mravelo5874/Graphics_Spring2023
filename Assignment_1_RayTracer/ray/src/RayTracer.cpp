@@ -56,16 +56,34 @@ glm::dvec3 RayTracer::tracePixel(int i, int j)
 	glm::dvec3 col(0,0,0);
 
 	if( ! sceneLoaded() ) return col;
+	
 
-	double x = double(i)/double(buffer_width);
-	double y = double(j)/double(buffer_height);
-
-	unsigned char *pixel = buffer.data() + ( i + j * buffer_width ) * 3;
+	double x = double(i) / double(buffer_width);
+	double y = double(j) / double(buffer_height);
 	col = trace(x, y);
 
-	pixel[0] = (int)( 255.0 * col[0]);
-	pixel[1] = (int)( 255.0 * col[1]);
-	pixel[2] = (int)( 255.0 * col[2]);
+	// AA stuff
+	if (computeAA)
+	{		
+		glm::dvec3 average(0.0, 0.0, 0.0);
+		int count = 0;
+		for (int u = 0; u < samples; u++)
+		{
+			for (int v = 0; v < samples; v++)
+			{
+				double x = double((i * samples) + u) / double(buffer_width * samples);
+				double y = double((j * samples) + v) / double(buffer_height * samples);
+				average += trace(x, y);
+				count++;
+			}
+		}
+		average = average * (1.0 / count);
+		col = (col * aaThresh) + (average * (1 - aaThresh));
+	}
+	unsigned char* pixel = buffer.data() + (i + j * buffer_width) * 3;
+	pixel[0] = (int)(255.0 * col[0]);
+	pixel[1] = (int)(255.0 * col[1]);
+	pixel[2] = (int)(255.0 * col[2]);
 	return col;
 }
 
@@ -115,8 +133,17 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		// calculate important vectors
 		glm::dvec3 in_vec = glm::normalize(r.getDirection());
 		glm::dvec3 out_vec = in_vec * -1.0;
-
 		glm::dvec3 norm_vec = glm::normalize(i.getN());
+
+		// change normal direction if ray is refraction and facing the same direction as vector
+		double refra_index = 1.0 / m.index(i);
+		double dist = 1.0;
+		if (glm::dot(in_vec, norm_vec) > 0 && r.type() == ray::REFRACTION)
+		{
+			norm_vec *= -1.0;
+			refra_index = 1.0 / refra_index;
+			dist = glm::distance(r.getPosition(), inter_p);
+		}
 		glm::dvec3 refl_vec = glm::reflect(in_vec, norm_vec); // in_vec - 2.0 * glm::dot(norm_vec, in_vec) * norm_vec;
 
 		// calculate ambient term
@@ -151,13 +178,6 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 
 			// get light color
 			glm::dvec3 light_color = scene->getAllLights()[l].get()->getColor();
-			
-			// change normal direction if ray is refraction and facing the same direction as vector
-			glm::dvec3 l_norm = norm_vec;
-			if (glm::dot(in_vec, norm_vec) > 0 && r.type() == ray::REFRACTION)
-			{
-				l_norm *= -1.0;
-			}
 
 			// (nothing blocking light)
 			if (!hit)
@@ -167,13 +187,13 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 
 				// calculate diffuse term 
 				// I_d = kd * abs(dot(l, n)) * I_in
-				double res_d = glm::max(glm::dot(light_vec, l_norm), 0.0);
+				double res_d = glm::max(glm::dot(light_vec, norm_vec), 0.0);
 				I_diffuse += m.kd(i) * res_d * light_color * dist_atten;
 
 				// calculate specular term
 				// I_s = ks * max(dot(v, r), 0)^alpha * I_in
 				glm::dvec3 light_in_vect = light_vec * -1.0;
-				glm::dvec3 light_refl_vec = glm::reflect(light_in_vect, l_norm);
+				glm::dvec3 light_refl_vec = glm::reflect(light_in_vect, norm_vec);
 				double res_s = glm::pow(glm::max(glm::dot(out_vec, light_refl_vec), 0.0), m.shininess(i));
 				I_specular += m.ks(i) * res_s * light_color * dist_atten;
 			}
@@ -184,15 +204,15 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 
 				// calculate diffuse term 
 				// I_d = kd * abs(dot(l, n)) * I_in
-				double res_d = glm::max(glm::dot(light_vec, l_norm), 0.0);
-				I_diffuse += m.kd(i) * res_d * light_color * shadow_atten;
+				double res_d = glm::max(glm::dot(light_vec, norm_vec), 0.0);
+				I_diffuse += m.kd(i) * res_d * light_color; // *shadow_atten;
 
 				// calculate specular term
 				// I_s = ks * max(dot(v, r), 0)^alpha * I_in
 				glm::dvec3 light_in_vect = light_vec * -1.0;
-				glm::dvec3 light_refl_vec = glm::reflect(light_in_vect, l_norm);
+				glm::dvec3 light_refl_vec = glm::reflect(light_in_vect, norm_vec);
 				double res_s = glm::pow(glm::max(glm::dot(out_vec, light_refl_vec), 0.0), m.shininess(i));
-				I_specular += m.ks(i) * res_s * light_color * shadow_atten;
+				I_specular += m.ks(i) * res_s * light_color; // *shadow_atten;
 			}
 		}
 
@@ -202,7 +222,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 
 		// shoot reflective ray
 		glm::dvec3 I_refl(0.0, 0.0, 0.0);
-		if (m.Refl())
+		if (m.Refl() && r.type() != ray::REFRACTION)
 		{
 			ray refl_r(inter_p, refl_vec, glm::dvec3(1, 1, 1), ray::REFLECTION);
 			glm::dvec3 refl_color = traceRay(refl_r, thresh, depth + 1, t);
@@ -211,26 +231,13 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 
 		// shoot refractive ray (if not already refractive)
 		glm::dvec3 I_refra(0.0, 0.0, 0.0);
-		if (m.Trans() && r.type() != ray::REFLECTION)
+		if (m.Trans())
 		{
-			double dist = 1.0;
-			double refra_index = 1.0 / m.index(i);
-			ray::RayType rt = ray::RayType::REFRACTION;
-			glm::dvec3 norm = norm_vec;
-
-			// this assumes that the refraction ray is exiting an object
-			if (r.type() == ray::RayType::REFRACTION)
-			{
-				refra_index = 1.0 / refra_index;
-				rt = ray::RayType::VISIBILITY;
-				norm *= -1.0;
-				dist = glm::distance(r.getPosition(), inter_p);
-			}
 			// send ray and determine color
-			glm::dvec3 refra_vec = glm::refract(in_vec, norm, refra_index);
+			glm::dvec3 refra_vec = glm::refract(in_vec, norm_vec, refra_index);
 			refra_vec = glm::normalize(refra_vec);
 			glm::dvec3 refra_p = inter_p + (refra_vec * EPSILON);
-			ray refra_r(refra_p, refra_vec, glm::dvec3(1, 1, 1), rt);
+			ray refra_r(refra_p, refra_vec, glm::dvec3(1, 1, 1), ray::RayType::REFRACTION);
 			glm::dvec3 refra_color = traceRay(refra_r, thresh, depth + 1, t);
 			I_refra = glm::pow(m.kt(i), glm::dvec3(dist)) * refra_color;
 		}
@@ -324,6 +331,10 @@ bool RayTracer::loadScene(const char* fn)
 
 void RayTracer::traceSetup(int w, int h)
 {
+	// setup AA buffer
+	computeAA = traceUI->aaSwitch();
+	samples = traceUI->getSuperSamples();
+	
 	size_t newBufferSize = w * h * 3;
 	if (newBufferSize != buffer.size()) {
 		bufferSize = newBufferSize;
@@ -340,15 +351,10 @@ void RayTracer::traceSetup(int w, int h)
 
 	// set none of the render vectors to be done
 	thread_done.clear();
-
 	num_threads = traceUI->getThreads();
 	block_size = traceUI->getBlockSize();
 	thresh = traceUI->getThreshold();
-	samples = traceUI->getSuperSamples();
 	aaThresh = traceUI->getAaThreshold();
-
-	// YOUR CODE HERE
-	// FIXME: Additional initializations
 }
 
 void RayTracer::thread_function(int thread_id, int start_row, int end_row, int row_len)
@@ -390,6 +396,7 @@ void RayTracer::traceImage(int w, int h)
 	//       An asynchronous traceImage lets the GUI update your results
 	//       while rendering.
 
+
 	// determine how many rows per thread + remainder rows
 	int rows_per_thread = h / num_threads;
 	int row_rem = h % num_threads;
@@ -405,39 +412,10 @@ void RayTracer::traceImage(int w, int h)
 		{
 			end_row += row_rem;
 		}
-
-		// start thread
 		threads.push_back(std::thread(&RayTracer::thread_function, this, t_id, start_row, end_row, w));
 	}
 }
 
-
-glm::dvec3 RayTracer::boxFilter(int x, int y, int smpls, double thresh)
-{
-	int y_start = y - smpls;
-	int y_end = y + smpls;
-	int x_start = x - smpls;
-	int x_end = x + smpls;
-
-	glm::dvec3 average(0.0, 0.0, 0.0);
-	int count = 0;
-	for (int j = y_start; j < y_end; j++)
-	{
-		if (j >= 0 && j < buffer_height)
-		{
-			for (int i = x_start; i < x_end; i++)
-			{
-				if (i >= 0 && i < buffer_width)
-				{
-					average += getPixel(i, j);
-					count++;
-				}
-			}
-		}
-	}
-	average =  average * (1.0/count);
-	return average;
-}
 
 int RayTracer::aaImage()
 {
@@ -445,22 +423,6 @@ int RayTracer::aaImage()
 	//
 	// TIP: samples and aaThresh have been synchronized with TraceUI by
 	//      RayTracer::traceSetup() function
-
-	if (checkRender())
-	{
-		int smpls = samples;
-		double thresh = aaThresh;
-		for (int y = 0; y < buffer_height; y++)
-		{
-			for (int x = 0; x < buffer_width; x++)
-			{
-				glm::dvec3 old_pixel = getPixel(x, y);
-				glm::dvec3 box_filter = boxFilter(x, y, smpls, thresh);
-				glm::dvec3 new_pixel = (old_pixel * aaThresh) + (box_filter * (1 - aaThresh));
-				setPixel(x, y, new_pixel);
-			}
-		}
-	}
 
 	return 0;
 }

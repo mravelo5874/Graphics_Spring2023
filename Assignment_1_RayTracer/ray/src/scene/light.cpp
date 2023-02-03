@@ -100,7 +100,7 @@ double PointLight::distanceAttenuation(const glm::dvec3& P) const
 	
 	double dist = glm::distance(P, position);
 	double atten = glm::min(1.0, (1.0 / (constantTerm + (linearTerm * dist) + (quadraticTerm * glm::pow(dist, 2)))));
-
+	atten = glm::clamp(atten, 0.0, 1.0);
 	return atten;
 }
 
