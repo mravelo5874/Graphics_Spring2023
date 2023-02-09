@@ -46,7 +46,7 @@ glm::dvec3 RayTracer::trace(double x, double y)
 	ray r(glm::dvec3(0,0,0), glm::dvec3(0,0,0), glm::dvec3(1,1,1), ray::VISIBILITY);
 	scene->getCamera().rayThrough(x,y,r);
 	double dummy;
-	glm::dvec3 ret = traceRay(r, glm::dvec3(1.0,1.0,1.0), 0, dummy);
+	glm::dvec3 ret = traceRay(r, glm::dvec3(1.0,1.0,1.0), 0, dummy, 1.0);
 	ret = glm::clamp(ret, 0.0, 1.0);
 	return ret;
 }
@@ -91,11 +91,8 @@ glm::dvec3 RayTracer::tracePixel(int i, int j)
 
 // Do recursive ray tracing!  You'll want to insert a lot of code here
 // (or places called from here) to handle reflection, refraction, etc etc.
-glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, double& t)
+glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, double& t, double prev_refrac_index)
 {
-
-	//std::cout << "depth: " << depth << ", traceUI->getDepth(): " << traceUI->getDepth() << ", traceUI->getMaxDepth(): " << traceUI->getMaxDepth() << std::endl;
-
 	// return (0, 0, 0) if at max depth
 	if (depth > traceUI->getDepth())
 	{
@@ -111,8 +108,6 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 
 	if(scene->intersect(r, i)) 
 	{
-		// YOUR CODE HERE
-
 		// An intersection occurred!  We've got work to do.  For now,
 		// this code gets the material for the surface that was intersected,
 		// and asks that material to provide a color for the ray.
@@ -135,13 +130,14 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		glm::dvec3 out_vec = in_vec * -1.0;
 		glm::dvec3 norm_vec = glm::normalize(i.getN());
 
-		// change normal direction if ray is refraction and facing the same direction as vector
-		double refra_index = 1.0 / m.index(i);
-		double dist = 1.0;
-		if (glm::dot(in_vec, norm_vec) > 0 && r.type() == ray::REFRACTION)
+		// change normal direction if ray is refraction type and facing the same direction as in vector and material is transparent
+		double refra_index = prev_refrac_index / m.index(i);
+		double dist = 0.0;
+		if (glm::dot(in_vec, norm_vec) > 0 && r.type() == ray::REFRACTION && m.Trans())
 		{
 			norm_vec *= -1.0;
-			refra_index = 1.0 / refra_index;
+			refra_index = m.index(i) / prev_refrac_index;
+			refra_index = glm::max(1.0, refra_index);
 			dist = glm::distance(r.getPosition(), inter_p);
 		}
 		glm::dvec3 refl_vec = glm::reflect(in_vec, norm_vec); // in_vec - 2.0 * glm::dot(norm_vec, in_vec) * norm_vec;
@@ -179,57 +175,43 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 			// get light color
 			glm::dvec3 light_color = scene->getAllLights()[l].get()->getColor();
 
-			// (nothing blocking light)
-			if (!hit)
-			{
-				// calculate light attenuation
-				double dist_atten = scene->getAllLights()[l].get()->distanceAttenuation(inter_p);
+			// shadow attenuation var
+			glm::dvec3 shadow_atten = glm::dvec3(1.0);
 
-				// calculate diffuse term 
-				// I_d = kd * abs(dot(l, n)) * I_in
-				double res_d = glm::max(glm::dot(light_vec, norm_vec), 0.0);
-				I_diffuse += m.kd(i) * res_d * light_color * dist_atten;
+			// calculate shadow attenuation 
+			shadow_atten = scene->getAllLights()[l].get()->shadowAttenuation(shadow_r, shadow_p, 4);
 
-				// calculate specular term
-				// I_s = ks * max(dot(v, r), 0)^alpha * I_in
-				glm::dvec3 light_in_vect = light_vec * -1.0;
-				glm::dvec3 light_refl_vec = glm::reflect(light_in_vect, norm_vec);
-				double res_s = glm::pow(glm::max(glm::dot(out_vec, light_refl_vec), 0.0), m.shininess(i));
-				I_specular += m.ks(i) * res_s * light_color * dist_atten;
-			}
-			// something blocking light - shadow attenuation
-			else
-			{
-				glm::dvec3 shadow_atten = scene->getAllLights()[l].get()->shadowAttenuation(shadow_r, shadow_p, 2);
+			// calculate light distance attenuation
+			double dist_atten = scene->getAllLights()[l].get()->distanceAttenuation(inter_p);
 
-				// calculate diffuse term 
-				// I_d = kd * abs(dot(l, n)) * I_in
-				double res_d = glm::max(glm::dot(light_vec, norm_vec), 0.0);
-				I_diffuse += m.kd(i) * res_d * light_color; // *shadow_atten;
+			// calculate diffuse term 
+			// I_d = kd * abs(dot(l, n)) * I_in
+			double res_d = glm::max(glm::dot(light_vec, norm_vec), 0.0);
+			I_diffuse += m.kd(i) * res_d * light_color * dist_atten * shadow_atten;
 
-				// calculate specular term
-				// I_s = ks * max(dot(v, r), 0)^alpha * I_in
-				glm::dvec3 light_in_vect = light_vec * -1.0;
-				glm::dvec3 light_refl_vec = glm::reflect(light_in_vect, norm_vec);
-				double res_s = glm::pow(glm::max(glm::dot(out_vec, light_refl_vec), 0.0), m.shininess(i));
-				I_specular += m.ks(i) * res_s * light_color; // *shadow_atten;
-			}
+			// calculate specular term
+			// I_s = ks * max(dot(v, r), 0)^alpha * I_in
+			glm::dvec3 light_in_vect = light_vec * -1.0;
+			glm::dvec3 light_refl_vec = glm::reflect(light_in_vect, norm_vec);
+			double res_s = glm::pow(glm::max(glm::dot(out_vec, light_refl_vec), 0.0), m.shininess(i));
+			I_specular += m.ks(i) * res_s * light_color * dist_atten * shadow_atten;
 		}
 
 		// calculate light contribution
 		// I_phong = I_emissive + I_ambient + [I_diffuse + I_specular] * I_in
 		glm::dvec3 I_phong = I_emissive + I_ambient + I_diffuse + I_specular;
 
-		// shoot reflective ray
+		// shoot reflective ray (if not already refractive)
 		glm::dvec3 I_refl(0.0, 0.0, 0.0);
 		if (m.Refl() && r.type() != ray::REFRACTION)
 		{
 			ray refl_r(inter_p, refl_vec, glm::dvec3(1, 1, 1), ray::REFLECTION);
-			glm::dvec3 refl_color = traceRay(refl_r, thresh, depth + 1, t);
+			glm::dvec3 refl_color = traceRay(refl_r, thresh, depth + 1, t, 1.0);
+			// clamp the final result between 0 and 1
 			I_refl = m.kr(i) * refl_color;
 		}
 
-		// shoot refractive ray (if not already refractive)
+		// shoot refractive ray
 		glm::dvec3 I_refra(0.0, 0.0, 0.0);
 		if (m.Trans())
 		{
@@ -238,8 +220,9 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 			refra_vec = glm::normalize(refra_vec);
 			glm::dvec3 refra_p = inter_p + (refra_vec * EPSILON);
 			ray refra_r(refra_p, refra_vec, glm::dvec3(1, 1, 1), ray::RayType::REFRACTION);
-			glm::dvec3 refra_color = traceRay(refra_r, thresh, depth + 1, t);
-			I_refra = glm::pow(m.kt(i), glm::dvec3(dist)) * refra_color;
+			glm::dvec3 refra_color = traceRay(refra_r, thresh, depth + 1, t, 1.0);
+			// clamp the final result between 0 and 1
+			I_refra = glm::clamp(glm::pow(m.kt(i), glm::dvec3(dist)) * refra_color, 0.0, 1.0);
 		}
 		
 		// add total light contributiuon and reflected light
@@ -256,7 +239,12 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		//       Check traceUI->cubeMap() to see if cubeMap is loaded
 		//       and enabled.
 
-		colorC = glm::dvec3(0.0, 0.0, 0.0);
+		if (traceUI->cubeMap())
+		{
+			colorC = traceUI->getCubeMap()->getColor(r);
+		}
+
+		colorC = glm::dvec3(0.0);
 	}
 #if VERBOSE
 	std::cerr << "== depth: " << depth+1 << " done, returning: " << colorC << std::endl;
@@ -345,10 +333,6 @@ void RayTracer::traceSetup(int w, int h)
 	std::fill(buffer.begin(), buffer.end(), 0);
 	m_bBufferReady = true;
 
-	/*
-	 * Sync with TraceUI
-	 */
-
 	// set none of the render vectors to be done
 	thread_done.clear();
 	num_threads = traceUI->getThreads();
@@ -388,15 +372,6 @@ void RayTracer::traceImage(int w, int h)
 	// Always call traceSetup before rendering anything.
 	traceSetup(w,h);
 
-	// FIXME: Start one or more threads for ray tracing
-	//
-	// TIPS: Ideally, the traceImage should be executed asynchronously,
-	//       i.e. returns IMMEDIATELY after working threads are launched.
-	//
-	//       An asynchronous traceImage lets the GUI update your results
-	//       while rendering.
-
-
 	// determine how many rows per thread + remainder rows
 	int rows_per_thread = h / num_threads;
 	int row_rem = h % num_threads;
@@ -419,22 +394,12 @@ void RayTracer::traceImage(int w, int h)
 
 int RayTracer::aaImage()
 {
-	// FIXME: Implement Anti-aliasing here
-	//
-	// TIP: samples and aaThresh have been synchronized with TraceUI by
-	//      RayTracer::traceSetup() function
-
+	// Implement Anti-aliasing was implemented within tracePixel() method!!!
 	return 0;
 }
 
 bool RayTracer::checkRender()
 {
-	// FIXME: Return true if tracing is done.
-	//        This is a helper routine for GUI.
-	//
-	// TIPS: Introduce an array to track the status of each worker thread.
-	//       This array is maintained by the worker threads.
-
 	// return true if all threads are complete
 	if (thread_done.size() >= num_threads)
 		return true;
@@ -444,13 +409,7 @@ bool RayTracer::checkRender()
 
 void RayTracer::waitRender()
 {
-	// YOUR CODE HERE
-	// FIXME: Wait until the rendering process is done.
-	//        This function is essential if you are using an asynchronous
-	//        traceImage implementation.
-	//
-	// TIPS: Join all worker threads here.
-
+	//  join all worker threads
 	for (int i = 0; i < num_threads; i++)
 	{
 		threads[i].join();

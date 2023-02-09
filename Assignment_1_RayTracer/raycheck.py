@@ -101,9 +101,9 @@ def check_ref_signature(refcache_dir, refbin, json, cubemap):
     return need_update
 
 def raycheck(args):
-    args.refcache = args.out + '/refcache' if not args.refcache else args.refcache
-    args.diffout = args.out + '/diff' if not args.diffout else args.diffout
-    args.mtgout = args.out + '/mtg' if not args.mtgout else args.mtgout
+    args.refcache = args.out + '\\refcache' if not args.refcache else args.refcache
+    args.diffout = args.out + '\\diff' if not args.diffout else args.diffout
+    args.mtgout = args.out + '\\mtg' if not args.mtgout else args.mtgout
     # print(args)
 
     scene_dir = args.scenes
@@ -174,11 +174,14 @@ def raycheck(args):
                 print(_msg(relbase + ' RMS: {}'.format(rms), '[WARNING] ', Fore.YELLOW))
                 if args.diffout:
                     difffn = os.path.join(args.diffout, relbase + '.diff.png')
-                    subprocess.run(['compare', imagefn, refimagefn, difffn])
+                    print ('imagefn: ', imagefn)
+                    print ('refimagefn: ', refimagefn)
+                    print ('difffn: ', difffn)
+                    #subprocess.run(['compare', imagefn, refimagefn, difffn])
+                    comp = compare(imagefn, refimagefn, difffn, args)
                     if args.mtgout:
                         mtgfn = os.path.join(args.mtgout, relbase + '.mtg.png')
-                        subprocess.run(['montage', imagefn, refimagefn, difffn,
-                            '-tile', '3x', '-geometry', '+1+1', mtgfn])
+                        #subprocess.run(['montage', imagefn, refimagefn, difffn,'-tile', '3x', '-geometry', '+1+1', mtgfn])
             report_dict[relbase] = rms
     if (not args.nocompare) and args.report:
         ''' Only write to report if nocompare is not enabled '''

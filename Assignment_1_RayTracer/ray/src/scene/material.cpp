@@ -59,12 +59,13 @@ TextureMap::TextureMap(string filename)
 		error.append("'.");
 		throw TextureMapException(error);
 	}
+	std::cout << "width: " << width << std::endl;
+	std::cout << "height: " << height << std::endl;
+	std::cout << "image data: " << data.size() << std::endl;
 }
 
 glm::dvec3 TextureMap::getMappedValue(const glm::dvec2& coord) const
 {
-	// YOUR CODE HERE
-	//
 	// In order to add texture mapping support to the
 	// raytracer, you need to implement this function.
 	// What this function should do is convert from
@@ -73,17 +74,33 @@ glm::dvec3 TextureMap::getMappedValue(const glm::dvec2& coord) const
 	// and use these to perform bilinear interpolation
 	// of the values.
 
-	return glm::dvec3(1, 1, 1);
+	double rel_x = (double)(width - 1) * coord[0];
+	double rel_y = (double)(height - 1) * coord[1];
+
+	glm::dvec3 value = getPixelAt((int)rel_x, (int)rel_y);
+	return value;
 }
 
 glm::dvec3 TextureMap::getPixelAt(int x, int y) const
 {
-	// YOUR CODE HERE
-	//
 	// In order to add texture mapping support to the
 	// raytracer, you need to implement this function.
 
-	return glm::dvec3(1, 1, 1);
+	// data length = height * width * 3
+
+	int start_index = ((height * y) + (x)) * 3;
+
+	//std::cout << "x: " << x << " y: " << y << std::endl;
+	//std::cout << "start pixel: " << start_pixel << std::endl;
+
+	glm::dvec3 pixel(
+		(double)data.at(start_index + 0) / 255.0,
+		(double)data.at(start_index + 1) / 255.0,
+		(double)data.at(start_index + 2) / 255.0
+		);
+
+	//std::cout << "pixel: " << pixel << std::endl;
+	return pixel;
 }
 
 glm::dvec3 MaterialParameter::value(const isect& is) const

@@ -21,7 +21,8 @@ glm::dvec3 DirectionalLight::shadowAttenuation(const ray& r, const glm::dvec3& p
 {	
 	if (depth <= 0)
 	{
-		return glm::dvec3(0.0, 0.0, 0.0);
+		// return 1 because we will never reach the light
+		return glm::dvec3(1.0);
 	}
 
 	// shoot ray from shadow point to light
@@ -29,13 +30,6 @@ glm::dvec3 DirectionalLight::shadowAttenuation(const ray& r, const glm::dvec3& p
 	ray shadow_r(p, light_dir, glm::dvec3(1, 1, 1), ray::SHADOW);
 	isect shadow_i;
 	bool hit = scene->intersect(shadow_r, shadow_i);
-
-	// since we cannot check if object is past light,
-	// make sure distance between ray start and hit is not too large
-	if (hit && glm::distance(p, shadow_r.at(shadow_i)) > 256.0)
-	{
-		return glm::dvec3(0.0, 0.0, 0.0);
-	}
 
 	// you hit something! 
 	if (hit)
@@ -47,7 +41,7 @@ glm::dvec3 DirectionalLight::shadowAttenuation(const ray& r, const glm::dvec3& p
 		if (!m.Trans())
 		{
 			// object is not translucent, therefore no light from light source can reach it
-			return glm::dvec3(0.0, 0.0, 0.0);
+			return glm::dvec3(0.0);
 		}
 		else
 		{
@@ -60,26 +54,33 @@ glm::dvec3 DirectionalLight::shadowAttenuation(const ray& r, const glm::dvec3& p
 			isect inside_i;
 			bool hit = scene->intersect(inside_r, inside_i);
 
-			// make sure intersection object is between light and this object
-			glm::dvec3 object_to_light = getDirection(inside_r.at(inside_i));
-			hit = glm::dot(light_dir, object_to_light) > 0.0;
-
-			// you hit the other side!
+			// you hit somthing!
 			if (hit)
 			{
-				glm::dvec3 out_p = inside_r.at(inside_i);
-				// get point slightly out of the surface of intersection
-				out_p = out_p + (light_dir * EPSILON);
-				// calculate how much distance the ray traveled
-				double dist = glm::distance(in_p, out_p);
-				// return recursive shadow light * (kt)^dist
-				return glm::pow(m.kt(shadow_i), glm::dvec3(dist)) + shadowAttenuation(inside_r, out_p, depth - 1);
+				// make sure it is translucent
+				const Material& m = shadow_i.getMaterial();
+				if (!m.Trans())
+				{
+					// object is not translucent, therefore no light from light source can reach it
+					return glm::dvec3(0.0);
+				}
+				else
+				{
+					glm::dvec3 out_p = inside_r.at(inside_i);
+					// get point slightly out of the surface of intersection
+					out_p = out_p + (light_dir * EPSILON);
+					// calculate how much distance the ray traveled
+					double dist = glm::distance(in_p, out_p);
+					// return recursive shadow light * (kt)^dist
+					// clamp between 0 and 1!
+					return glm::clamp(glm::pow(m.kt(shadow_i), glm::dvec3(dist)) * shadowAttenuation(inside_r, out_p, depth - 1), 0.0, 1.0);
+				}
 			}
 		}
 	}
 
 	// nothing blocking light - no need to calculate anything!
-	return glm::dvec3(0.0, 0.0, 0.0);
+	return glm::dvec3(1.0);
 }
 
 glm::dvec3 DirectionalLight::getColor() const
@@ -114,12 +115,13 @@ glm::dvec3 PointLight::getDirection(const glm::dvec3& P) const
 	return glm::normalize(position - P);
 }
 
-
+// 0 = fully shadowed and 1 = fully illuminated
 glm::dvec3 PointLight::shadowAttenuation(const ray& r, const glm::dvec3& p, const int depth) const
 {
 	if (depth <= 0)
 	{
-		return getColor();
+		// return 0, did not reach light
+		return glm::dvec3(0.0);
 	}
 
 	// shoot ray from shadow point to light
@@ -135,14 +137,12 @@ glm::dvec3 PointLight::shadowAttenuation(const ray& r, const glm::dvec3& p, cons
 	// you hit something! 
 	if (hit)
 	{
-		// material of object hit
+		// make sure it is translucent
 		const Material& m = shadow_i.getMaterial();
-
-		// check if translucent
 		if (!m.Trans())
 		{	
 			// object is not translucent, therefore no light from light source can reach it
-			return glm::dvec3(0.0, 0.0, 0.0);
+			return glm::dvec3(0.0);
 		}
 		else
 		{
@@ -159,22 +159,33 @@ glm::dvec3 PointLight::shadowAttenuation(const ray& r, const glm::dvec3& p, cons
 			glm::dvec3 object_to_light = getDirection(inside_r.at(inside_i));
 			hit = glm::dot(light_dir, object_to_light) > 0.0;
 
-			// you hit the other side!
+			// you hit somthing!
 			if (hit)
 			{
-				glm::dvec3 out_p = inside_r.at(inside_i);
-				// get point slightly out of the surface of intersection
-				out_p = out_p + (light_dir * EPSILON);
-				// calculate how much distance the ray traveled
-				double dist = glm::distance(in_p, out_p);
-				// return recursive shadow light * (kt)^dist
-				return glm::pow(m.kt(shadow_i), glm::dvec3(dist)) * shadowAttenuation(inside_r, out_p, depth - 1);
+				// make sure it is translucent
+				const Material& m = shadow_i.getMaterial();
+				if (!m.Trans())
+				{
+					// object is not translucent, therefore no light from light source can reach it
+					return glm::dvec3(0.0);
+				}
+				else
+				{
+					glm::dvec3 out_p = inside_r.at(inside_i);
+					// get point slightly out of the surface of intersection
+					out_p = out_p + (light_dir * EPSILON);
+					// calculate how much distance the ray traveled
+					double dist = glm::distance(in_p, out_p);
+					// return recursive shadow light * (kt)^dist
+					// clamp between 0 and 1!
+					return glm::clamp(glm::pow(m.kt(shadow_i), glm::dvec3(dist)) * shadowAttenuation(inside_r, out_p, depth - 1), 0.0, 1.0);
+				}
 			}
 		}
 	}
 
 	// nothing blocking light - no need to calculate anything!
-	return getColor();
+	return glm::dvec3(1.0);
 }
 
 #define VERBOSE 0
