@@ -95,7 +95,7 @@ glm::dvec3 TextureMap::getMappedValue(const glm::dvec2& coord) const
 	glm::dvec3 d = getPixelAt((int)u_1, (int)v_2);
 
 	glm::dvec3 val = (gamma * ((alpha * a) + (beta * b))) + (delta * ((alpha * d) + (beta * c)));
-	glm::dvec3 ori = getPixelAt((int)u, (int)v);
+	//glm::dvec3 ori = getPixelAt((int)u, (int)v);
 
 	//std::cout << "ori: " << ori << " bilin: " << val << std::endl;
 	return val;

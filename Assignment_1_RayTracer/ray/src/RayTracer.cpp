@@ -243,8 +243,10 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		{
 			colorC = traceUI->getCubeMap()->getColor(r);
 		}
-
-		colorC = glm::dvec3(0.0);
+		else
+		{
+			colorC = glm::dvec3(0.0);
+		}
 	}
 #if VERBOSE
 	std::cerr << "== depth: " << depth+1 << " done, returning: " << colorC << std::endl;
