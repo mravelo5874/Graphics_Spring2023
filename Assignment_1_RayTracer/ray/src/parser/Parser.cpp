@@ -387,6 +387,7 @@ void Parser::parseSphere(Scene* scene, TransformNode* transform, const Material&
         sphere = new Sphere(scene, newMat ? newMat : new Material(mat));
         sphere->setTransform( transform );
         scene->add( sphere );
+        scene->add_bvh(sphere); // add to bvh list
         return;
       default:
         throw SyntaxErrorException( "Expected: sphere attributes", _tokenizer );
@@ -421,6 +422,7 @@ void Parser::parseBox(Scene* scene, TransformNode* transform, const Material& ma
         box = new Box(scene, newMat ? newMat : new Material(mat) );
         box->setTransform( transform );
         scene->add( box );
+        scene->add_bvh(box); // add to bvh list
         return;
       default:
         throw SyntaxErrorException( "Expected: box attributes", _tokenizer );
@@ -455,6 +457,7 @@ void Parser::parseSquare(Scene* scene, TransformNode* transform, const Material&
         square = new Square(scene, newMat ? newMat : new Material(mat));
         square->setTransform( transform );
         scene->add( square );
+        scene->add_bvh(square); // add to bvh list
         return;
       default:
         throw SyntaxErrorException( "Expected: square attributes", _tokenizer );
@@ -489,6 +492,7 @@ void Parser::parseCylinder(Scene* scene, TransformNode* transform, const Materia
         cylinder = new Cylinder(scene, newMat ? newMat : new Material(mat));
         cylinder->setTransform( transform );
         scene->add( cylinder );
+        scene->add_bvh(cylinder); // add to bvh list
         return;
       default:
         throw SyntaxErrorException( "Expected: cylinder attributes", _tokenizer );
@@ -541,6 +545,7 @@ void Parser::parseCone(Scene* scene, TransformNode* transform, const Material& m
           height, bottomRadius, topRadius, capped );
         cone->setTransform( transform );
         scene->add( cone );
+        scene->add_bvh(cone); // add to bvh list
         return;
       default:
         throw SyntaxErrorException( "Expected: cone attributes", _tokenizer );
@@ -686,6 +691,11 @@ void Parser::parseTrimesh(Scene* scene, TransformNode* transform, const Material
           throw ParserException(error);
 
         scene->add( tmesh );
+        // add each trimesh face to bvh list
+        for (auto face : tmesh->get_faces())
+        {
+            scene->add_bvh(face); // add to bvh list
+        }
         return;
       }
 

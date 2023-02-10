@@ -87,12 +87,9 @@ void Geometry::ComputeBoundingBox() {
 		
     bounds.setMax(glm::dvec3(newMax));
     bounds.setMin(glm::dvec3(newMin));
-
-	// compute centroid
-	compute_centroid();
 }
 
-void Geometry::compute_centroid()
+void MaterialSceneObject::compute_centroid()
 {
 	BoundingBox bb = getBoundingBox();
 	glm::dvec3 avg = (bb.getMax() + bb.getMin()) * 0.5;
@@ -121,9 +118,15 @@ void Scene::add(Light* light)
 	lights.emplace_back(light);
 }
 
-void Scene::add(BVH_node* node)
+void Scene::add_node(BVH_node* node)
 {
 	bvh_node_array.emplace_back(node);
+}
+
+void Scene::add_bvh(MaterialSceneObject* obj)
+{
+	obj->compute_centroid();
+	bvh_objects.push_back(obj);
 }
 
 
@@ -165,21 +168,23 @@ TextureMap* Scene::getTexture(string name) {
 void Scene::generate_BVH()
 {
 	std::cout << "generating BVH..." << std::endl;
+	std::cout << "bvh_objects.size(): " << bvh_objects.size() << std::endl;
 
-	// clear old array and values
-	if (bvh_node_array.size() > 0)
+	// dont generate BVH if noting in array
+	if (bvh_objects.size() == 0)
 	{
-		bvh_node_array.clear();
-		root_index = 0;
-		used_nodes = 1;
+		BVH_node* root = new BVH_node;
+		add_node(root);
+		return;
 	}
+	
 
 	BVH_node* root = new BVH_node;
-	add(root);
+	add_node(root);
 	// initially assign all objects to root node
 	root->left_child = root->right_child = 0;
 	root->first_prim = 0;
-	root->prim_count = objects.size();
+	root->prim_count = bvh_objects.size();
 	// update min and max aabb
 	update_node_bounds(root_index);
 	// subdivide recursively
@@ -195,19 +200,19 @@ void Scene::update_node_bounds(int node_index)
 	node->aabb_max = glm::dvec3(-1e30f);
 	for (int first = node->first_prim, i = 0; i < node->prim_count; i++)
 	{
-		Geometry* obj = objects.at(first + i).get();
+		MaterialSceneObject* obj = bvh_objects.at(first + i);
 		BoundingBox bb = obj->getBoundingBox();
 		node->aabb_min = glm::min(node->aabb_min, bb.getMin());
 		node->aabb_max = glm::max(node->aabb_max, bb.getMax());
 	}
-	std::cout << "node: " << node_index << ", aabb.min: " << node->aabb_min << ", aabb.max: " << node->aabb_max << std::endl;
+	//std::cout << "node: " << node_index << ", aabb.min: " << node->aabb_min << ", aabb.max: " << node->aabb_max << std::endl;
 }
 
 void Scene::subdivide_node(int node_index)
 {
 	// get node and terminate reccursion
 	BVH_node* node = bvh_node_array.at(node_index).get();
-	if (node->prim_count < 1) return;
+	if (node->prim_count <= 1) return;
 
 	// determine axis and position of the split plane
 	glm::dvec3 extent = node->aabb_max - node->aabb_min;
@@ -223,10 +228,10 @@ void Scene::subdivide_node(int node_index)
 	// ? surface area heuristic
 	while (i <= p_count)
 	{
-		if (objects.at(i).get()->centroid[axis] < split_pos)
+		if (bvh_objects.at(i)->centroid[axis] < split_pos)
 			i++;
 		else
-			objects.at(i).swap(objects.at(p_count--));
+			swap(bvh_objects.at(i), bvh_objects.at(p_count--));
 	}
 
 	// return if count = 0 OR count = prism_count
@@ -235,8 +240,8 @@ void Scene::subdivide_node(int node_index)
 	// create child nodes for each half
 	BVH_node* left_child = new BVH_node;
 	BVH_node* right_child = new BVH_node;
-	add(left_child);
-	add(right_child);
+	add_node(left_child);
+	add_node(right_child);
 	int left_child_index = used_nodes++;
 	int right_child_index = used_nodes++;
 	node->left_child = left_child_index;
@@ -256,19 +261,19 @@ void Scene::subdivide_node(int node_index)
 
 bool Scene::intersect_BVH(ray& r, isect& i, const int node_index)
 {
-	//std::cout << "new bvh intersection!" << std::endl;
-
 	// get node and return if no intersection is detected, return false
 	BVH_node* node = bvh_node_array.at(node_index).get();
 	if (!intersect_aabb(r, i, node->aabb_min, node->aabb_max)) return false;
 	// check if node is a leaf node
+	std::cout << "node->prim_count: " << node->prim_count << std::endl;
 	if (node->prim_count > 0)
 	{
+		std::cout << "hit bvh object!" << std::endl;
 		bool have_one = false;
 		isect cur;
-		for (int j = 0; j < node->first_prim; j++)
+		for (int j = node->first_prim; j < node->prim_count - 1; j++)
 		{
-			if (objects.at(j)->intersect(r, cur)) {
+			if (bvh_objects.at(j)->intersect(r, cur)) {
 				if (!have_one || (cur.getT() < i.getT())) {
 					i = cur;
 					have_one = true;

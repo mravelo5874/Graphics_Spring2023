@@ -177,10 +177,6 @@ public:
 	{
 	}
 
-	// used to compute and store centroid of a geometry
-	virtual void compute_centroid();
-	glm::dvec3 centroid;
-
 protected:
 	BoundingBox bounds; 
 	TransformNode* transform;
@@ -210,6 +206,10 @@ public:
 
 	virtual const Material& getMaterial() const { return *material; }
 	virtual void setMaterial(Material* m) { material.reset(m); }
+
+	// used to compute and store centroid of a geometry
+	virtual void compute_centroid();
+	glm::dvec3 centroid;
 
 protected:
 	MaterialSceneObject(Scene* scene, Material* mat)
@@ -253,7 +253,9 @@ public:
 
 	void add(Geometry* obj);
 	void add(Light* light);
-	void add(BVH_node* node);
+
+	void add_node(BVH_node* node);
+	void add_bvh(MaterialSceneObject* obj);
 
 	bool intersect(ray& r, isect& i) const;
 
@@ -302,6 +304,7 @@ private:
 	std::vector< std::unique_ptr<BVH_node>> bvh_node_array; // list of nodes that will act as a tree
 
 	// default private vars
+	std::vector<MaterialSceneObject*> bvh_objects;
 	std::vector<std::unique_ptr<Geometry>> objects;
 	std::vector<std::unique_ptr<Light>> lights;
 	Camera camera;

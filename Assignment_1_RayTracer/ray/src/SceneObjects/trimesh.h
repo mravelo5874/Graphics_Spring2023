@@ -75,6 +75,9 @@ public:
 		return localbounds;
 	}
 
+	// get faces
+	Faces get_faces() { return faces;  }
+
 protected:
 	void glDrawLocal(int quality, bool actualMaterials,
 	                 bool actualTextures) const;
