@@ -8,8 +8,6 @@ extern TraceUI* traceUI;
 
 glm::dvec3 CubeMap::getColor(ray r) const
 {
-	// YOUR CODE HERE
-	
 	// determine which face the ray will hit and get UV coords
 	glm::dvec3 dir = glm::normalize(r.getDirection());
 	glm::dvec3 abs_dir = glm::abs(dir);
@@ -38,13 +36,6 @@ glm::dvec3 CubeMap::getColor(ray r) const
 	}
 
 	uv = uv * ma + 0.5;
-
-	// swap axis
-	//uv = glm::dvec2(uv[1], uv[0]);
-
-	//std::cout << "tm_index: " << tm_index << std::endl;
-	//std::cout << "uv: " << uv.x << ", " << uv.y << std::endl;
-
 	return tMap[tm_index]->getMappedValue(uv);
 }
 

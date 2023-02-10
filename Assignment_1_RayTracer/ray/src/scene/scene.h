@@ -178,7 +178,7 @@ public:
 	}
 
 protected:
-	BoundingBox bounds;
+	BoundingBox bounds; 
 	TransformNode* transform;
 };
 
@@ -264,6 +264,14 @@ public:
 
 	const BoundingBox& bounds() const { return sceneBounds; }
 
+
+	BVH_node* bvh_node_array; // array of nodes that will act as a tree
+	int root_index = 0;
+	int used_nodes = 1;
+
+	void generate_BVH();
+	void update_node_bounds(int node_index);
+	void subdivide_bvh(int node_index);
 
 private:
 	std::vector<std::unique_ptr<Geometry>> objects;

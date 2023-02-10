@@ -144,4 +144,54 @@ TextureMap* Scene::getTexture(string name) {
 	return itr->second.get();
 }
 
+// code for BVH generation created by following tutorial:
+// https://jacco.ompf2.com/2022/04/13/how-to-build-a-bvh-part-1-basics/
+struct BVH_node
+{
+	glm::dvec3 aabb_min, aabb_max;
+	int left_child, right_child;
+	int first_prim, prim_count;
+};
 
+/* N is the number of objects in the scene */
+void Scene::generate_BVH()
+{
+	// create bvh node array
+	bvh_node_array = new BVH_node[objects.size()];
+	// initially assign all objects to root node
+	BVH_node& root = bvh_node_array[root_index];
+	root.left_child = root.right_child = 0;
+	root.first_prim = 0;
+	root.prim_count = objects.size();
+	// update min and max aabb
+	update_node_bounds(root_index);
+	// subdivide recursively
+	subdivide_bvh(root_index);
+}
+
+void Scene::update_node_bounds(int node_index)
+{
+	BVH_node& node = bvh_node_array[node_index];
+	node.aabb_min = glm::dvec3(1e30f);
+	node.aabb_max = glm::dvec3(-1e30f);
+	for (int first = node.first_prim, i = 0; i < node.prim_count; i++)
+	{
+		Geometry* obj = objects.at(first + i).get();
+		BoundingBox bb = obj->getBoundingBox();
+		node.aabb_min = glm::min(node.aabb_min, bb.getMin());
+		node.aabb_max = glm::max(node.aabb_max, bb.getMax());
+	}
+}
+
+void Scene::subdivide_bvh(int node_index)
+{
+	// determine axis and position of the split plane
+	BVH_node& node = bvh_node_array[node_index];
+	glm::dvec3 extent = node.aabb_max - node.aabb_min;
+	int axis = 0;
+	if (extent.y > extent.x) axis = 1;
+	if (extent.z > extent[axis]) axis = 2;
+	double split_pos = node.aabb_min[axis] + extent[axis] * 0.5f;
+
+	// TODO: cont this
+}

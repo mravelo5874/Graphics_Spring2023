@@ -230,15 +230,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 	} 
 	else 
 	{
-		// No intersection.  This ray travels to infinity, so we color
-		// it according to the background color, which in this (simple) case
-		// is just black.
-		//
-		// FIXME: Add CubeMap support here.
-		// TIPS: CubeMap object can be fetched from traceUI->getCubeMap();
-		//       Check traceUI->cubeMap() to see if cubeMap is loaded
-		//       and enabled.
-
+		// use cube map
 		if (traceUI->cubeMap())
 		{
 			colorC = traceUI->getCubeMap()->getColor(r);
@@ -321,6 +313,9 @@ bool RayTracer::loadScene(const char* fn)
 
 void RayTracer::traceSetup(int w, int h)
 {
+	// generate BVH
+	scene->generate_BVH();
+
 	// setup AA buffer
 	computeAA = traceUI->aaSwitch();
 	samples = traceUI->getSuperSamples();
