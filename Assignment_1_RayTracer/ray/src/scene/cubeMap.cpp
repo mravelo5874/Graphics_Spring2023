@@ -11,7 +11,7 @@ glm::dvec3 CubeMap::getColor(ray r) const
 	// YOUR CODE HERE
 	
 	// determine which face the ray will hit and get UV coords
-	glm::dvec3 dir = glm::normalize(r.getDirection());
+	glm::dvec3 dir = r.getDirection();
 	glm::dvec3 abs_dir = glm::abs(dir);
 	int tm_index = 0;
 	double ma = 0.0;

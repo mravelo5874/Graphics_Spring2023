@@ -59,9 +59,11 @@ TextureMap::TextureMap(string filename)
 		error.append("'.");
 		throw TextureMapException(error);
 	}
+	/*
 	std::cout << "width: " << width << std::endl;
 	std::cout << "height: " << height << std::endl;
 	std::cout << "image data: " << data.size() << std::endl;
+	*/
 }
 
 glm::dvec3 TextureMap::getMappedValue(const glm::dvec2& coord) const
@@ -74,11 +76,29 @@ glm::dvec3 TextureMap::getMappedValue(const glm::dvec2& coord) const
 	// and use these to perform bilinear interpolation
 	// of the values.
 
-	double rel_x = (double)(width - 1) * coord[0];
-	double rel_y = (double)(height - 1) * coord[1];
+	double u = (double)(height - 1) * coord[1];
+	double v = (double)(width - 1) * coord[0];
 
-	glm::dvec3 value = getPixelAt((int)rel_x, (int)rel_y);
-	return value;
+	double u_1 = glm::floor(u);
+	double u_2 = glm::ceil(u);
+	double v_1 = glm::floor(v);
+	double v_2 = glm::ceil(v);
+
+	double alpha = (u_2 - u) / (u_2 - u_1);
+	double beta = (u - u_1) / (u_2 - u_1);
+	double gamma = (v_2 - v) / (v_2 - v_1);
+	double delta = (v - v_1) / (v_2 - v_1);
+
+	glm::dvec3 a = getPixelAt((int)u_1, (int)v_1);
+	glm::dvec3 b = getPixelAt((int)u_2, (int)v_1);
+	glm::dvec3 c = getPixelAt((int)u_2, (int)v_2);
+	glm::dvec3 d = getPixelAt((int)u_1, (int)v_2);
+
+	glm::dvec3 val = (gamma * ((alpha * a) + (beta * b))) + (delta * ((alpha * d) + (beta * c)));
+	glm::dvec3 ori = getPixelAt((int)u, (int)v);
+
+	//std::cout << "ori: " << ori << " bilin: " << val << std::endl;
+	return val;
 }
 
 glm::dvec3 TextureMap::getPixelAt(int x, int y) const
@@ -86,9 +106,12 @@ glm::dvec3 TextureMap::getPixelAt(int x, int y) const
 	// In order to add texture mapping support to the
 	// raytracer, you need to implement this function.
 
-	// data length = height * width * 3
+	// clamp x and y to be between 0 and width/height respectively
+	x = glm::clamp(x, 0, width - 1);
+	y = glm::clamp(y, 0, height - 1);
 
-	int start_index = ((height * y) + (x)) * 3;
+	// data length = height * width * 3
+	int start_index = ((width * x) + (y)) * 3;
 
 	//std::cout << "x: " << x << " y: " << y << std::endl;
 	//std::cout << "start pixel: " << start_pixel << std::endl;
