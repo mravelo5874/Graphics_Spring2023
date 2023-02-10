@@ -105,9 +105,11 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 #if VERBOSE
 	std::cerr << "== current depth: " << depth << std::endl;
 #endif
-
-	if(scene->intersect(r, i)) 
+	//if (scene->intersect(r, i)) 
+	if (scene->intersect_BVH(r, i, 0))
 	{
+		//std::cout << "bvh intersection!" << std::endl;
+		// 
 		// An intersection occurred!  We've got work to do.  For now,
 		// this code gets the material for the surface that was intersected,
 		// and asks that material to provide a color for the ray.
@@ -308,14 +310,14 @@ bool RayTracer::loadScene(const char* fn)
 	if (!sceneLoaded())
 		return false;
 
+	// generate new BVH
+	scene->generate_BVH();
+
 	return true;
 }
 
 void RayTracer::traceSetup(int w, int h)
 {
-	// generate BVH
-	scene->generate_BVH();
-
 	// setup AA buffer
 	computeAA = traceUI->aaSwitch();
 	samples = traceUI->getSuperSamples();

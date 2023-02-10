@@ -177,6 +177,10 @@ public:
 	{
 	}
 
+	// used to compute and store centroid of a geometry
+	virtual void compute_centroid();
+	glm::dvec3 centroid;
+
 protected:
 	BoundingBox bounds; 
 	TransformNode* transform;
@@ -216,6 +220,25 @@ protected:
 	unique_ptr<Material> material;
 };
 
+// code for BVH generation created by following tutorial:
+// https://jacco.ompf2.com/2022/04/13/how-to-build-a-bvh-part-1-basics/
+class BVH_node
+{
+public:
+	BVH_node() 
+	{
+		aabb_min = glm::dvec3(0.0);
+		aabb_max = glm::dvec3(0.0);
+		left_child = right_child = first_prim = prim_count = 0;
+	}
+	virtual ~BVH_node() {}
+
+	glm::dvec3 aabb_min, aabb_max;
+	int left_child, right_child;
+	int first_prim, prim_count;
+	bool isLeaf() { return prim_count > 0; }
+};
+
 class Scene {
 public:
 	typedef std::vector<Light*>::iterator liter;
@@ -230,6 +253,7 @@ public:
 
 	void add(Geometry* obj);
 	void add(Light* light);
+	void add(BVH_node* node);
 
 	bool intersect(ray& r, isect& i) const;
 
@@ -264,16 +288,20 @@ public:
 
 	const BoundingBox& bounds() const { return sceneBounds; }
 
-
-	BVH_node* bvh_node_array; // array of nodes that will act as a tree
-	int root_index = 0;
-	int used_nodes = 1;
-
+	// public BVH methods
 	void generate_BVH();
-	void update_node_bounds(int node_index);
-	void subdivide_bvh(int node_index);
+	bool intersect_BVH(ray& r, isect& i, const int node_index);
 
 private:
+	// variables and methods for BVH
+	int root_index = 0;
+	int used_nodes = 1;
+	void update_node_bounds(int node_index);
+	void subdivide_node(int node_index);
+	bool intersect_aabb(ray& r, isect& i, glm::dvec3 min, glm::dvec3 max);
+	std::vector< std::unique_ptr<BVH_node>> bvh_node_array; // list of nodes that will act as a tree
+
+	// default private vars
 	std::vector<std::unique_ptr<Geometry>> objects;
 	std::vector<std::unique_ptr<Light>> lights;
 	Camera camera;

@@ -87,6 +87,17 @@ void Geometry::ComputeBoundingBox() {
 		
     bounds.setMax(glm::dvec3(newMax));
     bounds.setMin(glm::dvec3(newMin));
+
+	// compute centroid
+	compute_centroid();
+}
+
+void Geometry::compute_centroid()
+{
+	BoundingBox bb = getBoundingBox();
+	glm::dvec3 avg = (bb.getMax() + bb.getMin()) * 0.5;
+	centroid = avg;
+	std::cout << "centroid calculated: " << centroid << std::endl;
 }
 
 Scene::Scene()
@@ -96,6 +107,7 @@ Scene::Scene()
 
 Scene::~Scene()
 {
+
 }
 
 void Scene::add(Geometry* obj) {
@@ -107,6 +119,11 @@ void Scene::add(Geometry* obj) {
 void Scene::add(Light* light)
 {
 	lights.emplace_back(light);
+}
+
+void Scene::add(BVH_node* node)
+{
+	bvh_node_array.emplace_back(node);
 }
 
 
@@ -144,54 +161,153 @@ TextureMap* Scene::getTexture(string name) {
 	return itr->second.get();
 }
 
-// code for BVH generation created by following tutorial:
-// https://jacco.ompf2.com/2022/04/13/how-to-build-a-bvh-part-1-basics/
-struct BVH_node
-{
-	glm::dvec3 aabb_min, aabb_max;
-	int left_child, right_child;
-	int first_prim, prim_count;
-};
-
 /* N is the number of objects in the scene */
 void Scene::generate_BVH()
 {
-	// create bvh node array
-	bvh_node_array = new BVH_node[objects.size()];
+	std::cout << "generating BVH..." << std::endl;
+
+	// clear old array and values
+	if (bvh_node_array.size() > 0)
+	{
+		bvh_node_array.clear();
+		root_index = 0;
+		used_nodes = 1;
+	}
+
+	BVH_node* root = new BVH_node;
+	add(root);
 	// initially assign all objects to root node
-	BVH_node& root = bvh_node_array[root_index];
-	root.left_child = root.right_child = 0;
-	root.first_prim = 0;
-	root.prim_count = objects.size();
+	root->left_child = root->right_child = 0;
+	root->first_prim = 0;
+	root->prim_count = objects.size();
 	// update min and max aabb
 	update_node_bounds(root_index);
 	// subdivide recursively
-	subdivide_bvh(root_index);
+	subdivide_node(root_index);
+
+	std::cout << "bvh size: " << bvh_node_array.size() << std::endl;
 }
 
 void Scene::update_node_bounds(int node_index)
 {
-	BVH_node& node = bvh_node_array[node_index];
-	node.aabb_min = glm::dvec3(1e30f);
-	node.aabb_max = glm::dvec3(-1e30f);
-	for (int first = node.first_prim, i = 0; i < node.prim_count; i++)
+	BVH_node* node = bvh_node_array.at(node_index).get();
+	node->aabb_min = glm::dvec3(1e30f);
+	node->aabb_max = glm::dvec3(-1e30f);
+	for (int first = node->first_prim, i = 0; i < node->prim_count; i++)
 	{
 		Geometry* obj = objects.at(first + i).get();
 		BoundingBox bb = obj->getBoundingBox();
-		node.aabb_min = glm::min(node.aabb_min, bb.getMin());
-		node.aabb_max = glm::max(node.aabb_max, bb.getMax());
+		node->aabb_min = glm::min(node->aabb_min, bb.getMin());
+		node->aabb_max = glm::max(node->aabb_max, bb.getMax());
 	}
+	std::cout << "node: " << node_index << ", aabb.min: " << node->aabb_min << ", aabb.max: " << node->aabb_max << std::endl;
 }
 
-void Scene::subdivide_bvh(int node_index)
+void Scene::subdivide_node(int node_index)
 {
+	// get node and terminate reccursion
+	BVH_node* node = bvh_node_array.at(node_index).get();
+	if (node->prim_count < 1) return;
+
 	// determine axis and position of the split plane
-	BVH_node& node = bvh_node_array[node_index];
-	glm::dvec3 extent = node.aabb_max - node.aabb_min;
+	glm::dvec3 extent = node->aabb_max - node->aabb_min;
 	int axis = 0;
 	if (extent.y > extent.x) axis = 1;
 	if (extent.z > extent[axis]) axis = 2;
-	double split_pos = node.aabb_min[axis] + extent[axis] * 0.5f;
+	double split_pos = node->aabb_min[axis] + extent[axis] * 0.5f;
 
-	// TODO: cont this
+	// split group in two halves
+	int i = node->first_prim;
+	int p_count = i + node->prim_count - 1;
+	// TODO: better way to split into two groups
+	// ? surface area heuristic
+	while (i <= p_count)
+	{
+		if (objects.at(i).get()->centroid[axis] < split_pos)
+			i++;
+		else
+			objects.at(i).swap(objects.at(p_count--));
+	}
+
+	// return if count = 0 OR count = prism_count
+	int left_count = i - node->first_prim;
+	if (left_count == 0 || left_count == node->prim_count) return;
+	// create child nodes for each half
+	BVH_node* left_child = new BVH_node;
+	BVH_node* right_child = new BVH_node;
+	add(left_child);
+	add(right_child);
+	int left_child_index = used_nodes++;
+	int right_child_index = used_nodes++;
+	node->left_child = left_child_index;
+	node->right_child = right_child_index;
+	left_child->first_prim = node->first_prim;
+	left_child->prim_count = left_count;
+	right_child->first_prim = i;
+	right_child->prim_count = node->prim_count - left_count;
+	node->prim_count = 0;
+
+	// continue building BVH recursively
+	update_node_bounds(left_child_index);
+	update_node_bounds(right_child_index);
+	subdivide_node(left_child_index);
+	subdivide_node(right_child_index);
+}
+
+bool Scene::intersect_BVH(ray& r, isect& i, const int node_index)
+{
+	//std::cout << "new bvh intersection!" << std::endl;
+
+	// get node and return if no intersection is detected, return false
+	BVH_node* node = bvh_node_array.at(node_index).get();
+	if (!intersect_aabb(r, i, node->aabb_min, node->aabb_max)) return false;
+	// check if node is a leaf node
+	if (node->prim_count > 0)
+	{
+		bool have_one = false;
+		isect cur;
+		for (int j = 0; j < node->first_prim; j++)
+		{
+			if (objects.at(j)->intersect(r, cur)) {
+				if (!have_one || (cur.getT() < i.getT())) {
+					i = cur;
+					have_one = true;
+				}
+			}
+		}
+		if (!have_one)
+			i.setT(1000.0);
+		// if debugging,
+		if (TraceUI::m_debug)
+		{
+			addToIntersectCache(std::make_pair(new ray(r), new isect(i)));
+		}
+		return have_one;
+	}
+	else
+	{
+		intersect_BVH(r, i, node->left_child);
+		intersect_BVH(r, i, node->right_child);
+	}
+}
+
+bool Scene::intersect_aabb(ray& r, isect& i, glm::dvec3 bbmin, glm::dvec3 bbmax)
+{
+	//std::cout << "aabb intersection!" << std::endl;
+
+	glm::dvec3 rd = r.getDirection();
+	glm::dvec3 ro = r.getPosition();
+	double tx1 = (bbmin.x - ro.x) / rd.x;
+	double tx2 = (bbmax.x - ro.x) / rd.x;
+	double tmin = min(tx1, tx2);
+	double tmax = max(tx1, tx2);
+	double ty1 = (bbmin.y - ro.y) / rd.y;
+	double ty2 = (bbmax.y - ro.y) / rd.y;
+	tmin = max(tmin, min(ty1, ty2));
+	tmax = min(tmax, max(ty1, ty2));
+	double tz1 = (bbmin.z - ro.z) / rd.z;
+	double tz2 = (bbmax.z - ro.z) / rd.z;
+	tmin = max(tmin, min(tz1, tz2));
+	tmax = min(tmax, max(tz1, tz2));
+	return tmax >= tmin && tmin < i.getT() && tmax > 0;
 }

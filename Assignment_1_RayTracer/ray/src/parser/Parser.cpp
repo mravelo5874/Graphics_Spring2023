@@ -82,6 +82,7 @@ Scene* Parser::parseScene()
          _tokenizer.Read( SEMICOLON );
          break;
       case EOFSYM:
+         std::cout << "finished parsing..." << std::endl;
          return scene;
       default:
          throw SyntaxErrorException( "Expected: geometry, camera, or light information", _tokenizer );
