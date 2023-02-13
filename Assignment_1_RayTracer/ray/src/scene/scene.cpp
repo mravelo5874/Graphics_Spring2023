@@ -8,6 +8,7 @@
 #include <iostream>
 #include <glm/gtx/io.hpp>
 
+
 using namespace std;
 
 bool Geometry::intersect(ray& r, isect& i) const {
@@ -94,7 +95,6 @@ void MaterialSceneObject::compute_centroid()
 	BoundingBox bb = getBoundingBox();
 	glm::dvec3 avg = (bb.getMax() + bb.getMin()) * 0.5;
 	centroid = avg;
-	std::cout << "centroid calculated: " << centroid << std::endl;
 }
 
 Scene::Scene()
@@ -123,26 +123,52 @@ void Scene::add_node(BVH_node* node)
 	bvh_node_array.emplace_back(node);
 }
 
-void Scene::add_bvh(MaterialSceneObject* obj)
+void Scene::add_bvh(MaterialSceneObject* obj, std::string type)
 {
-	obj->compute_centroid();
-	bvh_objects.push_back(obj);
+	// make sure object is not already in bvh_objects
+	if (std::find(bvh_objects.begin(), bvh_objects.end(), obj) == bvh_objects.end())
+	{
+		obj->compute_centroid();
+		bvh_objects.push_back(obj);
+		/*
+		std::cout <<
+			"added bvh object '" << type <<
+			"' with centroid: " << obj->centroid <<
+			" and bb: max" << obj->getBoundingBox().getMax() <<
+			" min" << obj->getBoundingBox().getMin() << std::endl;
+		*/
+	}
 }
 
 
 // Get any intersection with an object.  Return information about the 
 // intersection through the reference parameter.
-bool Scene::intersect(ray& r, isect& i) const {
-	double tmin = 0.0;
-	double tmax = 0.0;
+bool Scene::intersect(ray& r, isect& i, bool only_bb) const {
 	bool have_one = false;
-	for(const auto& obj : objects) {
-		isect cur;
-		if( obj->intersect(r, cur) ) {
-			if(!have_one || (cur.getT() < i.getT())) {
-				i = cur;
-				have_one = true;
+	// ignore actual objects and only render BVH bounding boxes
+	if (!only_bb)
+	{
+		for (const auto& obj : objects)
+		{
+			isect cur;
+			if (obj->intersect(r, cur))
+			{
+				if (!have_one || (cur.getT() < i.getT()))
+				{
+					i = cur;
+					have_one = true;
+				}
 			}
+		}
+	}
+	// check BVH bounding boxes (for bvh debugging)
+	isect cur;
+	if (intersect_BVH(r, cur, 0))
+	{
+		if (!have_one || (cur.getT() < i.getT()))
+		{
+			i = cur;
+			have_one = true;
 		}
 	}
 	if(!have_one)
@@ -170,7 +196,7 @@ void Scene::generate_BVH()
 	std::cout << "generating BVH..." << std::endl;
 	std::cout << "bvh_objects.size(): " << bvh_objects.size() << std::endl;
 
-	// dont generate BVH if noting in array
+	// dont generate BVH if nothing in array
 	if (bvh_objects.size() == 0)
 	{
 		BVH_node* root = new BVH_node;
@@ -178,7 +204,6 @@ void Scene::generate_BVH()
 		return;
 	}
 	
-
 	BVH_node* root = new BVH_node;
 	add_node(root);
 	// initially assign all objects to root node
@@ -205,7 +230,7 @@ void Scene::update_node_bounds(int node_index)
 		node->aabb_min = glm::min(node->aabb_min, bb.getMin());
 		node->aabb_max = glm::max(node->aabb_max, bb.getMax());
 	}
-	//std::cout << "node: " << node_index << ", aabb.min: " << node->aabb_min << ", aabb.max: " << node->aabb_max << std::endl;
+	//std::cout << "updated node bounds -> node: " << node_index << ", aabb.min: " << node->aabb_min << ", aabb.max: " << node->aabb_max << std::endl;
 }
 
 void Scene::subdivide_node(int node_index)
@@ -259,60 +284,98 @@ void Scene::subdivide_node(int node_index)
 	subdivide_node(right_child_index);
 }
 
-bool Scene::intersect_BVH(ray& r, isect& i, const int node_index)
+bool Scene::intersect_BVH(ray& r, isect& i, const int node_index) const
 {
+	//std::cout << "intersecting BVH, node: " << node_index << std::endl;
+
 	// get node and return if no intersection is detected, return false
 	BVH_node* node = bvh_node_array.at(node_index).get();
-	if (!intersect_aabb(r, i, node->aabb_min, node->aabb_max)) return false;
+	isect cur;
+	if (!intersect_aabb(r, cur, node->aabb_min, node->aabb_max))
+	{
+		return false;
+	}
 	// check if node is a leaf node
-	std::cout << "node->prim_count: " << node->prim_count << std::endl;
+	//std::cout << "node->prim_count: " << node->prim_count << std::endl;
 	if (node->prim_count > 0)
 	{
-		std::cout << "hit bvh object!" << std::endl;
+		//std::cout << "node->first_prim: " << node->first_prim << std::endl;
+		//std::cout << "node->prim_count: " << node->prim_count << std::endl;
+
 		bool have_one = false;
 		isect cur;
-		for (int j = node->first_prim; j < node->prim_count - 1; j++)
+		for (int j = node->first_prim; j < node->prim_count; j++)
 		{
-			if (bvh_objects.at(j)->intersect(r, cur)) {
-				if (!have_one || (cur.getT() < i.getT())) {
+			if (bvh_objects.at(j)->intersect(r, cur))
+			{
+				//std::cout << "hit object!" << std::endl;
+				if (!have_one || (cur.getT() < i.getT()))
+				{
 					i = cur;
 					have_one = true;
 				}
 			}
 		}
-		if (!have_one)
-			i.setT(1000.0);
-		// if debugging,
-		if (TraceUI::m_debug)
-		{
-			addToIntersectCache(std::make_pair(new ray(r), new isect(i)));
-		}
+		if (!have_one) i.setT(1000.0);
 		return have_one;
 	}
 	else
 	{
-		intersect_BVH(r, i, node->left_child);
-		intersect_BVH(r, i, node->right_child);
+		return intersect_BVH(r, i, node->left_child) || intersect_BVH(r, i, node->right_child);
 	}
 }
 
-bool Scene::intersect_aabb(ray& r, isect& i, glm::dvec3 bbmin, glm::dvec3 bbmax)
+bool Scene::intersect_aabb(ray& r, isect& i, glm::dvec3 bbmin, glm::dvec3 bbmax) const
 {
-	//std::cout << "aabb intersection!" << std::endl;
+	//std::cout << "[intersectAABB] r:" << r.getDirection() << ", bbmin: " << bbmin << ", bbmax: " << bbmax << std::endl;
 
+	// get ray direction and origin
 	glm::dvec3 rd = r.getDirection();
 	glm::dvec3 ro = r.getPosition();
-	double tx1 = (bbmin.x - ro.x) / rd.x;
-	double tx2 = (bbmax.x - ro.x) / rd.x;
-	double tmin = min(tx1, tx2);
-	double tmax = max(tx1, tx2);
-	double ty1 = (bbmin.y - ro.y) / rd.y;
-	double ty2 = (bbmax.y - ro.y) / rd.y;
-	tmin = max(tmin, min(ty1, ty2));
-	tmax = min(tmax, max(ty1, ty2));
-	double tz1 = (bbmin.z - ro.z) / rd.z;
-	double tz2 = (bbmax.z - ro.z) / rd.z;
-	tmin = max(tmin, min(tz1, tz2));
-	tmax = min(tmax, max(tz1, tz2));
-	return tmax >= tmin && tmin < i.getT() && tmax > 0;
+
+	double rdx = 1.0 / rd.x;
+	double rdy = 1.0 / rd.y;
+	double rdz = 1.0 / rd.z;
+
+	double t1 = (bbmin.x - ro.x) * rdx;
+	double t2 = (bbmax.x - ro.x) * rdx;
+	double t3 = (bbmin.y - ro.y) * rdy;
+	double t4 = (bbmax.y - ro.y) * rdy;
+	double t5 = (bbmin.z - ro.z) * rdz;
+	double t6 = (bbmax.z - ro.z) * rdz;
+
+	float tmin = glm::max(glm::max(glm::min(t1, t2), min(t3, t4)), min(t5, t6));
+	float tmax = glm::min(glm::min(glm::max(t1, t2), max(t3, t4)), max(t5, t6));
+
+	// if tmax < 0, ray is intersection AABB, but entire AABB is behind ray
+	if (tmax < 0)
+	{
+		//std::cout << "[intersectAABB] FALSE" << std::endl;
+		i.setT(tmax);
+		return false;
+	}
+
+	// if tmin > tmax, ray does not inntersect AABB
+	if (tmin > tmax)
+	{
+		//std::cout << "[intersectAABB] FALSE" << std::endl;
+		i.setT(tmax);
+		return false;
+	}
+
+	// ray hit AABB! set T value
+	i.setT(tmin);
+	i.setN(glm::dvec3(0.0, 0.0, 1.0));
+
+	// make bounding box material
+	Material m;
+	m.setDiffuse(glm::dvec3(0.05, 0.05, 0.4));
+	m.setAmbient(glm::dvec3(0.1, 0.1, 0.1));
+	m.setSpecular(glm::dvec3(0.5, 0.5, 0.5));
+	m.setEmissive(glm::dvec3(0.1, 0.1, 0.1));
+	m.setShininess(100);
+	m.setTransmissive(glm::dvec3(0.5, 0.5, 0.5));
+	i.setMaterial(m);
+
+	return true;
 }

@@ -76,7 +76,7 @@ public:
 	}
 
 	// get faces
-	Faces get_faces() { return faces;  }
+	Faces get_faces() { return faces; }
 
 protected:
 	void glDrawLocal(int quality, bool actualMaterials,

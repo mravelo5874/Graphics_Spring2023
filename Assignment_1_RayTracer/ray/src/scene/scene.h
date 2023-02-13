@@ -255,9 +255,9 @@ public:
 	void add(Light* light);
 
 	void add_node(BVH_node* node);
-	void add_bvh(MaterialSceneObject* obj);
+	void add_bvh(MaterialSceneObject* obj, std::string type);
 
-	bool intersect(ray& r, isect& i) const;
+	bool intersect(ray& r, isect& i, bool only_bb = false) const;
 
 	auto beginLights() const { return lights.begin(); }
 	auto endLights() const { return lights.end(); }
@@ -292,7 +292,8 @@ public:
 
 	// public BVH methods
 	void generate_BVH();
-	bool intersect_BVH(ray& r, isect& i, const int node_index);
+	bool intersect_BVH(ray& r, isect& i, const int node_index) const;
+	bool intersect_aabb(ray& r, isect& i, glm::dvec3 min, glm::dvec3 max) const;
 
 private:
 	// variables and methods for BVH
@@ -300,7 +301,6 @@ private:
 	int used_nodes = 1;
 	void update_node_bounds(int node_index);
 	void subdivide_node(int node_index);
-	bool intersect_aabb(ray& r, isect& i, glm::dvec3 min, glm::dvec3 max);
 	std::vector< std::unique_ptr<BVH_node>> bvh_node_array; // list of nodes that will act as a tree
 
 	// default private vars
