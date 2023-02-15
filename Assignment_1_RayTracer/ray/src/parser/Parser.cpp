@@ -690,12 +690,12 @@ void Parser::parseTrimesh(Scene* scene, TransformNode* transform, const Material
         if ((error = tmesh->doubleCheck()))
           throw ParserException(error);
 
-        scene->add( tmesh );
         // add each trimesh face to bvh list
         for (auto face : tmesh->get_faces())
         {
             scene->add_bvh(face, "trimesh face"); // add to bvh list
         }
+        scene->add( tmesh );
         return;
       }
 

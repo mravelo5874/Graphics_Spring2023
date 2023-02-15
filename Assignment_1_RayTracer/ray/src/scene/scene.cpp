@@ -128,10 +128,13 @@ void Scene::add_bvh(MaterialSceneObject* obj, std::string type)
 	// make sure object is not already in bvh_objects
 	if (std::find(bvh_objects.begin(), bvh_objects.end(), obj) == bvh_objects.end())
 	{
+		obj->ComputeBoundingBox();
 		obj->compute_centroid();
-		obj->insert_index = bvh_object_insert_index;
-		bvh_object_insert_index++;
+		// used to check that vector swaps were working
+		//obj->insert_index = bvh_object_insert_index;
+		//bvh_object_insert_index++;
 		bvh_objects.push_back(obj);
+		
 		/*
 		std::cout <<
 			"added bvh object '" << type <<

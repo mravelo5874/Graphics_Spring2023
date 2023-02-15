@@ -145,7 +145,7 @@ protected:
 
 public:
 	// intersections performed in the global coordinate space.
-	virtual bool intersect(ray& r, isect& i) const;
+	bool intersect(ray& r, isect& i) const;
 
 	virtual bool hasBoundingBoxCapability() const;
 	const BoundingBox& getBoundingBox() const { return bounds; }

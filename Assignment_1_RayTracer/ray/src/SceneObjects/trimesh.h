@@ -4,6 +4,7 @@
 #include <list>
 #include <memory>
 #include <vector>
+#include <iostream>
 
 #include "../scene/kdTree.h"
 #include "../scene/material.h"
@@ -56,6 +57,7 @@ public:
 
 	bool hasBoundingBoxCapability() const { return true; }
 
+	
 	BoundingBox ComputeLocalBoundingBox()
 	{
 		BoundingBox localbounds;
@@ -74,6 +76,7 @@ public:
 		localBounds = localbounds;
 		return localbounds;
 	}
+	
 
 	// get faces
 	Faces get_faces() { return faces; }
@@ -84,6 +87,13 @@ protected:
 	mutable int displayListWithMaterials;
 	mutable int displayListWithoutMaterials;
 };
+
+
+
+
+
+
+
 
 class TrimeshFace : public MaterialSceneObject {
 	Trimesh *parent;
