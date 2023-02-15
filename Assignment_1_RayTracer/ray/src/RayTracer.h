@@ -56,7 +56,11 @@ public:
 	bool stopTrace;
 
 	// function that each worker thread executes
-	void thread_function(int thread_id, int start_row, int end_row, int row_len);
+	void thread_function_1(int thread_id, int row_len);
+	void thread_function_2(int thread_id, int start_row, int end_row, int row_len);
+	void thread_function_3(int thread_id, int row_len);
+
+	int get_next_pixel();
 
 private:
 	glm::dvec3 trace(double x, double y);
@@ -75,6 +79,9 @@ private:
 	std::vector<std::thread> threads;
 	std::vector<int> thread_done;
 	std::mutex mtx;
+	int current_pixel = 0;
+	int total_pixels;
+	bool all_pixels_done = false;
 
 	// variables for AA
 	bool computeAA;

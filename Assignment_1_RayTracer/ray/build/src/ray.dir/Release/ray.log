@@ -1,79 +1,8 @@
 ﻿  RayTracer.cpp
 C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(162,50): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(329,29): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(381,26): warning C4018: '<': signed/unsigned mismatch
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(414,20): warning C4018: '<': signed/unsigned mismatch
-  Box.cpp
-  Cone.cpp
-  Cylinder.cpp
-  Sphere.cpp
-  Square.cpp
-  trimesh.cpp
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\SceneObjects\trimesh.cpp(40,28): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\SceneObjects\trimesh.cpp(132,22): warning C4244: '=': conversion from 'T' to 'T', possible loss of data
-          with
-          [
-              T=double
-          ]
-          and
-          [
-              T=float
-          ]
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\SceneObjects\trimesh.cpp(133,22): warning C4244: '=': conversion from 'T' to 'T', possible loss of data
-          with
-          [
-              T=double
-          ]
-          and
-          [
-              T=float
-          ]
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\SceneObjects\trimesh.cpp(134,22): warning C4244: '=': conversion from 'T' to 'T', possible loss of data
-          with
-          [
-              T=double
-          ]
-          and
-          [
-              T=float
-          ]
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\SceneObjects\trimesh.cpp(135,22): warning C4244: '=': conversion from 'T' to 'T', possible loss of data
-          with
-          [
-              T=double
-          ]
-          and
-          [
-              T=float
-          ]
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\SceneObjects\trimesh.cpp(189,27): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-  Parser.cpp
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\parser\Parser.cpp(677,65): warning C4244: 'argument': conversion from 'const T' to 'int', possible loss of data
-          with
-          [
-              T=double
-          ]
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\parser\Parser.cpp(677,53): warning C4244: 'argument': conversion from 'const T' to 'int', possible loss of data
-          with
-          [
-              T=double
-          ]
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\parser\Parser.cpp(677,41): warning C4244: 'argument': conversion from 'const T' to 'int', possible loss of data
-          with
-          [
-              T=double
-          ]
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\parser\Parser.cpp(779,64): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\parser\Parser.cpp(783,62): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\parser\Parser.cpp(787,65): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-  bbox.cc
-  light.cpp
-  material.cpp
-  ray.cpp
-  scene.cpp
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\scene\scene.cpp(237,39): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-  debuggingView.cpp
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\ui\debuggingView.cpp(107,55): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-  glObjects.cpp
-  Generating Code...
+C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(441,27): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(453,27): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(471,27): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(497,20): warning C4018: '<': signed/unsigned mismatch
   ray.vcxproj -> C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\build\bin\Release\ray.exe

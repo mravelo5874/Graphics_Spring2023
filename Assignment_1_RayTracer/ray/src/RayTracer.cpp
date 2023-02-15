@@ -342,7 +342,32 @@ void RayTracer::traceSetup(int w, int h)
 	aaThresh = traceUI->getAaThreshold();
 }
 
-void RayTracer::thread_function(int thread_id, int start_row, int end_row, int row_len)
+void RayTracer::thread_function_1(int thread_id, int row_len)
+{
+	// new thread function
+	int pixel_val = 0;
+	int last_pixel = (buffer_width) * (buffer_height);
+	int i = 0;
+	while (pixel_val < last_pixel)
+	{
+		pixel_val = (i * num_threads) + thread_id;
+		int x = pixel_val % row_len;
+		int y = (int)(pixel_val / row_len);
+		// break if y is out of bounds
+		if (y >= buffer_height)
+			break;
+		//std::cout << "thread id: " << thread_id << ", pixel_value=" << pixel_val << ", x=" << x << " y=" << y << std::endl;
+		tracePixel(x, y);
+		i++;
+	}
+
+	// signal that this thread is done (must be in mutex)
+	mtx.lock();
+	thread_done.push_back(thread_id);
+	mtx.unlock();
+}
+
+void RayTracer::thread_function_2(int thread_id, int start_row, int end_row, int row_len)
 {
 	// trace each pixel from start to end row
 	for (int y = start_row; y < end_row; y++)
@@ -352,10 +377,45 @@ void RayTracer::thread_function(int thread_id, int start_row, int end_row, int r
 			tracePixel(x, y);
 		}
 	}
+
 	// signal that this thread is done (must be in mutex)
 	mtx.lock();
 	thread_done.push_back(thread_id);
 	mtx.unlock();
+}
+
+void RayTracer::thread_function_3(int thread_id, int row_len)
+{
+	bool b = false;
+	while (!b)
+	{
+		mtx.lock();
+		int pixel_val = get_next_pixel();
+		b = all_pixels_done;
+		mtx.unlock();
+
+		int x = pixel_val % row_len;
+		int y = (int)(pixel_val / row_len);
+		// break if y is out of bounds
+		if (y >= buffer_height)
+			continue;
+		//std::cout << "thread id: " << thread_id << ", pixel_value=" << pixel_val << ", x=" << x << " y=" << y << std::endl;
+		tracePixel(x, y);
+	}
+
+	// signal that this thread is done (must be in mutex)
+	mtx.lock();
+	thread_done.push_back(thread_id);
+	mtx.unlock();
+}
+
+int RayTracer::get_next_pixel()
+{
+	int p = current_pixel;
+	current_pixel++;
+	if (current_pixel >= total_pixels)
+		all_pixels_done = true;
+	return p;
 }
 
 /*
@@ -370,25 +430,53 @@ void RayTracer::thread_function(int thread_id, int start_row, int end_row, int r
  */
 void RayTracer::traceImage(int w, int h)
 {
+	int thread_func = 3;
+
 	// Always call traceSetup before rendering anything.
 	traceSetup(w,h);
 
-	// determine how many rows per thread + remainder rows
-	int rows_per_thread = h / num_threads;
-	int row_rem = h % num_threads;
-
-	// start x threads to trace image rows
-	for (int t_id = 0; t_id < num_threads; t_id++)
+	// start x threads to shoot raycast(s) at each pixel
+	// thread function 1 -> pixels for each thread are calculated using div and mod
+	// each thread gets the same amount of pixels
+	if (thread_func == 1)
 	{
-		// designate start and end rows for each thread
-		int start_row = rows_per_thread * t_id;
-		int end_row = start_row + rows_per_thread;
-		// add remainder rows if last thread
-		if (t_id == num_threads - 1)
+		for (int t_id = 0; t_id < num_threads; t_id++)
 		{
-			end_row += row_rem;
+			threads.push_back(std::thread(&RayTracer::thread_function_1, this, t_id, w));
 		}
-		threads.push_back(std::thread(&RayTracer::thread_function, this, t_id, start_row, end_row, w));
+	}
+	// thread function 2 -> each thread gets a section of rows to render
+	else if (thread_func == 2)
+	{
+		// determine how many rows per thread + remainder rows
+		int rows_per_thread = h / num_threads;
+		int row_rem = h % num_threads;
+
+		// start x threads to trace image rows
+		for (int t_id = 0; t_id < num_threads; t_id++)
+		{
+			// designate start and end rows for each thread
+			int start_row = rows_per_thread * t_id;
+			int end_row = start_row + rows_per_thread;
+			// add remainder rows if last thread
+			if (t_id == num_threads - 1)
+			{
+				end_row += row_rem;
+			}
+			threads.push_back(std::thread(&RayTracer::thread_function_2, this, t_id, start_row, end_row, w));
+		}
+	}
+	// thread function 3 -> each thread get the next pixel using a mutex
+	// some threads may render more pixels than others
+	else if (thread_func == 3)
+	{
+		current_pixel = 0;
+		total_pixels = w * h;
+		all_pixels_done = false;
+		for (int t_id = 0; t_id < num_threads; t_id++)
+		{
+			threads.push_back(std::thread(&RayTracer::thread_function_3, this, t_id, w));
+		}
 	}
 }
 
