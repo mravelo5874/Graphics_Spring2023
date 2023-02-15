@@ -105,7 +105,7 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 #if VERBOSE
 	std::cerr << "== current depth: " << depth << std::endl;
 #endif
-	//if (scene->intersect(r, i))
+	//if (scene->intersect(r, i, false))
 	if (scene->intersect_BVH(r, i, 0))
 	{
 		//std::cout << "bvh intersection!" << std::endl;

@@ -129,6 +129,8 @@ void Scene::add_bvh(MaterialSceneObject* obj, std::string type)
 	if (std::find(bvh_objects.begin(), bvh_objects.end(), obj) == bvh_objects.end())
 	{
 		obj->compute_centroid();
+		obj->insert_index = bvh_object_insert_index;
+		bvh_object_insert_index++;
 		bvh_objects.push_back(obj);
 		/*
 		std::cout <<
@@ -161,16 +163,39 @@ bool Scene::intersect(ray& r, isect& i, bool only_bb) const {
 			}
 		}
 	}
-	// check BVH bounding boxes (for bvh debugging)
-	isect cur;
-	if (intersect_BVH(r, cur, 0))
+	// draw BVH bounding boxes (for bvh debugging)
+	/*
+	for (int j = 0; j < bvh_node_array.size(); j++)
 	{
-		if (!have_one || (cur.getT() < i.getT()))
+		BoundingBox bb = bvh_node_array.at(j).get()->bb;
+		double tmin = 0;
+		double tmax = 0;
+		if (bb.intersect(r, tmin, tmax))
 		{
-			i = cur;
+			// set T
+			i.setT(tmax);
+			glm::dvec3 point = r.at(i);
+			// determine normal vector 
+			glm::dvec3 centroid = bb.getMax() - bb.getMin();
+			glm::dvec3 out_vec = centroid - point;
+			out_vec /= glm::max(glm::max(glm::abs(out_vec.x), glm::abs(out_vec.y)), glm::abs(out_vec.z)); // Greatest length
+			glm::dvec3 norm = glm::normalize(glm::floor(glm::clamp(out_vec, 0.0, 1.0) * 1.0000001)); // Unit normal for hit
+			i.setN(norm);
+
+			// make bounding box material
+			Material m;
+			m.setDiffuse(glm::dvec3(0.1, 0.1, 0.4));
+			m.setAmbient(glm::dvec3(0.1, 0.1, 0.1));
+			m.setSpecular(glm::dvec3(0, 0, 0));
+			m.setEmissive(glm::dvec3(0, 0, 0));
+			m.setShininess(100);
+			m.setTransmissive(glm::dvec3(0.75, 0.75, 0.75));
+			i.setMaterial(m);
 			have_one = true;
 		}
 	}
+	*/
+
 	if(!have_one)
 		i.setT(1000.0);
 	// if debugging,
@@ -210,8 +235,9 @@ void Scene::generate_BVH()
 	root->left_child = root->right_child = 0;
 	root->first_prim = 0;
 	root->prim_count = bvh_objects.size();
-	// update min and max aabb
-	update_node_bounds(root_index);
+	// set root min and max aabb
+	root->bb.setMin(sceneBounds.getMin());
+	root->bb.setMax(sceneBounds.getMax());
 	// subdivide recursively
 	subdivide_node(root_index);
 
@@ -221,30 +247,28 @@ void Scene::generate_BVH()
 void Scene::update_node_bounds(int node_index)
 {
 	BVH_node* node = bvh_node_array.at(node_index).get();
-	node->aabb_min = glm::dvec3(1e30f);
-	node->aabb_max = glm::dvec3(-1e30f);
+	node->bb.setMin(glm::dvec3(1e30f));
+	node->bb.setMax(glm::dvec3(-1e30f));
 	for (int first = node->first_prim, i = 0; i < node->prim_count; i++)
 	{
 		MaterialSceneObject* obj = bvh_objects.at(first + i);
-		BoundingBox bb = obj->getBoundingBox();
-		node->aabb_min = glm::min(node->aabb_min, bb.getMin());
-		node->aabb_max = glm::max(node->aabb_max, bb.getMax());
+		node->bb.merge(obj->getBoundingBox());
 	}
 	//std::cout << "updated node bounds -> node: " << node_index << ", aabb.min: " << node->aabb_min << ", aabb.max: " << node->aabb_max << std::endl;
 }
 
 void Scene::subdivide_node(int node_index)
 {
-	// get node and terminate reccursion
+	// get node and terminate reccursion once node contains one or zero prims
 	BVH_node* node = bvh_node_array.at(node_index).get();
 	if (node->prim_count <= 1) return;
 
 	// determine axis and position of the split plane
-	glm::dvec3 extent = node->aabb_max - node->aabb_min;
+	glm::dvec3 extent = node->bb.getMax() - node->bb.getMin();
 	int axis = 0;
 	if (extent.y > extent.x) axis = 1;
 	if (extent.z > extent[axis]) axis = 2;
-	double split_pos = node->aabb_min[axis] + extent[axis] * 0.5f;
+	double split_pos = node->bb.getMin()[axis] + extent[axis] * 0.5f;
 
 	// split group in two halves
 	int i = node->first_prim;
@@ -254,9 +278,16 @@ void Scene::subdivide_node(int node_index)
 	while (i <= p_count)
 	{
 		if (bvh_objects.at(i)->centroid[axis] < split_pos)
+		{
 			i++;
+		}
 		else
-			swap(bvh_objects.at(i), bvh_objects.at(p_count--));
+		{
+			//std::cout << "before swap -> bvh_objects[i]: " << bvh_objects.at(i)->insert_index << " bvh_objects[p_count]: " << bvh_objects.at(p_count)->insert_index << std::endl;
+			iter_swap(bvh_objects.begin() + i, bvh_objects.begin() + p_count);
+			//std::cout << "after swap -> bvh_objects[i]: " << bvh_objects.at(i)->insert_index << " bvh_objects[p_count]: " << bvh_objects.at(p_count)->insert_index << std::endl;
+			p_count--;
+		}
 	}
 
 	// return if count = 0 OR count = prism_count
@@ -265,8 +296,6 @@ void Scene::subdivide_node(int node_index)
 	// create child nodes for each half
 	BVH_node* left_child = new BVH_node;
 	BVH_node* right_child = new BVH_node;
-	add_node(left_child);
-	add_node(right_child);
 	int left_child_index = used_nodes++;
 	int right_child_index = used_nodes++;
 	node->left_child = left_child_index;
@@ -276,6 +305,8 @@ void Scene::subdivide_node(int node_index)
 	right_child->first_prim = i;
 	right_child->prim_count = node->prim_count - left_count;
 	node->prim_count = 0;
+	add_node(left_child);
+	add_node(right_child);
 
 	// continue building BVH recursively
 	update_node_bounds(left_child_index);
@@ -286,12 +317,12 @@ void Scene::subdivide_node(int node_index)
 
 bool Scene::intersect_BVH(ray& r, isect& i, const int node_index) const
 {
-	//std::cout << "intersecting BVH, node: " << node_index << std::endl;
-
 	// get node and return if no intersection is detected, return false
 	BVH_node* node = bvh_node_array.at(node_index).get();
-	isect cur;
-	if (!intersect_aabb(r, cur, node->aabb_min, node->aabb_max))
+	//std::cout << "intersecting BVH, node: " << node_index << " with " << node->prim_count << " nodes." << std::endl;
+	double tmin = 0;
+	double tmax = 0;
+	if (!node->bb.intersect(r, tmin, tmax))
 	{
 		return false;
 	}
@@ -301,14 +332,12 @@ bool Scene::intersect_BVH(ray& r, isect& i, const int node_index) const
 	{
 		//std::cout << "node->first_prim: " << node->first_prim << std::endl;
 		//std::cout << "node->prim_count: " << node->prim_count << std::endl;
-
 		bool have_one = false;
-		isect cur;
-		for (int j = node->first_prim; j < node->prim_count; j++)
+		for (int first = node->first_prim, j = 0; j < node->prim_count; j++)
 		{
-			if (bvh_objects.at(j)->intersect(r, cur))
+			isect cur;
+			if (bvh_objects.at(first + j)->intersect(r, cur))
 			{
-				//std::cout << "hit object!" << std::endl;
 				if (!have_one || (cur.getT() < i.getT()))
 				{
 					i = cur;
@@ -317,65 +346,43 @@ bool Scene::intersect_BVH(ray& r, isect& i, const int node_index) const
 			}
 		}
 		if (!have_one) i.setT(1000.0);
+		// if debugging,
+		if (TraceUI::m_debug)
+		{
+			addToIntersectCache(std::make_pair(new ray(r), new isect(i)));
+		}
 		return have_one;
+	}
+
+	// recursively check both child nodes
+	isect left_i;
+	isect right_i;
+	bool left_hit = intersect_BVH(r, left_i, node->left_child);
+	bool right_hit = intersect_BVH(r, right_i, node->right_child);
+	
+
+	// set i to be the lowest T value
+	if (left_hit && right_hit)
+	{
+		if (left_i.getT() < right_i.getT())
+			i = left_i;
+		else
+			i = right_i;
+		return true;
+	}
+	else if (left_hit)
+	{
+		i = left_i;
+		return true;
+	}
+	else if (right_hit)
+	{
+		i = right_i;
+		return true;
 	}
 	else
 	{
-		return intersect_BVH(r, i, node->left_child) || intersect_BVH(r, i, node->right_child);
-	}
-}
-
-bool Scene::intersect_aabb(ray& r, isect& i, glm::dvec3 bbmin, glm::dvec3 bbmax) const
-{
-	//std::cout << "[intersectAABB] r:" << r.getDirection() << ", bbmin: " << bbmin << ", bbmax: " << bbmax << std::endl;
-
-	// get ray direction and origin
-	glm::dvec3 rd = r.getDirection();
-	glm::dvec3 ro = r.getPosition();
-
-	double rdx = 1.0 / rd.x;
-	double rdy = 1.0 / rd.y;
-	double rdz = 1.0 / rd.z;
-
-	double t1 = (bbmin.x - ro.x) * rdx;
-	double t2 = (bbmax.x - ro.x) * rdx;
-	double t3 = (bbmin.y - ro.y) * rdy;
-	double t4 = (bbmax.y - ro.y) * rdy;
-	double t5 = (bbmin.z - ro.z) * rdz;
-	double t6 = (bbmax.z - ro.z) * rdz;
-
-	float tmin = glm::max(glm::max(glm::min(t1, t2), min(t3, t4)), min(t5, t6));
-	float tmax = glm::min(glm::min(glm::max(t1, t2), max(t3, t4)), max(t5, t6));
-
-	// if tmax < 0, ray is intersection AABB, but entire AABB is behind ray
-	if (tmax < 0)
-	{
-		//std::cout << "[intersectAABB] FALSE" << std::endl;
-		i.setT(tmax);
+		i.setT(1000.0);
 		return false;
 	}
-
-	// if tmin > tmax, ray does not inntersect AABB
-	if (tmin > tmax)
-	{
-		//std::cout << "[intersectAABB] FALSE" << std::endl;
-		i.setT(tmax);
-		return false;
-	}
-
-	// ray hit AABB! set T value
-	i.setT(tmin);
-	i.setN(glm::dvec3(0.0, 0.0, 1.0));
-
-	// make bounding box material
-	Material m;
-	m.setDiffuse(glm::dvec3(0.05, 0.05, 0.4));
-	m.setAmbient(glm::dvec3(0.1, 0.1, 0.1));
-	m.setSpecular(glm::dvec3(0.5, 0.5, 0.5));
-	m.setEmissive(glm::dvec3(0.1, 0.1, 0.1));
-	m.setShininess(100);
-	m.setTransmissive(glm::dvec3(0.5, 0.5, 0.5));
-	i.setMaterial(m);
-
-	return true;
 }

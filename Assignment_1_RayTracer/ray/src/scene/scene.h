@@ -145,7 +145,7 @@ protected:
 
 public:
 	// intersections performed in the global coordinate space.
-	bool intersect(ray& r, isect& i) const;
+	virtual bool intersect(ray& r, isect& i) const;
 
 	virtual bool hasBoundingBoxCapability() const;
 	const BoundingBox& getBoundingBox() const { return bounds; }
@@ -210,6 +210,7 @@ public:
 	// used to compute and store centroid of a geometry
 	virtual void compute_centroid();
 	glm::dvec3 centroid;
+	int insert_index = -1;
 
 protected:
 	MaterialSceneObject(Scene* scene, Material* mat)
@@ -227,13 +228,12 @@ class BVH_node
 public:
 	BVH_node() 
 	{
-		aabb_min = glm::dvec3(0.0);
-		aabb_max = glm::dvec3(0.0);
+		bb = BoundingBox();
 		left_child = right_child = first_prim = prim_count = 0;
 	}
 	virtual ~BVH_node() {}
 
-	glm::dvec3 aabb_min, aabb_max;
+	BoundingBox bb;
 	int left_child, right_child;
 	int first_prim, prim_count;
 	bool isLeaf() { return prim_count > 0; }
@@ -293,15 +293,15 @@ public:
 	// public BVH methods
 	void generate_BVH();
 	bool intersect_BVH(ray& r, isect& i, const int node_index) const;
-	bool intersect_aabb(ray& r, isect& i, glm::dvec3 min, glm::dvec3 max) const;
 
 private:
 	// variables and methods for BVH
 	int root_index = 0;
 	int used_nodes = 1;
+	int bvh_object_insert_index = 1;
 	void update_node_bounds(int node_index);
 	void subdivide_node(int node_index);
-	std::vector< std::unique_ptr<BVH_node>> bvh_node_array; // list of nodes that will act as a tree
+	std::vector<std::unique_ptr<BVH_node>> bvh_node_array; // list of nodes that will act as a tree
 
 	// default private vars
 	std::vector<MaterialSceneObject*> bvh_objects;
