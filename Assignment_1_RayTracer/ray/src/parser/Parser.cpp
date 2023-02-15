@@ -1029,6 +1029,10 @@ Material* Parser::parseMaterial( Scene* scene, const Material& parent )
         break;
       }
 
+      // ADDED TO PARSER TO ADD NORMAL MAP TO MATERIAL
+      case NORMAL:
+        mat->setNormal(parseVec3dMaterialParameter(scene));
+
       case DIFFUSE:
         mat->setDiffuse( parseVec3dMaterialParameter(scene) ); 
         break;

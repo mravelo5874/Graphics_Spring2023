@@ -217,6 +217,8 @@ public:
 			_shininess.intensityValue(i);
 	}
 
+    glm::dvec3 getNormal(const isect& i) const { return _normal.value(i); }
+
     double index( const isect& i ) const { return _index.intensityValue(i); }
 
     // setting functions accepting primitives (glm::dvec3 and double)
@@ -242,12 +244,15 @@ public:
                                                                { _shininess = shininess; }
     void setIndex( const MaterialParameter& index )            { _index = index; }
 
+    void setNormal(const MaterialParameter& normal) { _normal = normal; _usesNormalMap = true; }
+
 	// get booleans for reflection and refraction
 	bool Refl() const { return _refl; }
 	bool Trans() const { return _trans; }
 	bool Recur() const { return _recur; }
 	bool Spec() const { return _spec; }
-	bool Both() const { return _both; }
+    bool Both() const { return _both; }
+    bool UsesNormalMap() const { return _usesNormalMap; }
 
 private:
     MaterialParameter _ke;                    // emissive
@@ -265,6 +270,9 @@ private:
     
     MaterialParameter _shininess;
     MaterialParameter _index;                 // index of refraction
+
+    MaterialParameter _normal;
+    bool _usesNormalMap = false;
 
 	void setBools() {
 		_refl = !_kr.isZero(); _trans = !_kt.isZero(); _recur = _refl || _trans;

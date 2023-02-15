@@ -86,6 +86,7 @@ string getNameForToken( const SYMBOL kind )
     tokenNames[ SHININESS ]         = "shininess";
     tokenNames[ INDEX ]             = "index";
     tokenNames[ NAME ]              = "name";
+    tokenNames[ NORMAL ]            = "normal";
     tokenNames[ MAP ]               = "map";
   }
   // search tokenNames table
@@ -142,6 +143,7 @@ SYMBOL lookupReservedWord(const string& ident) {
     reservedWords["materials"] = MATERIALS;
     reservedWords["map"] = MAP;
     reservedWords["name"] = NAME;
+    reservedWords["normal"] = NORMAL;
     reservedWords["normals"] = NORMALS;
     reservedWords["point_light"] = POINT_LIGHT;
     reservedWords["points"] = POLYPOINTS;

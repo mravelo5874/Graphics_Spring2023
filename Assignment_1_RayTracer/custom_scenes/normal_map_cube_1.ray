@@ -1,0 +1,42 @@
+SBT-raytracer 1.0
+
+camera {
+	position = (2,0,0);
+	viewdir = (-1,0,0);
+	aspectratio = 1;
+	updir = (0,1,0);
+}
+
+point_light {
+	position = (1, 1, -1);
+	color = (.42, .4, .4);
+	constant_attenuation_coeff= 0.25;
+	linear_attenuation_coeff = 0.003372407;
+	quadratic_attenuation_coeff = 0.000045492;	
+}
+
+point_light {
+	position = (1, -1, 1);
+	color = (.4, .42, .4);
+	constant_attenuation_coeff= 0.25;
+	linear_attenuation_coeff = 0.003372407;
+	quadratic_attenuation_coeff = 0.000045492;	
+}
+
+point_light {
+	position = (1, 1, -1);
+	color = (.4, .4, .42);
+	constant_attenuation_coeff= 0.25;
+	linear_attenuation_coeff = 0.003372407;
+	quadratic_attenuation_coeff = 0.000045492;	
+}
+
+rotate( 0, 1, 1, -2,
+box { 
+	material = { 
+		normal = map("normal_map_1.png");
+		diffuse = (0.9, 0.9, 0.9);
+		specular = (0.8,0.8,0.8);
+		shininess = 250.0;
+	};
+})

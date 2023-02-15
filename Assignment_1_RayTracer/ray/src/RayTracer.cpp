@@ -134,6 +134,15 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		glm::dvec3 out_vec = in_vec * -1.0;
 		glm::dvec3 norm_vec = glm::normalize(i.getN());
 
+		// normal map
+		if (m.UsesNormalMap())
+		{
+			glm::dvec3 nm = m.getNormal(i);
+			nm = (nm * 2.0) - 1.0;
+			//std::cout << "normal map value: " << nm << std::endl;
+			norm_vec = glm::normalize(norm_vec + nm);
+		}
+
 		// change normal direction if ray is refraction type and facing the same direction as in vector and material is transparent
 		double refra_index = prev_refrac_index / m.index(i);
 		double dist = 0.0;

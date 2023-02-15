@@ -81,7 +81,8 @@ enum SYMBOL {
   DIFFUSE, TRANSMISSIVE,
   SHININESS, INDEX,
   NAME,
-  MAP
+  MAP,
+  NORMAL
 };
 
 // Helper functions

@@ -1,3 +1,8 @@
-﻿  scene.cpp
-C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\scene\scene.cpp(240,39): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+﻿  RayTracer.cpp
+C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(171,50): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(338,29): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(452,27): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(465,27): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(485,27): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\src\RayTracer.cpp(511,20): warning C4018: '<': signed/unsigned mismatch
   ray.vcxproj -> C:\Users\Marco\Documents\GitHub\Graphics_Spring2023\Assignment_1_RayTracer\ray\build\bin\Release\ray.exe
