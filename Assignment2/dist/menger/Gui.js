@@ -1,5 +1,5 @@
 import { Camera } from "../lib/webglutils/Camera.js";
-import { Vec3 } from "../lib/TSM.js";
+import { Vec3, Vec2 } from "../lib/TSM.js";
 /**
  * Handles Mouse and Button events along with
  * the the camera.
@@ -28,7 +28,7 @@ export class GUI {
         this.fps = false;
         this.dragging = false;
         /* Create camera setup */
-        this.camera = new Camera(new Vec3([0, 0, -6]), new Vec3([0, 0, 0]), new Vec3([0, 1, 0]), 45, this.width / this.height, 0.1, 1000.0);
+        this.camera = new Camera(new Vec3([0, 0, -6]), new Vec3([0, 0, -1]), new Vec3([0, 1, 0]), 45, this.width / this.height, 0.1, 1000.0);
     }
     /**
      * Sets the GUI's camera to the given camera
@@ -65,7 +65,13 @@ export class GUI {
      * @param mouse
      */
     drag(mouse) {
-        // TODO: Your code here for left and right mouse drag
+        if (!this.dragging)
+            return;
+        const prev_pos = new Vec2([this.prevX, this.prevY]);
+        const curr_pos = new Vec2([mouse.screenX, mouse.screenY]);
+        const drag_dir = Vec2.direction(prev_pos, curr_pos);
+        this.camera.rotate(this.camera.up(), GUI.rotationSpeed * drag_dir.x);
+        this.camera.rotate(this.camera.right(), GUI.rotationSpeed * drag_dir.y);
     }
     /**
      * Callback function for the end of a drag event
@@ -82,58 +88,88 @@ export class GUI {
      */
     onKeydown(key) {
         /*
-           Note: key.code uses key positions, i.e a QWERTY user uses y where
-                 as a Dvorak user must press F for the same action.
-           Note: arrow keys are only registered on a KeyDown event not a
-           KeyPress event
-           We can use KeyDown due to auto repeating.
+             Note: key.code uses key positions, i.e a QWERTY user uses y where
+                         as a Dvorak user must press F for the same action.
+             Note: arrow keys are only registered on a KeyDown event not a
+             KeyPress event
+             We can use KeyDown due to auto repeating.
          */
-        // TOOD: Your code for key handling
+        const look = this.camera.forward().copy();
+        const right = this.camera.right().copy();
+        const up = this.camera.up().copy();
         switch (key.code) {
-            case "KeyW": {
-                break;
-            }
-            case "KeyA": {
-                break;
-            }
-            case "KeyS": {
-                break;
-            }
-            case "KeyD": {
-                break;
-            }
-            case "KeyR": {
-                break;
-            }
-            case "ArrowLeft": {
-                break;
-            }
-            case "ArrowRight": {
-                break;
-            }
-            case "ArrowUp": {
-                break;
-            }
-            case "ArrowDown": {
-                break;
-            }
-            case "Digit1": {
-                break;
-            }
-            case "Digit2": {
-                break;
-            }
-            case "Digit3": {
-                break;
-            }
-            case "Digit4": {
-                break;
-            }
-            default: {
-                console.log("Key : '", key.code, "' was pressed.");
-                break;
-            }
+            case "KeyW":
+                {
+                    this.camera.offset(look, GUI.zoomSpeed * -1.0, true);
+                    break;
+                }
+            case "KeyA":
+                {
+                    this.camera.offset(right, GUI.zoomSpeed * -1.0, true);
+                    break;
+                }
+            case "KeyS":
+                {
+                    this.camera.offset(look, GUI.zoomSpeed, true);
+                    break;
+                }
+            case "KeyD":
+                {
+                    this.camera.offset(right, GUI.zoomSpeed, true);
+                    break;
+                }
+            case "KeyR":
+                {
+                    this.reset();
+                    break;
+                }
+            case "ArrowLeft":
+                {
+                    this.camera.roll(GUI.rollSpeed, false);
+                    break;
+                }
+            case "ArrowRight":
+                {
+                    this.camera.roll(GUI.rollSpeed, true);
+                    break;
+                }
+            case "ArrowUp":
+                {
+                    this.camera.offset(up, GUI.zoomSpeed, true);
+                    break;
+                }
+            case "ArrowDown":
+                {
+                    this.camera.offset(up, GUI.zoomSpeed * -1.0, true);
+                    break;
+                }
+            case "Digit1":
+                {
+                    this.sponge.setLevel(1);
+                    break;
+                }
+            case "Digit2":
+                {
+                    this.sponge.setLevel(2);
+                    break;
+                }
+            case "Digit3":
+                {
+                    this.sponge.setLevel(3);
+                    break;
+                }
+            case "Digit4":
+                {
+                    this.sponge.setLevel(4);
+                    break;
+                }
+            default:
+                {
+                    console.log("Key : '", key.code, "' was pressed.");
+                    break;
+                }
         }
+        //this.camera.setPos(eye)
     }
     /**
      * Registers all event listeners for the GUI

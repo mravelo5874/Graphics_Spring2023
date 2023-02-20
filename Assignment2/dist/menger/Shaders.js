@@ -24,16 +24,32 @@ export let defaultVSText = `
         normal = aNorm;
     }
 `;
-// TODO: Write the fragment shader
 export let defaultFSText = `
     precision mediump float;
 
     varying vec4 lightDir;
     varying vec4 normal;    
-	
     
-    void main () {
-        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    void main () 
+    {    
+        float abs_x = normal.x < 0.0 ? normal.x * -1.0 : normal.x;
+        float abs_y = normal.y < 0.0 ? normal.y * -1.0 : normal.y;
+        float abs_z = normal.z < 0.0 ? normal.z * -1.0 : normal.z;
+
+        if (abs_x > abs_y && abs_x > abs_z)
+        {
+            gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+        }
+            
+        if (abs_y > abs_x && abs_y > abs_z)
+        {
+            gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+        }
+            
+        if (abs_z > abs_x && abs_z > abs_y)
+        {
+            gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
+        }
     }
 `;
 // TODO: floor shaders
