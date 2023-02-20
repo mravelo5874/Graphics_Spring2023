@@ -42,6 +42,9 @@ export class MengerSponge implements IMengerSponge
 	
 	public setLevel(level: number)
 	{
+		if (level == this.sponge_level)
+			return
+
 		this.sponge_level = level
 		this.cube_count = 0
 		console.log("setting sponge level: " + this.sponge_level)
@@ -57,6 +60,9 @@ export class MengerSponge implements IMengerSponge
 		const n = this.cube_count * this.vert_per_cube
 		//console.log("cube_num: " + this.cube_count)
 		this.cube_count = this.cube_count + 1
+
+		// grab values
+		const min_x : number = min_corner.x;
 
 		// order of cube verticies:
 		const cube_verticies = new Array<number>(
@@ -111,6 +117,7 @@ export class MengerSponge implements IMengerSponge
 			20+n, 21+n, 22+n,
 			22+n, 23+n, 20+n,	// +z face
 		)
+		
 		
 		// normals follow order of triangles
 		const cube_norms = new Array<number>(

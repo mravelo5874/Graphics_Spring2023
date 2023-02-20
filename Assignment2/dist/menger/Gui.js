@@ -70,8 +70,10 @@ export class GUI {
         const prev_pos = new Vec2([this.prevX, this.prevY]);
         const curr_pos = new Vec2([mouse.screenX, mouse.screenY]);
         const drag_dir = Vec2.direction(prev_pos, curr_pos);
-        this.camera.rotate(this.camera.up(), GUI.rotationSpeed * drag_dir.x);
-        this.camera.rotate(this.camera.right(), GUI.rotationSpeed * drag_dir.y);
+        this.prevX = mouse.screenX;
+        this.prevY = mouse.screenY;
+        this.camera.yaw(GUI.rotationSpeed * drag_dir.x, drag_dir.x < 0);
+        this.camera.pitch(GUI.rotationSpeed * drag_dir.y, drag_dir.y < 0);
     }
     /**
      * Callback function for the end of a drag event

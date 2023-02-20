@@ -126,15 +126,17 @@ export class GUI implements IGUI {
 	 */
 	public drag(mouse: MouseEvent): void 
 	{
-	if (!this.dragging)
-		return
+		if (!this.dragging)
+			return
 
-	const prev_pos : Vec2 = new Vec2([this.prevX, this.prevY])
-	const curr_pos : Vec2 = new Vec2([mouse.screenX, mouse.screenY])
-	const drag_dir : Vec2 = Vec2.direction(prev_pos, curr_pos)
+		const prev_pos : Vec2 = new Vec2([this.prevX, this.prevY])
+		const curr_pos : Vec2 = new Vec2([mouse.screenX, mouse.screenY])
+		const drag_dir : Vec2 = Vec2.direction(prev_pos, curr_pos)
+		this.prevX = mouse.screenX
+		this.prevY = mouse.screenY
 
-	this.camera.rotate(this.camera.up(), GUI.rotationSpeed * drag_dir.x)
-	this.camera.rotate(this.camera.right(), GUI.rotationSpeed * drag_dir.y)
+		this.camera.yaw(GUI.rotationSpeed * drag_dir.x, drag_dir.x < 0)
+		this.camera.pitch(GUI.rotationSpeed * drag_dir.y, drag_dir.y < 0)
 	}
 
 	/**
