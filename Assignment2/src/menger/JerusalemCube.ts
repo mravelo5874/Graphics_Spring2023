@@ -88,10 +88,10 @@ export class JerusalemCube implements IJerusalemCube
 			max_corner.x, max_corner.y, min_corner.z, 1.0, // 18
 			max_corner.x, min_corner.y, min_corner.z, 1.0, // 19 -> -z face
 
-			max_corner.x, min_corner.y, max_corner.z, 1.0, // 20
-			max_corner.x, max_corner.y, max_corner.z, 1.0, // 21
-			min_corner.x, min_corner.y, max_corner.z, 1.0, // 22
-			min_corner.x, max_corner.y, max_corner.z, 1.0, // 23 -> +z face
+			max_corner.x, min_corner.y, max_corner.z, 1.0, // 20      		
+			max_corner.x, max_corner.y, max_corner.z, 1.0, // 21			
+			min_corner.x, max_corner.y, max_corner.z, 1.0, // 22			
+			min_corner.x, min_corner.y, max_corner.z, 1.0, // 23 -> +z face
 		)
 		
 		// order of cube triangles:
@@ -333,7 +333,7 @@ export class JerusalemCube implements IJerusalemCube
             1.0,    0.0,    0.0,    0.0,
             0.0,    1.0,    0.0,    0.0,
             0.0,    0.0,    1.0,    0.0,
-            0.0,    0.0,  -10.0,    1.0,
+            6.0,    0.0,   -6.0,    1.0,
         ])
 		return ret;  
 	}

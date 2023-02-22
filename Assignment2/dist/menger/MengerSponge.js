@@ -53,10 +53,10 @@ export class MengerSponge {
         min_corner.x, max_corner.y, min_corner.z, 1.0, // 17
         max_corner.x, max_corner.y, min_corner.z, 1.0, // 18
         max_corner.x, min_corner.y, min_corner.z, 1.0, // 19 -> -z face
-        max_corner.x, min_corner.y, max_corner.z, 1.0, // 20
-        max_corner.x, max_corner.y, max_corner.z, 1.0, // 21
-        min_corner.x, min_corner.y, max_corner.z, 1.0, // 22
-        min_corner.x, max_corner.y, max_corner.z, 1.0);
+        max_corner.x, min_corner.y, max_corner.z, 1.0, // 20      		
+        max_corner.x, max_corner.y, max_corner.z, 1.0, // 21			
+        min_corner.x, max_corner.y, max_corner.z, 1.0, // 22			
+        min_corner.x, min_corner.y, max_corner.z, 1.0);
         // order of cube triangles:
         const cube_triangles = new Array(0 + n, 1 + n, 2 + n, 2 + n, 3 + n, 0 + n, // -x face
         4 + n, 5 + n, 6 + n, 6 + n, 7 + n, 4 + n, // +x face
