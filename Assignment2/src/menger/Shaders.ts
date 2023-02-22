@@ -19,7 +19,8 @@ export let defaultVSText = `
         gl_Position = mProj * mView * mWorld * vec4 (vertPosition, 1.0);
         
         //  Compute light direction (world coordinates)
-        lightDir = lightPosition - vec4(vertPosition, 1.0);
+        vec4 frag_pos = vec4(mWorld * vec4(vertPosition, 1.0));
+        lightDir = lightPosition - frag_pos;
 		
         //  Pass along the vertex normal (world coordinates)
         normal = aNorm;
@@ -33,26 +34,37 @@ export let defaultFSText =
 
     varying vec4 lightDir;
     varying vec4 normal;    
+
+    vec3 LIGHT_COLOR = vec3(1.0, 1.0, 1.0);
+    vec3 RED = vec3(1.0, 0.0, 0.0);
+    vec3 GREEN = vec3(0.0, 1.0, 0.0);
+    vec3 BLUE = vec3(0.0, 0.0, 1.0);
     
     void main () 
     {    
-        float abs_x = normal.x < 0.0 ? normal.x * -1.0 : normal.x;
-        float abs_y = normal.y < 0.0 ? normal.y * -1.0 : normal.y;
-        float abs_z = normal.z < 0.0 ? normal.z * -1.0 : normal.z;
+        // PHONG ILLUMINATION
+        vec3 norm_vec = normalize(vec3(normal.x, normal.y, normal.z));
+        vec3 norm_abs = abs(norm_vec);
+        vec3 light_vec = normalize(vec3(lightDir.x, lightDir.y, lightDir.z));
+        float diff = max(dot(light_vec, norm_vec), 0.0);
+        vec3 diffuse = diff * LIGHT_COLOR;
 
-        if (abs_x > abs_y && abs_x > abs_z)
+        if (norm_abs.x > norm_abs.y && norm_abs.x > norm_abs.z)
         {
-            gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+            vec3 color = RED * diffuse;
+            gl_FragColor = vec4(color.x, color.y, color.z, 1.0);
         }
             
-        if (abs_y > abs_x && abs_y > abs_z)
+        if (norm_abs.y > norm_abs.x && norm_abs.y > norm_abs.z)
         {
-            gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+            vec3 color = GREEN * diffuse;
+            gl_FragColor = vec4(color.x, color.y, color.z, 1.0);
         }
             
-        if (abs_z > abs_x && abs_z > abs_y)
+        if (norm_abs.z > norm_abs.x && norm_abs.z > norm_abs.y)
         {
-            gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
+            vec3 color = BLUE * diffuse;
+            gl_FragColor = vec4(color.x, color.y, color.z, 1.0);
         }
     }
 `;
@@ -70,11 +82,12 @@ export let floorVSText =
     attribute vec3 vertColor;
     attribute vec4 aNorm;
     
-    varying vec4 lightDir;
     varying vec4 lookDir;
+    varying vec4 lightDir;
     varying vec4 normal;
     varying vec4 worldPos;
  
+    uniform vec4 vLook;
     uniform vec4 lightPosition;
     uniform mat4 mWorld;
     uniform mat4 mView;
@@ -83,18 +96,20 @@ export let floorVSText =
     void main() 
     {
 		//  Convert vertex to camera coordinates and the NDC
-        gl_Position = mProj * mView * mWorld * vec4 (vertPosition, 1.0);
+        gl_Position = mProj * mView * mWorld * vec4(vertPosition, 1.0);
         
         //  Compute light direction (world coordinates)
-        lightDir = lightPosition - vec4(vertPosition, 1.0);
+        vec4 frag_pos = vec4(mWorld * vec4(vertPosition, 1.0));
+        lightDir = lightPosition - frag_pos;
 		
         //  Pass along the vertex normal (world coordinates)
         normal = aNorm;
+
+        // pass along world position
         worldPos = mWorld * vec4(vertPosition, 1.0);
 
-        // compute look direction
-        vec4 c = m[2];
-        lookDir = mView.
+        // pass along the look direction
+        lookDir = vLook;
     }
 `;
 
@@ -102,30 +117,38 @@ export let floorFSText =
 `
     precision mediump float;
 
-    varying vec4 lightDir;
     varying vec4 lookDir;
+    varying vec4 lightDir;
     varying vec4 normal;
     varying vec4 worldPos;
 
     float PI = 3.14159265359;
     float ONE_FIF = 1.0/5.0;
+    vec3 LIGHT_COLOR = vec3(1.0, 1.0, 1.0);
+    vec3 WHITE = vec3(1.0, 1.0, 1.0);
+    vec3 BLACK = vec3(0.0, 0.0, 0.0);
 
     void main() 
     {       
         // CHESS COLOUR ?
-        vec4 chess_calc = sin(PI * world * ONE_FIF);
-        bool chess_white = res.x > 0.0 && res.z > 0.0 || res.x < 0.0 && res.z < 0.0
+        vec4 chess_calc = sin(PI * worldPos * ONE_FIF);
+        bool chess_black = chess_calc.x > 0.0 && chess_calc.z > 0.0 || chess_calc.x < 0.0 && chess_calc.z < 0.0;
 
         // PHONG ILLUMINATION
+        vec3 norm_vec = normalize(vec3(normal.x, normal.y, normal.z));
+        vec3 light_vec = normalize(vec3(lightDir.x, lightDir.y, lightDir.z));
+        float diff = max(dot(light_vec, norm_vec), 0.0);
+        vec3 diffuse = diff * LIGHT_COLOR;
 
-
-        if (chess_white)
+        if (chess_black)
         {
-            gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+            vec3 color = BLACK * diffuse;
+            gl_FragColor = vec4(color.x, color.y, color.z, 1.0);
         }
         else
         {
-            gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+            vec3 color = WHITE * diffuse;
+            gl_FragColor = vec4(color.x, color.y, color.z, 1.0);
         }
     }
 `;

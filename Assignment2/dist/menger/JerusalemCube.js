@@ -2,7 +2,7 @@ import { Mat4, Vec3 } from "../lib/TSM.js";
 /**
  * Represents a Menger Sponge
  */
-export class MengerSponge {
+export class JerusalemCube {
     constructor(level) {
         this.vert_per_cube = 24;
         this.my_verticies = new Array;
@@ -18,12 +18,12 @@ export class MengerSponge {
     isDirty() { return this.dirty; }
     setClean() { this.dirty = false; }
     setLevel(level) {
-        if (level == this.sponge_level)
+        if (level == this.cube_level)
             return;
-        this.sponge_level = level;
+        this.cube_level = level;
         this.cube_count = 0;
-        console.log("setting sponge level: " + this.sponge_level);
-        this.construct_sponge();
+        console.log("setting jerusalem cube level: " + this.cube_level);
+        this.construct_cube();
         this.dirty = true;
     }
     add_cube(min_corner, max_corner) {
@@ -79,17 +79,17 @@ export class MengerSponge {
         for (let i = 0; i < 96; i++)
             this.my_normals.push(cube_norms[i]);
     }
-    construct_sponge() {
+    construct_cube() {
         // clear arrays
         this.my_verticies.splice(0, this.my_verticies.length);
         this.my_indicies.splice(0, this.my_indicies.length);
         this.my_normals.splice(0, this.my_normals.length);
-        console.log("creating sponge...");
+        console.log("creating jerusalem cube...");
         // initial min and max corners
         const min_corner = new Vec3([-0.5, -0.5, -0.5]);
         const max_corner = new Vec3([+0.5, +0.5, +0.5]);
         // being generation sub-cubes
-        this.generate_sub_cubes(min_corner, max_corner, this.sponge_level);
+        this.generate_sub_cubes(min_corner, max_corner, this.cube_level);
         console.log("vertices.length: " + this.my_verticies.length);
         console.log("indicies.length: " + this.my_indicies.length);
         console.log("normals.length: " + this.my_normals.length);
@@ -104,30 +104,88 @@ export class MengerSponge {
             return;
         }
         // otherwise, continue sub-dividing cube (into 20 respective cubes)
-        const s = (max_corner.x - min_corner.x) / 3.0;
+        const s = (max_corner.x - min_corner.x) / 5.0;
         // level 1:
         this.mini_cube(min_corner, new Vec3([0, 0, 0]), s, depth); // cube 1
         this.mini_cube(min_corner, new Vec3([1, 0, 0]), s, depth); // cube 2
         this.mini_cube(min_corner, new Vec3([2, 0, 0]), s, depth); // cube 3
-        this.mini_cube(min_corner, new Vec3([0, 0, 1]), s, depth); // cube 4
-        this.mini_cube(min_corner, new Vec3([2, 0, 1]), s, depth); // cube 5
-        this.mini_cube(min_corner, new Vec3([0, 0, 2]), s, depth); // cube 6
-        this.mini_cube(min_corner, new Vec3([1, 0, 2]), s, depth); // cube 7
-        this.mini_cube(min_corner, new Vec3([2, 0, 2]), s, depth); // cube 8
+        this.mini_cube(min_corner, new Vec3([3, 0, 0]), s, depth); // cube 4
+        this.mini_cube(min_corner, new Vec3([4, 0, 0]), s, depth); // cube 5
+        this.mini_cube(min_corner, new Vec3([0, 0, 1]), s, depth); // cube 6
+        this.mini_cube(min_corner, new Vec3([1, 0, 1]), s, depth); // cube 7
+        this.mini_cube(min_corner, new Vec3([3, 0, 1]), s, depth); // cube 8
+        this.mini_cube(min_corner, new Vec3([4, 0, 1]), s, depth); // cube 9
+        this.mini_cube(min_corner, new Vec3([0, 0, 2]), s, depth); // cube 10
+        this.mini_cube(min_corner, new Vec3([4, 0, 2]), s, depth); // cube 11
+        this.mini_cube(min_corner, new Vec3([0, 0, 3]), s, depth); // cube 12
+        this.mini_cube(min_corner, new Vec3([1, 0, 3]), s, depth); // cube 13
+        this.mini_cube(min_corner, new Vec3([3, 0, 3]), s, depth); // cube 14
+        this.mini_cube(min_corner, new Vec3([4, 0, 3]), s, depth); // cube 15
+        this.mini_cube(min_corner, new Vec3([0, 0, 4]), s, depth); // cube 16
+        this.mini_cube(min_corner, new Vec3([1, 0, 4]), s, depth); // cube 17
+        this.mini_cube(min_corner, new Vec3([2, 0, 4]), s, depth); // cube 18
+        this.mini_cube(min_corner, new Vec3([3, 0, 4]), s, depth); // cube 19
+        this.mini_cube(min_corner, new Vec3([4, 0, 4]), s, depth); // cube 20
         // level 2:
-        this.mini_cube(min_corner, new Vec3([0, 1, 0]), s, depth); // cube 14
-        this.mini_cube(min_corner, new Vec3([2, 1, 0]), s, depth); // cube 15
-        this.mini_cube(min_corner, new Vec3([0, 1, 2]), s, depth); // cube 16
-        this.mini_cube(min_corner, new Vec3([2, 1, 2]), s, depth); // cube 17
+        this.mini_cube(min_corner, new Vec3([0, 1, 0]), s, depth); // cube 21
+        this.mini_cube(min_corner, new Vec3([1, 1, 0]), s, depth); // cube 22
+        this.mini_cube(min_corner, new Vec3([3, 1, 0]), s, depth); // cube 23
+        this.mini_cube(min_corner, new Vec3([4, 1, 0]), s, depth); // cube 24
+        this.mini_cube(min_corner, new Vec3([0, 1, 1]), s, depth); // cube 25
+        this.mini_cube(min_corner, new Vec3([1, 1, 1]), s, depth); // cube 26
+        this.mini_cube(min_corner, new Vec3([3, 1, 1]), s, depth); // cube 27
+        this.mini_cube(min_corner, new Vec3([4, 1, 1]), s, depth); // cube 28
+        this.mini_cube(min_corner, new Vec3([0, 1, 3]), s, depth); // cube 29
+        this.mini_cube(min_corner, new Vec3([1, 1, 3]), s, depth); // cube 30
+        this.mini_cube(min_corner, new Vec3([3, 1, 3]), s, depth); // cube 31
+        this.mini_cube(min_corner, new Vec3([4, 1, 3]), s, depth); // cube 32
+        this.mini_cube(min_corner, new Vec3([0, 1, 4]), s, depth); // cube 33
+        this.mini_cube(min_corner, new Vec3([1, 1, 4]), s, depth); // cube 34
+        this.mini_cube(min_corner, new Vec3([3, 1, 4]), s, depth); // cube 35
+        this.mini_cube(min_corner, new Vec3([4, 1, 4]), s, depth); // cube 36
         // level 3:
-        this.mini_cube(min_corner, new Vec3([0, 2, 0]), s, depth); // cube 13
-        this.mini_cube(min_corner, new Vec3([1, 2, 0]), s, depth); // cube 14
-        this.mini_cube(min_corner, new Vec3([2, 2, 0]), s, depth); // cube 15
-        this.mini_cube(min_corner, new Vec3([0, 2, 1]), s, depth); // cube 16
-        this.mini_cube(min_corner, new Vec3([2, 2, 1]), s, depth); // cube 17
-        this.mini_cube(min_corner, new Vec3([0, 2, 2]), s, depth); // cube 18
-        this.mini_cube(min_corner, new Vec3([1, 2, 2]), s, depth); // cube 19
-        this.mini_cube(min_corner, new Vec3([2, 2, 2]), s, depth); // cube 20
+        this.mini_cube(min_corner, new Vec3([0, 2, 0]), s, depth); // cube 37
+        this.mini_cube(min_corner, new Vec3([0, 2, 4]), s, depth); // cube 38
+        this.mini_cube(min_corner, new Vec3([4, 2, 0]), s, depth); // cube 39
+        this.mini_cube(min_corner, new Vec3([4, 2, 4]), s, depth); // cube 40
+        // level 4:
+        this.mini_cube(min_corner, new Vec3([0, 3, 0]), s, depth); // cube 41
+        this.mini_cube(min_corner, new Vec3([1, 3, 0]), s, depth); // cube 42
+        this.mini_cube(min_corner, new Vec3([3, 3, 0]), s, depth); // cube 43
+        this.mini_cube(min_corner, new Vec3([4, 3, 0]), s, depth); // cube 44
+        this.mini_cube(min_corner, new Vec3([0, 3, 1]), s, depth); // cube 45
+        this.mini_cube(min_corner, new Vec3([1, 3, 1]), s, depth); // cube 46
+        this.mini_cube(min_corner, new Vec3([3, 3, 1]), s, depth); // cube 47
+        this.mini_cube(min_corner, new Vec3([4, 3, 1]), s, depth); // cube 48
+        this.mini_cube(min_corner, new Vec3([0, 3, 3]), s, depth); // cube 49
+        this.mini_cube(min_corner, new Vec3([1, 3, 3]), s, depth); // cube 50
+        this.mini_cube(min_corner, new Vec3([3, 3, 3]), s, depth); // cube 51
+        this.mini_cube(min_corner, new Vec3([4, 3, 3]), s, depth); // cube 52
+        this.mini_cube(min_corner, new Vec3([0, 3, 4]), s, depth); // cube 53
+        this.mini_cube(min_corner, new Vec3([1, 3, 4]), s, depth); // cube 54
+        this.mini_cube(min_corner, new Vec3([3, 3, 4]), s, depth); // cube 55
+        this.mini_cube(min_corner, new Vec3([4, 3, 4]), s, depth); // cube 56
+        // level 5:
+        this.mini_cube(min_corner, new Vec3([0, 4, 0]), s, depth); // cube 57
+        this.mini_cube(min_corner, new Vec3([1, 4, 0]), s, depth); // cube 58
+        this.mini_cube(min_corner, new Vec3([2, 4, 0]), s, depth); // cube 59
+        this.mini_cube(min_corner, new Vec3([3, 4, 0]), s, depth); // cube 60
+        this.mini_cube(min_corner, new Vec3([4, 4, 0]), s, depth); // cube 61
+        this.mini_cube(min_corner, new Vec3([0, 4, 1]), s, depth); // cube 62
+        this.mini_cube(min_corner, new Vec3([1, 4, 1]), s, depth); // cube 63
+        this.mini_cube(min_corner, new Vec3([3, 4, 1]), s, depth); // cube 64
+        this.mini_cube(min_corner, new Vec3([4, 4, 1]), s, depth); // cube 65
+        this.mini_cube(min_corner, new Vec3([0, 4, 2]), s, depth); // cube 66
+        this.mini_cube(min_corner, new Vec3([4, 4, 2]), s, depth); // cube 67
+        this.mini_cube(min_corner, new Vec3([0, 4, 3]), s, depth); // cube 68
+        this.mini_cube(min_corner, new Vec3([1, 4, 3]), s, depth); // cube 68
+        this.mini_cube(min_corner, new Vec3([3, 4, 3]), s, depth); // cube 70
+        this.mini_cube(min_corner, new Vec3([4, 4, 3]), s, depth); // cube 71
+        this.mini_cube(min_corner, new Vec3([0, 4, 4]), s, depth); // cube 72
+        this.mini_cube(min_corner, new Vec3([1, 4, 4]), s, depth); // cube 73
+        this.mini_cube(min_corner, new Vec3([2, 4, 4]), s, depth); // cube 74
+        this.mini_cube(min_corner, new Vec3([3, 4, 4]), s, depth); // cube 75
+        this.mini_cube(min_corner, new Vec3([4, 4, 4]), s, depth); // cube 76
     }
     mini_cube(min_corner, m, s, depth) {
         const min_1 = new Vec3([min_corner.x + (s * m.x), min_corner.y + (s * m.y), min_corner.z + (s * m.z)]);
@@ -157,8 +215,13 @@ export class MengerSponge {
      * Returns the model matrix of the sponge
      */
     uMatrix() {
-        const ret = new Mat4().setIdentity();
+        const ret = new Mat4([
+            1.0, 0.0, 0.0, 0.0,
+            0.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 1.0, 0.0,
+            0.0, 0.0, -10.0, 1.0,
+        ]);
         return ret;
     }
 }
-//# sourceMappingURL=MengerSponge.js.map
+//# sourceMappingURL=JerusalemCube.js.map

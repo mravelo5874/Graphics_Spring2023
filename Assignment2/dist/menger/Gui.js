@@ -1,5 +1,5 @@
 import { Camera } from "../lib/webglutils/Camera.js";
-import { Vec3, Vec2 } from "../lib/TSM.js";
+import { Vec3, Vec2, Vec4 } from "../lib/TSM.js";
 /**
  * Handles Mouse and Button events along with
  * the the camera.
@@ -11,12 +11,13 @@ export class GUI {
      * @param animation required as a back pointer for some of the controls
      * @param sponge required for some of the controls
      */
-    constructor(canvas, animation, sponge) {
+    constructor(canvas, animation, sponge, jcube) {
         this.height = canvas.height;
         this.width = canvas.width;
         this.prevX = 0;
         this.prevY = 0;
         this.sponge = sponge;
+        this.jcube = jcube;
         this.animation = animation;
         this.reset();
         this.registerEventListeners(canvas);
@@ -36,6 +37,10 @@ export class GUI {
      */
     setCamera(pos, target, upDir, fov, aspect, zNear, zFar) {
         this.camera = new Camera(pos, target, upDir, fov, aspect, zNear, zFar);
+    }
+    camera_look() {
+        const look = this.camera.forward().copy();
+        return new Vec4([look.x, look.y, look.z, 0.0]);
     }
     /**
      * Returns the view matrix of the camera
@@ -148,21 +153,25 @@ export class GUI {
             case "Digit1":
                 {
                     this.sponge.setLevel(1);
+                    this.jcube.setLevel(1);
                     break;
                 }
             case "Digit2":
                 {
                     this.sponge.setLevel(2);
+                    this.jcube.setLevel(2);
                     break;
                 }
             case "Digit3":
                 {
                     this.sponge.setLevel(3);
+                    this.jcube.setLevel(3);
                     break;
                 }
             case "Digit4":
                 {
                     this.sponge.setLevel(4);
+                    this.jcube.setLevel(4);
                     break;
                 }
             default:

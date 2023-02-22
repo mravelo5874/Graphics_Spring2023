@@ -1,7 +1,8 @@
 import { Camera } from "../lib/webglutils/Camera.js";
 import { CanvasAnimation } from "../lib/webglutils/CanvasAnimation.js";
 import { MengerSponge } from "./MengerSponge.js";
-import { Mat4, Vec3, Vec2 } from "../lib/TSM.js";
+import { Mat4, Vec3, Vec2, Vec4 } from "../lib/TSM.js";
+import { JerusalemCube } from "./JerusalemCube.js";
 
 /**
  * Might be useful for designing any animation GUI
@@ -35,6 +36,7 @@ export class GUI implements IGUI {
 	private width: number;
 
 	private sponge: MengerSponge;
+	private jcube: JerusalemCube;
 	private animation: CanvasAnimation;
 
 	/**
@@ -46,7 +48,8 @@ export class GUI implements IGUI {
 	constructor(
 		canvas: HTMLCanvasElement,
 		animation: CanvasAnimation,
-		sponge: MengerSponge
+		sponge: MengerSponge,
+		jcube: JerusalemCube,
 	) {
 		this.height = canvas.height;
 		this.width = canvas.width;
@@ -54,6 +57,7 @@ export class GUI implements IGUI {
 		this.prevY = 0;
 
 		this.sponge = sponge;
+		this.jcube = jcube
 		this.animation = animation;
 
 		this.reset();
@@ -92,6 +96,12 @@ export class GUI implements IGUI {
 		zFar: number
 	) {
 		this.camera = new Camera(pos, target, upDir, fov, aspect, zNear, zFar);
+	}
+
+	public camera_look()
+	{
+		const look = this.camera.forward().copy()
+		return new Vec4([look.x, look.y, look.z, 0.0])
 	}
 
 	/**
@@ -217,21 +227,25 @@ export class GUI implements IGUI {
 			case "Digit1": 
 			{
 				this.sponge.setLevel(1)
+				this.jcube.setLevel(1)
 				break;
 			}
 			case "Digit2": 
 			{
 				this.sponge.setLevel(2)
+				this.jcube.setLevel(2)
 				break;
 			}
 			case "Digit3": 
 			{
 				this.sponge.setLevel(3)
+				this.jcube.setLevel(3)
 				break;
 			}
 			case "Digit4": 
 			{
 				this.sponge.setLevel(4)
+				this.jcube.setLevel(4)
 				break;
 			}
 			default: 
