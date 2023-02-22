@@ -13,7 +13,8 @@ export let defaultVSText = `
     uniform mat4 mView;
 	uniform mat4 mProj;
 
-    void main () {
+    void main () 
+    {
 		//  Convert vertex to camera coordinates and the NDC
         gl_Position = mProj * mView * mWorld * vec4 (vertPosition, 1.0);
         
@@ -56,8 +57,76 @@ export let defaultFSText =
     }
 `;
 
-// TODO: floor shaders
 
-export let floorVSText = ``;
-export let floorFSText = ``;
+
+
+// floor shaders
+
+export let floorVSText = 
+`
+    precision mediump float;
+
+    attribute vec3 vertPosition;
+    attribute vec3 vertColor;
+    attribute vec4 aNorm;
+    
+    varying vec4 lightDir;
+    varying vec4 lookDir;
+    varying vec4 normal;
+    varying vec4 worldPos;
+ 
+    uniform vec4 lightPosition;
+    uniform mat4 mWorld;
+    uniform mat4 mView;
+	uniform mat4 mProj;
+
+    void main() 
+    {
+		//  Convert vertex to camera coordinates and the NDC
+        gl_Position = mProj * mView * mWorld * vec4 (vertPosition, 1.0);
+        
+        //  Compute light direction (world coordinates)
+        lightDir = lightPosition - vec4(vertPosition, 1.0);
+		
+        //  Pass along the vertex normal (world coordinates)
+        normal = aNorm;
+        worldPos = mWorld * vec4(vertPosition, 1.0);
+
+        // compute look direction
+        vec4 c = m[2];
+        lookDir = mView.
+    }
+`;
+
+export let floorFSText = 
+`
+    precision mediump float;
+
+    varying vec4 lightDir;
+    varying vec4 lookDir;
+    varying vec4 normal;
+    varying vec4 worldPos;
+
+    float PI = 3.14159265359;
+    float ONE_FIF = 1.0/5.0;
+
+    void main() 
+    {       
+        // CHESS COLOUR ?
+        vec4 chess_calc = sin(PI * world * ONE_FIF);
+        bool chess_white = res.x > 0.0 && res.z > 0.0 || res.x < 0.0 && res.z < 0.0
+
+        // PHONG ILLUMINATION
+
+
+        if (chess_white)
+        {
+            gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        }
+        else
+        {
+            gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+        }
+    }
+`;
 

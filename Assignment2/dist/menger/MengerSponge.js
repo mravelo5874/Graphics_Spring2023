@@ -18,6 +18,8 @@ export class MengerSponge {
     isDirty() { return this.dirty; }
     setClean() { this.dirty = false; }
     setLevel(level) {
+        if (level == this.sponge_level)
+            return;
         this.sponge_level = level;
         this.cube_count = 0;
         console.log("setting sponge level: " + this.sponge_level);
@@ -30,6 +32,8 @@ export class MengerSponge {
         const n = this.cube_count * this.vert_per_cube;
         //console.log("cube_num: " + this.cube_count)
         this.cube_count = this.cube_count + 1;
+        // grab values
+        const min_x = min_corner.x;
         // order of cube verticies:
         const cube_verticies = new Array(min_corner.x, min_corner.y, max_corner.z, 1.0, // 0
         min_corner.x, max_corner.y, max_corner.z, 1.0, // 1
@@ -152,7 +156,6 @@ export class MengerSponge {
      * Returns the model matrix of the sponge
      */
     uMatrix() {
-        // TODO: change this, if it's useful
         const ret = new Mat4().setIdentity();
         return ret;
     }

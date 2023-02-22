@@ -256,7 +256,6 @@ export class MengerSponge implements IMengerSponge
 	 */
 	public uMatrix(): Mat4 
 	{
-		// TODO: change this, if it's useful
 		const ret : Mat4 = new Mat4().setIdentity();
 		return ret;    
 	}

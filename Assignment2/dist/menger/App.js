@@ -1,11 +1,11 @@
 import { CanvasAnimation, WebGLUtilities } from "../lib/webglutils/CanvasAnimation.js";
 import { GUI } from "./Gui.js";
 import { MengerSponge } from "./MengerSponge.js";
+import { ChessFloor } from "./ChessFloor.js";
 import { mengerTests } from "./tests/MengerTests.js";
-import { defaultFSText, defaultVSText } from "./Shaders.js";
+import { defaultFSText, defaultVSText, floorFSText, floorVSText } from "./Shaders.js";
 import { Mat4, Vec4 } from "../lib/TSM.js";
 export class MengerAnimation extends CanvasAnimation {
-    // TODO: data structures for the floor
     constructor(canvas) {
         super(canvas);
         /* The Menger sponge */
@@ -28,6 +28,23 @@ export class MengerAnimation extends CanvasAnimation {
         /* Global Rendering Info */
         this.lightPosition = new Vec4();
         this.backgroundColor = new Vec4();
+        /* the chess floor */
+        this.floor = new ChessFloor();
+        /* ChessFloor Rendering Info */
+        this.chessFloorVAO = -1;
+        this.chessFloorProgram = -1;
+        /* ChessFloor Buffers */
+        this.chessFloorPosBuffer = -1;
+        this.chessFloorIndexBuffer = -1;
+        this.chessFloorNormBuffer = -1;
+        /* ChessFloor Attribute Locations */
+        this.chessFloorPosAttribLoc = -1;
+        this.chessFloorNormAttribLoc = -1;
+        /* ChessFloor Uniform Locations */
+        this.chessFloorWorldUniformLocation = -1;
+        this.chessFloorViewUniformLocation = -1;
+        this.chessFloorProjUniformLocation = -1;
+        this.chessFloorLightUniformLocation = -1;
         this.gui = new GUI(canvas, this, this.sponge);
         /* Setup Animation */
         this.reset();
@@ -98,7 +115,51 @@ export class MengerAnimation extends CanvasAnimation {
      * Sets up the floor and floor drawing
      */
     initFloor() {
-        // TODO: your code to set up the floor rendering
+        /* Alias context for syntactic convenience */
+        const gl = this.ctx;
+        /* Compile Shaders */
+        this.chessFloorProgram = WebGLUtilities.createProgram(gl, floorVSText, floorFSText);
+        gl.useProgram(this.chessFloorProgram);
+        /* Create VAO for chess floor */
+        this.chessFloorVAO = this.extVAO.createVertexArrayOES();
+        this.extVAO.bindVertexArrayOES(this.chessFloorVAO);
+        /* Create and setup positions buffer*/
+        // Returns a number that indicates where 'vertPosition' is in the shader program
+        this.chessFloorPosAttribLoc = gl.getAttribLocation(this.chessFloorProgram, "vertPosition");
+        /* Ask WebGL to create a buffer */
+        this.chessFloorPosBuffer = gl.createBuffer();
+        /* Tell WebGL that you are operating on this buffer */
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.chessFloorPosBuffer);
+        /* Fill the buffer with data */
+        gl.bufferData(gl.ARRAY_BUFFER, this.floor.positionsFlat(), gl.STATIC_DRAW);
+        /* Tell WebGL how to read the buffer and where the data goes */
+        gl.vertexAttribPointer(this.chessFloorPosAttribLoc /* Essentially, the destination */, 4 /* Number of bytes per primitive */, gl.FLOAT /* The type of data */, false /* Normalize data. Should be false. */, 4 *
+            Float32Array.BYTES_PER_ELEMENT /* Number of bytes to the next element */, 0 /* Initial offset into buffer */);
+        /* Tell WebGL to enable to attribute */
+        gl.enableVertexAttribArray(this.chessFloorPosAttribLoc);
+        /* Create and setup normals buffer*/
+        this.chessFloorNormAttribLoc = gl.getAttribLocation(this.chessFloorProgram, "aNorm");
+        this.chessFloorNormBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.chessFloorNormBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.floor.normalsFlat(), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(this.chessFloorNormAttribLoc, 4, gl.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0);
+        gl.enableVertexAttribArray(this.chessFloorNormAttribLoc);
+        /* Create and setup index buffer*/
+        this.chessFloorIndexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.chessFloorIndexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.floor.indicesFlat(), gl.STATIC_DRAW);
+        /* End VAO recording */
+        this.extVAO.bindVertexArrayOES(this.chessFloorVAO);
+        /* Get uniform locations */
+        this.chessFloorWorldUniformLocation = gl.getUniformLocation(this.chessFloorProgram, "mWorld");
+        this.chessFloorViewUniformLocation = gl.getUniformLocation(this.chessFloorProgram, "mView");
+        this.chessFloorProjUniformLocation = gl.getUniformLocation(this.chessFloorProgram, "mProj");
+        this.chessFloorLightUniformLocation = gl.getUniformLocation(this.chessFloorProgram, "lightPosition");
+        /* Bind uniforms */
+        gl.uniformMatrix4fv(this.chessFloorWorldUniformLocation, false, new Float32Array(this.floor.uMatrix().all()));
+        gl.uniformMatrix4fv(this.chessFloorViewUniformLocation, false, new Float32Array(Mat4.identity.all()));
+        gl.uniformMatrix4fv(this.chessFloorProjUniformLocation, false, new Float32Array(Mat4.identity.all()));
+        gl.uniform4fv(this.chessFloorLightUniformLocation, this.lightPosition.xyzw);
     }
     /**
      * Draws a single frame
@@ -135,10 +196,35 @@ export class MengerAnimation extends CanvasAnimation {
         gl.uniformMatrix4fv(this.mengerWorldUniformLocation, false, new Float32Array(modelMatrix.all()));
         gl.uniformMatrix4fv(this.mengerViewUniformLocation, false, new Float32Array(this.gui.viewMatrix().all()));
         gl.uniformMatrix4fv(this.mengerProjUniformLocation, false, new Float32Array(this.gui.projMatrix().all()));
-        console.log("Drawing ", this.sponge.indicesFlat().length, " triangles");
+        //console.log("Drawing ", this.sponge.indicesFlat().length, " triangles");
         /* Draw menger */
         gl.drawElements(gl.TRIANGLES, this.sponge.indicesFlat().length, gl.UNSIGNED_INT, 0);
-        // TODO: draw the floor
+        // draw the floor
+        /* chessFloor - Update/Draw */
+        const floorModelMatrix = this.floor.uMatrix();
+        gl.useProgram(this.chessFloorProgram);
+        this.extVAO.bindVertexArrayOES(this.chessFloorVAO);
+        /* Update chessFloor buffers */
+        if (this.floor.isDirty()) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.chessFloorPosBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, this.floor.positionsFlat(), gl.STATIC_DRAW);
+            gl.vertexAttribPointer(this.chessFloorPosAttribLoc, 4, gl.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0);
+            gl.enableVertexAttribArray(this.chessFloorPosAttribLoc);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.chessFloorNormBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, this.floor.normalsFlat(), gl.STATIC_DRAW);
+            gl.vertexAttribPointer(this.chessFloorNormAttribLoc, 4, gl.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0);
+            gl.enableVertexAttribArray(this.chessFloorNormAttribLoc);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.chessFloorIndexBuffer);
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.floor.indicesFlat(), gl.STATIC_DRAW);
+            this.floor.setClean();
+        }
+        /* Update chessFloor uniforms */
+        gl.uniformMatrix4fv(this.chessFloorWorldUniformLocation, false, new Float32Array(floorModelMatrix.all()));
+        gl.uniformMatrix4fv(this.chessFloorViewUniformLocation, false, new Float32Array(this.gui.viewMatrix().all()));
+        gl.uniformMatrix4fv(this.chessFloorProjUniformLocation, false, new Float32Array(this.gui.projMatrix().all()));
+        //console.log("Drawing ", this.floor.indicesFlat().length, " triangles");
+        /* Draw chessFloor */
+        gl.drawElements(gl.TRIANGLES, this.floor.indicesFlat().length, gl.UNSIGNED_INT, 0);
     }
     setLevel(level) {
         this.sponge.setLevel(level);
