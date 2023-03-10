@@ -39,7 +39,18 @@ export class MengerSponge implements IMengerSponge
 	 */
 	public isDirty(): boolean { return this.dirty }
 	public setClean(): void { this.dirty = false }
-	
+	public get_level(): number { return this.sponge_level }
+
+	public remove()
+	{
+		// set level to 0
+		this.setLevel(0)
+		// clear arrays
+		this.my_verticies.splice(0, this.my_verticies.length)
+		this.my_indicies.splice(0, this.my_indicies.length)
+		this.my_normals.splice(0, this.my_normals.length)
+	}
+
 	public setLevel(level: number)
 	{
 		if (level == this.sponge_level)
@@ -184,7 +195,7 @@ export class MengerSponge implements IMengerSponge
 	private generate_sub_cubes(min_corner: Vec3, max_corner: Vec3, depth: number)
 	{
 		// stop recurrsion when depth is 1
-		if (depth == 1)
+		if (depth <= 1)
 		{
 			this.add_cube(min_corner, max_corner)
 			return;

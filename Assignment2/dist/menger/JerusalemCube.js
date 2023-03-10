@@ -17,6 +17,15 @@ export class JerusalemCube {
      */
     isDirty() { return this.dirty; }
     setClean() { this.dirty = false; }
+    get_level() { return this.cube_level; }
+    remove() {
+        // set level to 0
+        this.setLevel(0);
+        // clear arrays
+        this.my_verticies.splice(0, this.my_verticies.length);
+        this.my_indicies.splice(0, this.my_indicies.length);
+        this.my_normals.splice(0, this.my_normals.length);
+    }
     setLevel(level) {
         if (level == this.cube_level)
             return;
@@ -98,8 +107,8 @@ export class JerusalemCube {
         // console.log("normals: " + this.my_normals)
     }
     generate_sub_cubes(min_corner, max_corner, depth) {
-        // stop recurrsion when depth is 1
-        if (depth == 1) {
+        // stop recurrsion when depth is less than or equal to 1
+        if (depth <= 1) {
             this.add_cube(min_corner, max_corner);
             return;
         }
@@ -215,13 +224,13 @@ export class JerusalemCube {
      * Returns the model matrix of the sponge
      */
     uMatrix() {
-        const ret = new Mat4([
-            1.0, 0.0, 0.0, 0.0,
-            0.0, 1.0, 0.0, 0.0,
-            0.0, 0.0, 1.0, 0.0,
-            6.0, 0.0, -6.0, 1.0,
-        ]);
-        return ret;
+        // const ret : Mat4 = new Mat4([
+        //     1.0,    0.0,    0.0,    0.0,
+        //     0.0,    1.0,    0.0,    0.0,
+        //     0.0,    0.0,    1.0,    0.0,
+        //     6.0,    0.0,   -6.0,    1.0,
+        // ])
+        return new Mat4().setIdentity();
     }
 }
 //# sourceMappingURL=JerusalemCube.js.map

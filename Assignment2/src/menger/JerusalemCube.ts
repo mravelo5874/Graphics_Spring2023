@@ -39,6 +39,17 @@ export class JerusalemCube implements IJerusalemCube
 	 */
 	public isDirty(): boolean { return this.dirty }
 	public setClean(): void { this.dirty = false }
+	public get_level(): number { return this.cube_level }
+
+	public remove()
+	{
+		// set level to 0
+		this.setLevel(0)
+		// clear arrays
+		this.my_verticies.splice(0, this.my_verticies.length)
+		this.my_indicies.splice(0, this.my_indicies.length)
+		this.my_normals.splice(0, this.my_normals.length)
+	}
 	
 	public setLevel(level: number)
 	{
@@ -183,8 +194,8 @@ export class JerusalemCube implements IJerusalemCube
 
 	private generate_sub_cubes(min_corner: Vec3, max_corner: Vec3, depth: number)
 	{
-		// stop recurrsion when depth is 1
-		if (depth == 1)
+		// stop recurrsion when depth is less than or equal to 1
+		if (depth <= 1)
 		{
 			this.add_cube(min_corner, max_corner)
 			return;
@@ -329,12 +340,12 @@ export class JerusalemCube implements IJerusalemCube
 	 */
 	public uMatrix(): Mat4 
 	{
-		const ret : Mat4 = new Mat4([
-            1.0,    0.0,    0.0,    0.0,
-            0.0,    1.0,    0.0,    0.0,
-            0.0,    0.0,    1.0,    0.0,
-            6.0,    0.0,   -6.0,    1.0,
-        ])
-		return ret;  
+		// const ret : Mat4 = new Mat4([
+        //     1.0,    0.0,    0.0,    0.0,
+        //     0.0,    1.0,    0.0,    0.0,
+        //     0.0,    0.0,    1.0,    0.0,
+        //     6.0,    0.0,   -6.0,    1.0,
+        // ])
+		return new Mat4().setIdentity(); 
 	}
 }

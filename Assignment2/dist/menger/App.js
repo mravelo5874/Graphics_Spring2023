@@ -187,7 +187,7 @@ export class MengerAnimation extends CanvasAnimation {
      * Initialize the Menger sponge data structure
      */
     initJcube() {
-        this.jcube.setLevel(1);
+        this.jcube.remove();
         /* Alias context for syntactic convenience */
         const gl = this.ctx;
         /* Compile Shaders */

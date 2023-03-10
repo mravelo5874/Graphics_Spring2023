@@ -37,6 +37,7 @@ export class GUI implements IGUI {
 
 	private sponge: MengerSponge;
 	private jcube: JerusalemCube;
+	private showSponge: boolean;
 	private animation: CanvasAnimation;
 
 	/**
@@ -68,6 +69,7 @@ export class GUI implements IGUI {
 	 * Resets the state of the GUI
 	 */
 	public reset(): void {
+		this.showSponge = true
 		this.fps = false;
 		this.dragging = false;
 		/* Create camera setup */
@@ -177,7 +179,7 @@ export class GUI implements IGUI {
 		const right : Vec3 = this.camera.right().copy()
 		const up : Vec3 = this.camera.up().copy()
 
-		switch (key.code) 
+		switch (key.code)
 		{
 			case "KeyW": 
 			{
@@ -224,28 +226,46 @@ export class GUI implements IGUI {
 				this.camera.offset(up, GUI.zoomSpeed * -1.0, true)
 				break;
 			}
+			case "Digit0": 
+			{
+				if (this.showSponge)
+				{
+					const level = this.sponge.get_level()
+					this.sponge.remove()
+					this.jcube.setLevel(level)
+					this.showSponge = false
+				}
+				else 
+				{
+					const level = this.jcube.get_level()
+					this.jcube.remove()
+					this.sponge.setLevel(level)
+					this.showSponge = true
+				}
+				break;
+			}
 			case "Digit1": 
 			{
-				this.sponge.setLevel(1)
-				this.jcube.setLevel(1)
+				if (this.showSponge) this.sponge.setLevel(1)
+				else this.jcube.setLevel(1)
 				break;
 			}
 			case "Digit2": 
 			{
-				this.sponge.setLevel(2)
-				this.jcube.setLevel(2)
+				if (this.showSponge) this.sponge.setLevel(2)
+				else this.jcube.setLevel(2)
 				break;
 			}
 			case "Digit3": 
 			{
-				this.sponge.setLevel(3)
-				this.jcube.setLevel(3)
+				if (this.showSponge) this.sponge.setLevel(3)
+				else this.jcube.setLevel(3)
 				break;
 			}
 			case "Digit4": 
 			{
-				this.sponge.setLevel(4)
-				this.jcube.setLevel(4)
+				if (this.showSponge) this.sponge.setLevel(4)
+				else this.jcube.setLevel(4)
 				break;
 			}
 			default: 

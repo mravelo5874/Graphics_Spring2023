@@ -17,6 +17,15 @@ export class MengerSponge {
      */
     isDirty() { return this.dirty; }
     setClean() { this.dirty = false; }
+    get_level() { return this.sponge_level; }
+    remove() {
+        // set level to 0
+        this.setLevel(0);
+        // clear arrays
+        this.my_verticies.splice(0, this.my_verticies.length);
+        this.my_indicies.splice(0, this.my_indicies.length);
+        this.my_normals.splice(0, this.my_normals.length);
+    }
     setLevel(level) {
         if (level == this.sponge_level)
             return;
@@ -99,7 +108,7 @@ export class MengerSponge {
     }
     generate_sub_cubes(min_corner, max_corner, depth) {
         // stop recurrsion when depth is 1
-        if (depth == 1) {
+        if (depth <= 1) {
             this.add_cube(min_corner, max_corner);
             return;
         }

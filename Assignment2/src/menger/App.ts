@@ -364,7 +364,7 @@ export class MengerAnimation extends CanvasAnimation {
    */
   public initJcube(): void {
     
-    this.jcube.setLevel(1);
+    this.jcube.remove();
     
     /* Alias context for syntactic convenience */
     const gl: WebGLRenderingContext = this.ctx;
