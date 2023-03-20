@@ -82,6 +82,7 @@ export class SkinningAnimation extends CanvasAnimation {
     // TODO
     // Other initialization, for instance, for the bone highlighting
     
+    
     this.initGui();
 
     

@@ -1,5 +1,6 @@
 import { Camera } from "../lib/webglutils/Camera.js";
-import { Vec3 } from "../lib/TSM.js";
+import { Vec3, Vec4 } from "../lib/TSM.js";
+import { Ray } from "./Utils.js";
 export var Mode;
 (function (Mode) {
     Mode[Mode["playback"] = 0] = "playback";
@@ -136,10 +137,36 @@ export class GUI {
                 }
             }
         }
-        // TODO
         // You will want logic here:
         // 1) To highlight a bone, if the mouse is hovering over a bone;
         // 2) To rotate a bone, if the mouse button is pressed and currently highlighting a bone.
+        let bones = this.animation.getScene().getBones();
+        console.log('bones: ' + bones.length);
+        // get vector based on mouse position
+        let x_ndc = ((2.0 * x) / screen.width) - 1.0;
+        let y_ndc = 1.0 - ((2.0 * y) / screen.height);
+        let hcc_dir = new Vec4([x_ndc, y_ndc, -1.0, 1.0]);
+        let cam_dir = this.projMatrix().inverse().multiplyVec4(hcc_dir);
+        cam_dir = new Vec4([cam_dir.x, cam_dir.y, -1.0, 1.0]);
+        let world_dir = new Vec3(this.viewMatrix().inverse().multiplyVec4(cam_dir).xyz).normalize();
+        // create mouse ray
+        let mouse_ray = new Ray(this.camera.pos(), world_dir);
+        console.log('mouse_ray: ' + mouse_ray.print());
+        console.log('camera forward: {' + Ray.Vec3toFixed(new Vec3(this.camera.forward().xyz), 3) + '}');
+        // check cyliner intersections
+        let curr_bone = -1;
+        let curr_t = -1;
+        for (let i = 0; i < bones.length; i++) {
+            let res = bones[i].getCylinder().ray_interset(mouse_ray);
+            if (res[0] && res[1] < curr_t) {
+                curr_t = res[1];
+                curr_bone = i;
+            }
+        }
+        // print out bone
+        if (curr_bone > -1) {
+            console.log('current bone: ' + bones[curr_bone] + ' @ t=' + curr_t);
+        }
     }
     getModeString() {
         switch (this.mode) {

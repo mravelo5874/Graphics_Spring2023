@@ -1,3 +1,4 @@
+import { Cylinder } from "./Utils.js";
 export class Attribute {
     constructor(attr) {
         this.values = attr.values;
@@ -32,7 +33,11 @@ export class Bone {
         this.initialEndpoint = bone.initialEndpoint.copy();
         this.initialTransformation = bone.initialTransformation.copy();
     }
+    getCylinder() {
+        return new Cylinder(this.position, this.endpoint, Bone.BONE_CYLINDER_RADIUS);
+    }
 }
+Bone.BONE_CYLINDER_RADIUS = 1.0;
 export class Mesh {
     constructor(mesh) {
         this.geometry = new MeshGeometry(mesh.geometry);

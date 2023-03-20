@@ -261,6 +261,15 @@ class CLoader {
             }
         });
     }
+    getBones() {
+        let bones = new Array;
+        for (let i = 0; i < this.meshes.length; i++) {
+            for (let j = 0; j < this.meshes[i].bones.length; j++) {
+                bones.push(this.meshes[i].bones[j]);
+            }
+        }
+        return bones;
+    }
 }
 export { CLoader as CLoader, };
 //# sourceMappingURL=AnimationFileLoader.js.map

@@ -1,5 +1,6 @@
 import { Mat4, Quat, Vec3 } from "../lib/TSM.js";
 import { AttributeLoader, MeshGeometryLoader, BoneLoader, MeshLoader } from "./AnimationFileLoader.js";
+import { Cylinder } from "./Utils.js"
 
 export class Attribute {
   values: Float32Array;
@@ -38,6 +39,7 @@ export class MeshGeometry {
 }
 
 export class Bone {
+  public static BONE_CYLINDER_RADIUS = 1.0
   public parent: number;
   public children: number[];
   public position: Vec3; // current position of the bone's joint *in world coordinates*. Used by the provided skeleton shader, so you need to keep this up to date.
@@ -60,6 +62,11 @@ export class Bone {
     this.initialPosition = bone.initialPosition.copy();
     this.initialEndpoint = bone.initialEndpoint.copy();
     this.initialTransformation = bone.initialTransformation.copy();
+  }
+
+  public getCylinder()
+  {
+    return new Cylinder(this.position, this.endpoint, Bone.BONE_CYLINDER_RADIUS)
   }
 }
 
