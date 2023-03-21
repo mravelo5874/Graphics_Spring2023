@@ -128,6 +128,30 @@ export const skeletonFSText = `
     }
 `;
 
+export const rayVSText = `
+    precision mediump float;
+
+    attribute vec3 vertPosition;
+    attribute float rayIndex;
+    
+    uniform mat4 mWorld;
+    uniform mat4 mView;
+    uniform mat4 mProj;
+
+    void main () {
+        int index = int(rayIndex);
+        gl_Position = mProj * mView * mWorld * vec4(vertPosition, 1.0);
+    }
+`;
+
+export const rayFSText = `
+    precision mediump float;
+
+    void main () {
+        gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);
+    }
+`;
+
 export const sBackVSText = `
     precision mediump float;
 

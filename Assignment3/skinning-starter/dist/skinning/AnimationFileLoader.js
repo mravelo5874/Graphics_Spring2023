@@ -2,7 +2,8 @@ import { ColladaLoader } from "../lib/threejs/examples/jsm/loaders/ColladaLoader
 import { Vec3 } from "../lib/tsm/Vec3.js";
 import { Mat4 } from "../lib/TSM.js";
 import { Quat } from "../lib/tsm/Quat.js";
-import { Mesh } from "../skinning/Scene.js";
+import { Mesh, Bone } from "../skinning/Scene.js";
+import { Cylinder } from "./Utils.js";
 export class AttributeLoader {
     constructor(values, count, itemSize) {
         this.values = values;
@@ -170,11 +171,16 @@ export class MeshLoader {
 }
 class CLoader {
     constructor(location) {
+        this.ray_index_count = 0;
         this.fileLocation = location;
         this.loader = new ColladaLoader();
         this.scene = null;
         this.skinnedMeshes = [];
         this.meshes = [];
+        this.rays = [];
+        this.ray_indices = new Array();
+        this.ray_positions = new Array();
+        this.ray_index_attribute = new Array();
     }
     load(callback) {
         this.loader.load(this.fileLocation, (collada) => {
@@ -261,14 +267,52 @@ class CLoader {
             }
         });
     }
-    getBones() {
-        let bones = new Array;
+    get_cylinders() {
+        let cylinders = new Array;
         for (let i = 0; i < this.meshes.length; i++) {
-            for (let j = 0; j < this.meshes[i].bones.length; j++) {
-                bones.push(this.meshes[i].bones[j]);
+            let num_bones = this.meshes[i].getBoneIndices().length / 2;
+            let bone_pos = this.meshes[i].getBonePositions();
+            let b = 0;
+            for (let j = 0; j < num_bones; j++) {
+                let pos0 = new Vec3([bone_pos[b], bone_pos[b + 1], bone_pos[b + 2]]);
+                let pos1 = new Vec3([bone_pos[b + 3], bone_pos[b + 4], bone_pos[b + 5]]);
+                b += 6;
+                cylinders.push(new Cylinder(pos0, pos1, Bone.BONE_CYLINDER_RADIUS, j));
             }
+            //console.log('mesh[' + i + '] \n\tbone_indicies: ' + this.meshes[i].getBoneIndices() + '\n\tbone_pos:' + this.meshes[i].getBonePositions() + '\n\tbone_attri:' + this.meshes[i].getBoneIndexAttribute())
         }
-        return bones;
+        return cylinders;
+    }
+    get_rays() {
+        return this.rays;
+    }
+    add_ray(r) {
+        // add to ray list
+        this.rays.push(r);
+        // add ray indices
+        const new_ray_indices = new Array(this.ray_index_count, this.ray_index_count + 1);
+        this.ray_index_count += 2;
+        for (let i = 0; i < 2; i++)
+            this.ray_indices.push(new_ray_indices[i]);
+        // add ray positions
+        const start = r.get_origin();
+        const end = r.get_origin().add(r.get_direction().scale(10));
+        for (let i = 0; i < 3; i++)
+            this.ray_positions.push(start[i]);
+        for (let i = 0; i < 3; i++)
+            this.ray_positions.push(end[i]);
+        // add ray index attributes
+        for (let i = 0; i < 2; i++)
+            this.ray_index_attribute.push(this.rays.length - 1);
+    }
+    get_ray_indices() {
+        return new Uint32Array(this.ray_indices);
+    }
+    get_ray_positions() {
+        return new Float32Array(this.ray_positions);
+    }
+    get_ray_index_attribute() {
+        return new Float32Array(this.ray_index_attribute);
     }
 }
 export { CLoader as CLoader, };

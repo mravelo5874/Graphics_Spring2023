@@ -63,11 +63,6 @@ export class Bone {
     this.initialEndpoint = bone.initialEndpoint.copy();
     this.initialTransformation = bone.initialTransformation.copy();
   }
-
-  public getCylinder()
-  {
-    return new Cylinder(this.position, this.endpoint, Bone.BONE_CYLINDER_RADIUS)
-  }
 }
 
 export class Mesh {

@@ -13,7 +13,9 @@ import {
   skeletonFSText,
   skeletonVSText,
   sBackVSText,
-  sBackFSText
+  sBackFSText,
+  rayFSText,
+  rayVSText
 } from "./Shaders.js";
 import { Mat4, Vec4, Vec3 } from "../lib/TSM.js";
 import { CLoader } from "./AnimationFileLoader.js";
@@ -39,6 +41,9 @@ export class SkinningAnimation extends CanvasAnimation {
 
   /* Scrub bar background rendering info */
   private sBackRenderPass: RenderPass;
+
+  // render pass for ray rendering info
+  private ray_render_pass : RenderPass;
   
 
   /* Global Rendering Info */
@@ -66,7 +71,8 @@ export class SkinningAnimation extends CanvasAnimation {
 
     this.floorRenderPass = new RenderPass(this.extVAO, gl, floorVSText, floorFSText);
     this.sceneRenderPass = new RenderPass(this.extVAO, gl, sceneVSText, sceneFSText);
-    this.skeletonRenderPass = new RenderPass(this.extVAO, gl, skeletonVSText, skeletonFSText);    
+    this.skeletonRenderPass = new RenderPass(this.extVAO, gl, skeletonVSText, skeletonFSText);
+    this.ray_render_pass = new RenderPass(this.extVAO, gl, rayVSText, rayFSText)
 
     this.gui = new GUI(this.canvas2d, this);
     this.lightPosition = new Vec4([-10, 10, -10, 1]);
@@ -119,6 +125,7 @@ export class SkinningAnimation extends CanvasAnimation {
     if (this.scene.meshes.length === 0) { return; }
     this.initModel();
     this.initSkeleton();
+    this.init_rays();
     this.gui.reset();
   }
 
@@ -227,6 +234,33 @@ export class SkinningAnimation extends CanvasAnimation {
     this.skeletonRenderPass.setup();
   }
 
+  public init_rays() : void
+  {
+    this.ray_render_pass.setIndexBufferData(this.scene.get_ray_indices());
+
+    this.ray_render_pass.addAttribute("vertPosition", 3, this.ctx.FLOAT, false,
+      3 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.scene.get_ray_positions());
+    this.ray_render_pass.addAttribute("rayIndex", 1, this.ctx.FLOAT, false,
+      1 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.scene.get_ray_index_attribute());
+
+    this.ray_render_pass.addUniform("mWorld",
+      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+        gl.uniformMatrix4fv(loc, false, new Float32Array(Mat4.identity.all()));
+    });
+    this.ray_render_pass.addUniform("mProj",
+      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+        gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.projMatrix().all()));
+    });
+    this.ray_render_pass.addUniform("mView",
+      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+        gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.viewMatrix().all()));
+    });
+
+    this.ray_render_pass.setDrawData(this.ctx.LINES,
+      this.scene.get_ray_indices().length, this.ctx.UNSIGNED_INT, 0);
+    this.ray_render_pass.setup();
+  }
+
   
   /**
    * Sets up the floor drawing
@@ -332,6 +366,7 @@ export class SkinningAnimation extends CanvasAnimation {
       this.skeletonRenderPass.draw();
       // TODO
       // Also draw the highlighted bone (if applicable)
+      this.ray_render_pass.draw();
       gl.enable(gl.DEPTH_TEST);      
     }
   }

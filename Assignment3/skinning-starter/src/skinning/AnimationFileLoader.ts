@@ -4,6 +4,7 @@ import { Vec3 } from "../lib/tsm/Vec3.js";
 import { Mat4, Vec4 } from "../lib/TSM.js";
 import { Quat } from "../lib/tsm/Quat.js";
 import { Mesh, Bone } from "../skinning/Scene.js";
+import { Cylinder, Ray } from "./Utils.js";
 
 export class AttributeLoader {
   values: Float32Array;
@@ -226,12 +227,24 @@ class CLoader {
   private skinnedMeshes: SkinnedMesh[];
   public meshes: Mesh[];
 
+  private rays : Ray[]; // used to story rays to draw
+  private ray_indices: number[];
+  private ray_positions: number[];
+  private ray_index_attribute: number[];
+
+  private ray_index_count : number = 0;
+
   constructor(location: string) {
     this.fileLocation = location;
     this.loader = new ColladaLoader();
     this.scene = null;
     this.skinnedMeshes = [];
     this.meshes = [];
+    this.rays = []
+
+    this.ray_indices = new Array<number>();
+    this.ray_positions = new Array<number>();
+    this.ray_index_attribute = new Array<number>();
   }
 
   public load(callback: Function): void {
@@ -320,17 +333,64 @@ class CLoader {
     });
   }
 
-  public getBones() : Bone[] 
+  public get_cylinders() : Cylinder[]
   {
-    let bones = new Array<Bone>
+    let cylinders = new Array<Cylinder>
     for (let i = 0; i < this.meshes.length; i++)
     {
-      for (let j = 0; j < this.meshes[i].bones.length; j++)
+      let num_bones = this.meshes[i].getBoneIndices().length / 2
+      let bone_pos = this.meshes[i].getBonePositions()
+      let b = 0
+      for (let j = 0; j < num_bones; j++)
       {
-        bones.push(this.meshes[i].bones[j])
+        let pos0 : Vec3 = new Vec3([bone_pos[b], bone_pos[b+1], bone_pos[b+2]])
+        let pos1 : Vec3 = new Vec3([bone_pos[b+3], bone_pos[b+4], bone_pos[b+5]])
+        b += 6
+        cylinders.push(new Cylinder(pos0, pos1, Bone.BONE_CYLINDER_RADIUS, j))
       }
+      //console.log('mesh[' + i + '] \n\tbone_indicies: ' + this.meshes[i].getBoneIndices() + '\n\tbone_pos:' + this.meshes[i].getBonePositions() + '\n\tbone_attri:' + this.meshes[i].getBoneIndexAttribute())
     }
-    return bones
+    return cylinders
+  }
+
+  public get_rays()
+  {
+    return this.rays;
+  }
+
+  public add_ray(r : Ray) : void
+  {
+    // add to ray list
+    this.rays.push(r)
+
+    // add ray indices
+    const new_ray_indices = new Array<number>(this.ray_index_count, this.ray_index_count + 1)
+    this.ray_index_count += 2
+    for (let i = 0; i < 2; i++) this.ray_indices.push(new_ray_indices[i])
+    
+    // add ray positions
+    const start : Vec3 = r.get_origin()
+    const end : Vec3 = r.get_origin().add(r.get_direction().scale(10))
+    for (let i = 0; i < 3; i++) this.ray_positions.push(start[i])
+    for (let i = 0; i < 3; i++) this.ray_positions.push(end[i])
+
+    // add ray index attributes
+    for (let i = 0; i < 2; i++) this.ray_index_attribute.push(this.rays.length - 1)
+  }
+
+  public get_ray_indices(): Uint32Array 
+  {
+    return new Uint32Array(this.ray_indices);
+  }
+
+  public get_ray_positions(): Float32Array 
+  {
+    return new Float32Array(this.ray_positions);
+  }
+
+  public get_ray_index_attribute(): Float32Array 
+  {
+    return new Float32Array(this.ray_index_attribute);
   }
 }
 

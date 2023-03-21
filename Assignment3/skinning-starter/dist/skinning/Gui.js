@@ -102,6 +102,8 @@ export class GUI {
     drag(mouse) {
         let x = mouse.offsetX;
         let y = mouse.offsetY;
+        //console.log('mouse.pos: {' + mouse.x + ', ' + mouse.y + '}')
+        //console.log('mouse.offset: {' + mouse.offsetX + ', ' + mouse.offsetY + '}')
         if (this.dragging) {
             const dx = mouse.screenX - this.prevX;
             const dy = mouse.screenY - this.prevY;
@@ -140,32 +142,56 @@ export class GUI {
         // You will want logic here:
         // 1) To highlight a bone, if the mouse is hovering over a bone;
         // 2) To rotate a bone, if the mouse button is pressed and currently highlighting a bone.
-        let bones = this.animation.getScene().getBones();
-        console.log('bones: ' + bones.length);
+        console.log('\n');
+        const cyls = this.animation.getScene().get_cylinders();
+        //console.log('cylinders: ' + cyls.length)
+        // normalized device coordinates
+        const x_ndc = x / this.width * 2.0 - 1.0; // -1 to +1
+        const y_ndc = 1.0 - y / this.height * 2.0; // -1 to +1
+        // homogeneous clip coordinates
+        const vec4_clip = new Vec4([x_ndc, y_ndc, -1.0, 1.0]);
+        // eye (camera) coordinates
+        const proj_mat_inv = this.camera.projMatrix().inverse();
+        let vec4_eye = vec4_clip.multiplyMat4(proj_mat_inv);
+        vec4_eye[2] = -1.0;
+        vec4_eye[3] = 0.0;
+        // world coordinates
+        const view_mat_inv = this.camera.viewMatrix();
+        let vec4_world = vec4_eye.multiplyMat4(view_mat_inv);
+        vec4_world = vec4_world.normalize();
+        const vec3_world = new Vec3(vec4_world.xyz);
+        // create mouse ray + add to scene rays
+        const mouse_ray = new Ray(this.camera.pos(), vec3_world);
+        this.animation.getScene().add_ray(mouse_ray);
+        console.log('scene.rays: ' + this.animation.getScene().get_rays().length);
+        //console.log('screen.width: ' + this.width + ', screen.height: ' + this.height)
+        //console.log('mouse_scrn: {' + x_screen.toFixed(3), ', ' + y_screen.toFixed(3) + '}')
         // get vector based on mouse position
-        let x_ndc = ((2.0 * x) / screen.width) - 1.0;
-        let y_ndc = 1.0 - ((2.0 * y) / screen.height);
-        let hcc_dir = new Vec4([x_ndc, y_ndc, -1.0, 1.0]);
-        let cam_dir = this.projMatrix().inverse().multiplyVec4(hcc_dir);
-        cam_dir = new Vec4([cam_dir.x, cam_dir.y, -1.0, 1.0]);
-        let world_dir = new Vec3(this.viewMatrix().inverse().multiplyVec4(cam_dir).xyz).normalize();
+        // const z : number = -1.0 //this.camera.zNear()
+        // const ray_clip : Vec4 = new Vec4([x_screen, y_screen, z, 1.0])
+        // let ray_eye : Vec4 =  this.projMatrix().inverse().multiplyVec4(ray_clip)
+        // ray_eye = new Vec4([ray_eye.x, ray_eye.y, z, 0.0])
+        // const ray_world : Vec3 = new Vec3 (this.viewMatrix().inverse().multiplyVec4(ray_eye).xyz).normalize()
         // create mouse ray
-        let mouse_ray = new Ray(this.camera.pos(), world_dir);
-        console.log('mouse_ray: ' + mouse_ray.print());
-        console.log('camera forward: {' + Ray.Vec3toFixed(new Vec3(this.camera.forward().xyz), 3) + '}');
-        // check cyliner intersections
+        //const mouse_ray : Ray = new Ray(this.camera.pos(), ray_world)
+        // console.log('cam_pos: {' + Ray.Vec3_toFixed(new Vec3(this.camera.pos().xyz)) + '}')
+        // console.log('cam_ray: {' + Ray.Vec3_toFixed(new Vec3(this.camera.forward().xyz)) + '}')
+        // console.log('mse_ray: {' + Ray.Vec3_toFixed(mouse_ray.get_direction()) + '}')
+        // check cyliner intersections - (might need a BVH)
         let curr_bone = -1;
-        let curr_t = -1;
-        for (let i = 0; i < bones.length; i++) {
-            let res = bones[i].getCylinder().ray_interset(mouse_ray);
+        let curr_t = Number.MAX_VALUE;
+        for (let i = 0; i < cyls.length; i++) {
+            let res = cyls[i].ray_interset(mouse_ray.copy());
+            //console.log('res[' + i + ']: {' + res[0] + ', ' + res[1] + '}')
             if (res[0] && res[1] < curr_t) {
+                //console.log('valid result!')
                 curr_t = res[1];
                 curr_bone = i;
             }
         }
         // print out bone
         if (curr_bone > -1) {
-            console.log('current bone: ' + bones[curr_bone] + ' @ t=' + curr_t);
+            //console.log('[HIT BONE] current bone: ' + cyls[curr_bone] + ' @ t=' + curr_t)
         }
     }
     getModeString() {
