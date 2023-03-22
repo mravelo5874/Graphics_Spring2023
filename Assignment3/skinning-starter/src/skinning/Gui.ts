@@ -220,7 +220,7 @@ export class GUI implements IGUI {
     // 1) To highlight a bone, if the mouse is hovering over a bone;
     // 2) To rotate a bone, if the mouse button is pressed and currently highlighting a bone.
 
-    console.log('\n')
+    //console.log('\n')
     const cyls : Cylinder[] = this.animation.getScene().get_cylinders()
     //console.log('cylinders: ' + cyls.length)
 
@@ -245,9 +245,6 @@ export class GUI implements IGUI {
 
     // create mouse ray + add to scene rays
     const mouse_ray : Ray = new Ray(this.camera.pos(), vec3_world)
-    this.animation.getScene().add_ray(mouse_ray)
-
-    console.log('scene.rays: ' + this.animation.getScene().get_rays().length)
 
     //console.log('screen.width: ' + this.width + ', screen.height: ' + this.height)
     //console.log('mouse_scrn: {' + x_screen.toFixed(3), ', ' + y_screen.toFixed(3) + '}')
@@ -399,6 +396,19 @@ export class GUI implements IGUI {
         }
         break;
       }
+      case "KeyB":
+        {
+          // custom button to shoot a ray from the 
+          // camera and draw it to the screen.
+          let cam_dir : Vec3 = this.camera.forward()
+          // cam_dir.z = cam_dir.z * -1.0
+          const cam_ray : Ray = new Ray(this.camera.pos(), cam_dir)
+          this.animation.getScene().add_ray(cam_ray)
+          
+          console.log('new camera raycast: ' + cam_ray.print())
+          console.log('total rays: ' + this.animation.getScene().get_rays().length)
+          break;
+        }
       default: {
         console.log("Key : '", key.code, "' was pressed.");
         break;

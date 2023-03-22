@@ -286,7 +286,7 @@ class CLoader {
     get_rays() {
         return this.rays;
     }
-    add_ray(r) {
+    add_ray(r, length = 10) {
         // add to ray list
         this.rays.push(r);
         // add ray indices
@@ -296,7 +296,7 @@ class CLoader {
             this.ray_indices.push(new_ray_indices[i]);
         // add ray positions
         const start = r.get_origin();
-        const end = r.get_origin().add(r.get_direction().scale(10));
+        const end = r.get_origin().add(r.get_direction().scale(length));
         for (let i = 0; i < 3; i++)
             this.ray_positions.push(start[i]);
         for (let i = 0; i < 3; i++)

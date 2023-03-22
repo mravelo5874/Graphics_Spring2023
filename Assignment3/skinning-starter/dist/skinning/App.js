@@ -2,13 +2,15 @@ import { Debugger } from "../lib/webglutils/Debugging.js";
 import { CanvasAnimation } from "../lib/webglutils/CanvasAnimation.js";
 import { Floor } from "../lib/webglutils/Floor.js";
 import { GUI } from "./Gui.js";
-import { sceneFSText, sceneVSText, floorFSText, floorVSText, skeletonFSText, skeletonVSText, sBackVSText, sBackFSText, rayFSText, rayVSText } from "./Shaders.js";
+import { sceneFSText, sceneVSText, floorFSText, floorVSText, skeletonFSText, skeletonVSText, sBackVSText, sBackFSText, ray_vertex_shader, ray_fragment_shader } from "./Shaders.js";
 import { Mat4, Vec4 } from "../lib/TSM.js";
 import { CLoader } from "./AnimationFileLoader.js";
 import { RenderPass } from "../lib/webglutils/RenderPass.js";
 export class SkinningAnimation extends CanvasAnimation {
     constructor(canvas) {
         super(canvas);
+        // render pass for rendering rays
+        this.prev_ray_length = 0;
         this.canvas2d = document.getElementById("textCanvas");
         this.ctx2 = this.canvas2d.getContext("2d");
         if (this.ctx2) {
@@ -21,7 +23,6 @@ export class SkinningAnimation extends CanvasAnimation {
         this.floorRenderPass = new RenderPass(this.extVAO, gl, floorVSText, floorFSText);
         this.sceneRenderPass = new RenderPass(this.extVAO, gl, sceneVSText, sceneFSText);
         this.skeletonRenderPass = new RenderPass(this.extVAO, gl, skeletonVSText, skeletonFSText);
-        this.ray_render_pass = new RenderPass(this.extVAO, gl, rayVSText, rayFSText);
         this.gui = new GUI(this.canvas2d, this);
         this.lightPosition = new Vec4([-10, 10, -10, 1]);
         this.backgroundColor = new Vec4([0.0, 0.37254903, 0.37254903, 1.0]);
@@ -29,8 +30,8 @@ export class SkinningAnimation extends CanvasAnimation {
         this.scene = new CLoader("");
         // Status bar
         this.sBackRenderPass = new RenderPass(this.extVAO, gl, sBackVSText, sBackFSText);
-        // TODO
-        // Other initialization, for instance, for the bone highlighting
+        // render pass for ray rendering
+        this.ray_render_pass = new RenderPass(this.extVAO, gl, ray_vertex_shader, ray_fragment_shader);
         this.initGui();
         this.millis = new Date().getTime();
     }
@@ -58,7 +59,6 @@ export class SkinningAnimation extends CanvasAnimation {
         }
         this.initModel();
         this.initSkeleton();
-        this.init_rays();
         this.gui.reset();
     }
     /**
@@ -133,22 +133,34 @@ export class SkinningAnimation extends CanvasAnimation {
         });
         this.skeletonRenderPass.setDrawData(this.ctx.LINES, this.scene.meshes[0].getBoneIndices().length, this.ctx.UNSIGNED_INT, 0);
         this.skeletonRenderPass.setup();
+        console.log('skele.init:\n\tskele_indices: ' + this.scene.meshes[0].getBoneIndices().length +
+            '\n\tskele_pos: ' + this.scene.meshes[0].getBonePositions().length +
+            '\n\tskele_index: ' + this.scene.meshes[0].getBoneIndexAttribute().length +
+            '\n\tskele_trans: ' + this.getScene().meshes[0].getBoneTranslations().length +
+            '\n\tskele_rot: ' + this.getScene().meshes[0].getBoneRotations().length);
     }
     init_rays() {
+        // index buffer ray is ray indices
         this.ray_render_pass.setIndexBufferData(this.scene.get_ray_indices());
-        this.ray_render_pass.addAttribute("vertPosition", 3, this.ctx.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.scene.get_ray_positions());
-        this.ray_render_pass.addAttribute("rayIndex", 1, this.ctx.FLOAT, false, 1 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.scene.get_ray_index_attribute());
-        this.ray_render_pass.addUniform("mWorld", (gl, loc) => {
+        // vertex positions
+        this.ray_render_pass.addAttribute("vertex_pos", 3, this.ctx.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.scene.get_ray_positions());
+        // add ray indices
+        this.ray_render_pass.addAttribute("ray_index", 1, this.ctx.FLOAT, false, 1 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.scene.get_ray_index_attribute());
+        // add matricies
+        this.ray_render_pass.addUniform("world_mat", (gl, loc) => {
             gl.uniformMatrix4fv(loc, false, new Float32Array(Mat4.identity.all()));
         });
-        this.ray_render_pass.addUniform("mProj", (gl, loc) => {
+        this.ray_render_pass.addUniform("proj_mat", (gl, loc) => {
             gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.projMatrix().all()));
         });
-        this.ray_render_pass.addUniform("mView", (gl, loc) => {
+        this.ray_render_pass.addUniform("view_mat", (gl, loc) => {
             gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.viewMatrix().all()));
         });
         this.ray_render_pass.setDrawData(this.ctx.LINES, this.scene.get_ray_indices().length, this.ctx.UNSIGNED_INT, 0);
         this.ray_render_pass.setup();
+        console.log('ray.init:\n\tray_indices: ' + this.scene.get_ray_indices().length +
+            '\n\tray_pos: ' + this.scene.get_ray_positions().length +
+            '\n\tray_index: ' + this.scene.get_ray_index_attribute().length);
     }
     /**
      * Sets up the floor drawing
@@ -188,8 +200,11 @@ export class SkinningAnimation extends CanvasAnimation {
         this.millis = curr;
         deltaT /= 1000;
         this.getGUI().incrementTime(deltaT);
-        // TODO
         // If the mesh is animating, probably you want to do some updating of the skeleton state here
+        if (this.prev_ray_length < this.scene.get_rays().length) {
+            this.prev_ray_length = this.scene.get_rays().length;
+            this.init_rays();
+        }
         // draw the status message
         if (this.ctx2) {
             this.ctx2.clearRect(0, 0, this.ctx2.canvas.width, this.ctx2.canvas.height);
@@ -218,14 +233,16 @@ export class SkinningAnimation extends CanvasAnimation {
         const gl = this.ctx;
         gl.viewport(x, y, width, height);
         this.floorRenderPass.draw();
+        // draw rays
+        if (this.prev_ray_length > 0) {
+            this.ray_render_pass.draw();
+        }
         /* Draw Scene */
         if (this.scene.meshes.length > 0) {
             this.sceneRenderPass.draw();
             gl.disable(gl.DEPTH_TEST);
             this.skeletonRenderPass.draw();
-            // TODO
             // Also draw the highlighted bone (if applicable)
-            this.ray_render_pass.draw();
             gl.enable(gl.DEPTH_TEST);
         }
     }
@@ -246,7 +263,7 @@ export function initializeCanvas() {
     const canvas = document.getElementById("glCanvas");
     /* Start drawing */
     const canvasAnimation = new SkinningAnimation(canvas);
-    canvasAnimation.start();
     canvasAnimation.setScene("/static/assets/skinning/split_cube.dae");
+    canvasAnimation.start();
 }
 //# sourceMappingURL=App.js.map

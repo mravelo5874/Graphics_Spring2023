@@ -358,7 +358,7 @@ class CLoader {
     return this.rays;
   }
 
-  public add_ray(r : Ray) : void
+  public add_ray(r : Ray, length : number = 10) : void
   {
     // add to ray list
     this.rays.push(r)
@@ -370,7 +370,7 @@ class CLoader {
     
     // add ray positions
     const start : Vec3 = r.get_origin()
-    const end : Vec3 = r.get_origin().add(r.get_direction().scale(10))
+    const end : Vec3 = r.get_origin().add(r.get_direction().scale(length))
     for (let i = 0; i < 3; i++) this.ray_positions.push(start[i])
     for (let i = 0; i < 3; i++) this.ray_positions.push(end[i])
 

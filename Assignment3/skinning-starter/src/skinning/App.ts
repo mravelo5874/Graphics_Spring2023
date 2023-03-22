@@ -14,15 +14,16 @@ import {
   skeletonVSText,
   sBackVSText,
   sBackFSText,
-  rayFSText,
-  rayVSText
+  ray_vertex_shader,
+  ray_fragment_shader
 } from "./Shaders.js";
 import { Mat4, Vec4, Vec3 } from "../lib/TSM.js";
 import { CLoader } from "./AnimationFileLoader.js";
 import { RenderPass } from "../lib/webglutils/RenderPass.js";
 import { Camera } from "../lib/webglutils/Camera.js";
 
-export class SkinningAnimation extends CanvasAnimation {
+export class SkinningAnimation extends CanvasAnimation 
+{
   private gui: GUI;
   private millis: number;
 
@@ -42,10 +43,10 @@ export class SkinningAnimation extends CanvasAnimation {
   /* Scrub bar background rendering info */
   private sBackRenderPass: RenderPass;
 
-  // render pass for ray rendering info
+  // render pass for rendering rays
+  private prev_ray_length : number = 0;
   private ray_render_pass : RenderPass;
   
-
   /* Global Rendering Info */
   private lightPosition: Vec4;
   private backgroundColor: Vec4;
@@ -72,7 +73,6 @@ export class SkinningAnimation extends CanvasAnimation {
     this.floorRenderPass = new RenderPass(this.extVAO, gl, floorVSText, floorFSText);
     this.sceneRenderPass = new RenderPass(this.extVAO, gl, sceneVSText, sceneFSText);
     this.skeletonRenderPass = new RenderPass(this.extVAO, gl, skeletonVSText, skeletonFSText);
-    this.ray_render_pass = new RenderPass(this.extVAO, gl, rayVSText, rayFSText)
 
     this.gui = new GUI(this.canvas2d, this);
     this.lightPosition = new Vec4([-10, 10, -10, 1]);
@@ -83,16 +83,11 @@ export class SkinningAnimation extends CanvasAnimation {
 
     // Status bar
     this.sBackRenderPass = new RenderPass(this.extVAO, gl, sBackVSText, sBackFSText);
-    
-    
-    // TODO
-    // Other initialization, for instance, for the bone highlighting
-    
+  
+    // render pass for ray rendering
+    this.ray_render_pass = new RenderPass(this.extVAO, gl, ray_vertex_shader, ray_fragment_shader)
     
     this.initGui();
-
-    
-
     this.millis = new Date().getTime();
   }
 
@@ -121,18 +116,19 @@ export class SkinningAnimation extends CanvasAnimation {
 
     }
 
-  public initScene(): void {
+  public initScene(): void 
+  {
     if (this.scene.meshes.length === 0) { return; }
     this.initModel();
     this.initSkeleton();
-    this.init_rays();
     this.gui.reset();
   }
 
   /**
    * Sets up the mesh and mesh drawing
    */
-  public initModel(): void {
+  public initModel(): void 
+  {
     this.sceneRenderPass = new RenderPass(this.extVAO, this.ctx, sceneVSText, sceneFSText);
 
     let faceCount = this.scene.meshes[0].geometry.position.count / 3;
@@ -200,7 +196,8 @@ export class SkinningAnimation extends CanvasAnimation {
   /**
    * Sets up the skeleton drawing
    */
-  public initSkeleton(): void {
+  public initSkeleton(): void 
+  {
     this.skeletonRenderPass.setIndexBufferData(this.scene.meshes[0].getBoneIndices());
 
     this.skeletonRenderPass.addAttribute("vertPosition", 3, this.ctx.FLOAT, false,
@@ -232,35 +229,60 @@ export class SkinningAnimation extends CanvasAnimation {
     this.skeletonRenderPass.setDrawData(this.ctx.LINES,
       this.scene.meshes[0].getBoneIndices().length, this.ctx.UNSIGNED_INT, 0);
     this.skeletonRenderPass.setup();
+
+    console.log('skele.init:\n\tskele_indices: ' + this.scene.meshes[0].getBoneIndices().length + 
+    '\n\tskele_pos: ' + this.scene.meshes[0].getBonePositions().length + 
+    '\n\tskele_index: ' + this.scene.meshes[0].getBoneIndexAttribute().length + 
+    '\n\tskele_trans: ' + this.getScene().meshes[0].getBoneTranslations().length + 
+    '\n\tskele_rot: ' + this.getScene().meshes[0].getBoneRotations().length)
   }
 
-  public init_rays() : void
+  public init_rays() : void 
   {
+    // index buffer ray is ray indices
     this.ray_render_pass.setIndexBufferData(this.scene.get_ray_indices());
-
-    this.ray_render_pass.addAttribute("vertPosition", 3, this.ctx.FLOAT, false,
-      3 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.scene.get_ray_positions());
-    this.ray_render_pass.addAttribute("rayIndex", 1, this.ctx.FLOAT, false,
-      1 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.scene.get_ray_index_attribute());
-
-    this.ray_render_pass.addUniform("mWorld",
+    // vertex positions
+    this.ray_render_pass.addAttribute(
+        "vertex_pos",
+        3, 
+        this.ctx.FLOAT, 
+        false, 
+        3 * Float32Array.BYTES_PER_ELEMENT,
+        0,
+        undefined,
+        this.scene.get_ray_positions());
+    // add ray indices
+    this.ray_render_pass.addAttribute(
+      "ray_index",
+      1,
+      this.ctx.FLOAT,
+      false,
+      1 * Float32Array.BYTES_PER_ELEMENT,
+      0,
+      undefined,
+      this.scene.get_ray_index_attribute());
+    
+    // add matricies
+    this.ray_render_pass.addUniform("world_mat",
       (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
         gl.uniformMatrix4fv(loc, false, new Float32Array(Mat4.identity.all()));
     });
-    this.ray_render_pass.addUniform("mProj",
+    this.ray_render_pass.addUniform("proj_mat",
       (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
         gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.projMatrix().all()));
     });
-    this.ray_render_pass.addUniform("mView",
+    this.ray_render_pass.addUniform("view_mat",
       (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
         gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.viewMatrix().all()));
     });
-
-    this.ray_render_pass.setDrawData(this.ctx.LINES,
-      this.scene.get_ray_indices().length, this.ctx.UNSIGNED_INT, 0);
+      
+    this.ray_render_pass.setDrawData(this.ctx.LINES, this.scene.get_ray_indices().length, this.ctx.UNSIGNED_INT, 0);
     this.ray_render_pass.setup();
-  }
 
+    console.log('ray.init:\n\tray_indices: ' + this.scene.get_ray_indices().length + 
+    '\n\tray_pos: ' + this.scene.get_ray_positions().length + 
+    '\n\tray_index: ' + this.scene.get_ray_index_attribute().length)
+  }
   
   /**
    * Sets up the floor drawing
@@ -311,7 +333,8 @@ export class SkinningAnimation extends CanvasAnimation {
    * Draws a single frame
    *
    */
-  public draw(): void {
+  public draw(): void 
+  {
     // Advance to the next time step
     let curr = new Date().getTime();
     let deltaT = curr - this.millis;
@@ -319,8 +342,13 @@ export class SkinningAnimation extends CanvasAnimation {
     deltaT /= 1000;
     this.getGUI().incrementTime(deltaT);
 
-    // TODO
     // If the mesh is animating, probably you want to do some updating of the skeleton state here
+
+    if (this.prev_ray_length < this.scene.get_rays().length)
+    {
+      this.prev_ray_length = this.scene.get_rays().length;
+      this.init_rays();
+    }
     
     // draw the status message
     if (this.ctx2) {
@@ -329,8 +357,6 @@ export class SkinningAnimation extends CanvasAnimation {
         this.ctx2.fillText(this.getGUI().getModeString(), 50, 710);
       }
     }
-
-
 
     // Drawing
     const gl: WebGLRenderingContext = this.ctx;
@@ -346,27 +372,34 @@ export class SkinningAnimation extends CanvasAnimation {
     this.drawScene(0, 200, 800, 600);    
 
     /* Draw status bar */
-    if (this.scene.meshes.length > 0) {
+    if (this.scene.meshes.length > 0) 
+    {
       gl.viewport(0, 0, 800, 200);
       this.sBackRenderPass.draw();      
     }    
 
   }
 
-  private drawScene(x: number, y: number, width: number, height: number): void {
+  private drawScene(x: number, y: number, width: number, height: number): void 
+  {
     const gl: WebGLRenderingContext = this.ctx;
     gl.viewport(x, y, width, height);
 
     this.floorRenderPass.draw();
 
+    // draw rays
+    if (this.prev_ray_length > 0)
+    {
+      this.ray_render_pass.draw();
+    }
+
     /* Draw Scene */
-    if (this.scene.meshes.length > 0) {
+    if (this.scene.meshes.length > 0) 
+    {
       this.sceneRenderPass.draw();
       gl.disable(gl.DEPTH_TEST);
       this.skeletonRenderPass.draw();
-      // TODO
       // Also draw the highlighted bone (if applicable)
-      this.ray_render_pass.draw();
       gl.enable(gl.DEPTH_TEST);      
     }
   }
@@ -379,17 +412,19 @@ export class SkinningAnimation extends CanvasAnimation {
    * Loads and sets the scene from a Collada file
    * @param fileLocation URI for the Collada file
    */
-  public setScene(fileLocation: string): void {
+  public setScene(fileLocation: string): void 
+  {
     this.loadedScene = fileLocation;
     this.scene = new CLoader(fileLocation);
     this.scene.load(() => this.initScene());
   }
 }
 
-export function initializeCanvas(): void {
+export function initializeCanvas(): void 
+{
   const canvas = document.getElementById("glCanvas") as HTMLCanvasElement;
   /* Start drawing */
   const canvasAnimation: SkinningAnimation = new SkinningAnimation(canvas);
-  canvasAnimation.start();
   canvasAnimation.setScene("/static/assets/skinning/split_cube.dae");
+  canvasAnimation.start();
 }
