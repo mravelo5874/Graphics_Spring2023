@@ -142,55 +142,22 @@ export class GUI {
         // You will want logic here:
         // 1) To highlight a bone, if the mouse is hovering over a bone;
         // 2) To rotate a bone, if the mouse button is pressed and currently highlighting a bone.
-        //console.log('\n')
         const cyls = this.animation.getScene().get_cylinders();
-        //console.log('cylinders: ' + cyls.length)
-        // normalized device coordinates
-        const x_ndc = x / this.width * 2.0 - 1.0; // -1 to +1
-        const y_ndc = 1.0 - y / this.height * 2.0; // -1 to +1
-        // homogeneous clip coordinates
-        const vec4_clip = new Vec4([x_ndc, y_ndc, -1.0, 1.0]);
-        // eye (camera) coordinates
-        const proj_mat_inv = this.camera.projMatrix().inverse();
-        let vec4_eye = vec4_clip.multiplyMat4(proj_mat_inv);
-        vec4_eye[2] = -1.0;
-        vec4_eye[3] = 0.0;
-        // world coordinates
-        const view_mat_inv = this.camera.viewMatrix();
-        let vec4_world = vec4_eye.multiplyMat4(view_mat_inv);
-        vec4_world = vec4_world.normalize();
-        const vec3_world = new Vec3(vec4_world.xyz);
-        // create mouse ray + add to scene rays
-        this.mouse_ray = new Ray(this.camera.pos(), vec3_world);
-        //console.log('screen.width: ' + this.width + ', screen.height: ' + this.height)
-        //console.log('mouse_scrn: {' + x_screen.toFixed(3), ', ' + y_screen.toFixed(3) + '}')
-        // get vector based on mouse position
-        // const z : number = -1.0 //this.camera.zNear()
-        // const ray_clip : Vec4 = new Vec4([x_screen, y_screen, z, 1.0])
-        // let ray_eye : Vec4 =  this.projMatrix().inverse().multiplyVec4(ray_clip)
-        // ray_eye = new Vec4([ray_eye.x, ray_eye.y, z, 0.0])
-        // const ray_world : Vec3 = new Vec3 (this.viewMatrix().inverse().multiplyVec4(ray_eye).xyz).normalize()
-        // create mouse ray
-        //const mouse_ray : Ray = new Ray(this.camera.pos(), ray_world)
-        // console.log('cam_pos: {' + Ray.Vec3_toFixed(new Vec3(this.camera.pos().xyz)) + '}')
-        // console.log('cam_ray: {' + Ray.Vec3_toFixed(new Vec3(this.camera.forward().xyz)) + '}')
-        // console.log('mse_ray: {' + Ray.Vec3_toFixed(mouse_ray.get_direction()) + '}')
-        // check cyliner intersections - (might need a BVH)
-        let curr_bone = -1;
-        let curr_t = Number.MAX_VALUE;
-        for (let i = 0; i < cyls.length; i++) {
-            let res = cyls[i].ray_interset(this.mouse_ray.copy());
-            //console.log('res[' + i + ']: {' + res[0] + ', ' + res[1] + '}')
-            if (res[0] && res[1] < curr_t) {
-                //console.log('valid result!')
-                curr_t = res[1];
-                curr_bone = i;
-            }
-        }
-        // print out bone
-        if (curr_bone > -1) {
-            //console.log('[HIT BONE] current bone: ' + cyls[curr_bone] + ' @ t=' + curr_t)
-        }
+        // convert mouse x y position to world ray
+        this.mouse_ray = this.screen_to_world_ray(x, y);
+    }
+    screen_to_world_ray(x, y) {
+        // convert x y to ndc
+        const x_ndc = ((2.0 * x) / this.width) - 1.0;
+        const y_ndc = 1.0 - ((2.0 * y) / this.height);
+        // inverse projections
+        const ray_ndc = new Vec4([x_ndc, y_ndc, -1.0, 1.0]);
+        let ray_cam = this.camera.projMatrix().inverse().multiplyVec4(ray_ndc);
+        //ray_cam = new Vec4([ray_cam.x, ray_cam.y, -1.0, 1.0])
+        const ray_world = this.camera.viewMatrix().inverse().multiplyVec4(ray_cam);
+        let ray_vec3 = new Vec3(ray_world.xyz);
+        ray_vec3 = ray_vec3.normalize();
+        return new Ray(this.camera.pos(), ray_vec3);
     }
     getModeString() {
         switch (this.mode) {

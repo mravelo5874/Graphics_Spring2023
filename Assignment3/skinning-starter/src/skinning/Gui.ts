@@ -231,9 +231,18 @@ export class GUI implements IGUI {
 
   private screen_to_world_ray(x : number, y : number) : Ray
   {
-    // TODO this
+    // convert x y to ndc
+    const x_ndc = ((2.0 * x) / this.width) - 1.0
+    const y_ndc = 1.0 - ((2.0 * y) / this.height)
+    // inverse projections
+    const ray_ndc : Vec4 = new Vec4([x_ndc, y_ndc, -1.0, 1.0])
+    let ray_cam : Vec4 = this.camera.projMatrix().inverse().multiplyVec4(ray_ndc)
+    //ray_cam = new Vec4([ray_cam.x, ray_cam.y, -1.0, 1.0])
+    const ray_world : Vec4 = this.camera.viewMatrix().inverse().multiplyVec4(ray_cam)
+    let ray_vec3 : Vec3 = new Vec3(ray_world.xyz)
+    ray_vec3 = ray_vec3.normalize()
 
-    return new Ray(this.camera.pos(), this.camera.forward())
+    return new Ray(this.camera.pos(), ray_vec3)
   }
 
   public getModeString(): string {
