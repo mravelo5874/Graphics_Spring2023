@@ -180,7 +180,7 @@ class CLoader {
         this.rays = [];
         this.ray_indices = new Array();
         this.ray_positions = new Array();
-        this.ray_index_attribute = new Array();
+        this.ray_colors = new Array();
     }
     load(callback) {
         this.loader.load(this.fileLocation, (collada) => {
@@ -286,7 +286,7 @@ class CLoader {
     get_rays() {
         return this.rays;
     }
-    add_ray(r, length = -100.0) {
+    add_ray(r, color, length = -100.0) {
         // add to ray list
         this.rays.push(r);
         // add ray indices
@@ -303,13 +303,33 @@ class CLoader {
         this.ray_positions.push(end.x);
         this.ray_positions.push(end.y);
         this.ray_positions.push(end.z);
+        // add ray colors
+        let color_id = new Vec3([0.0, 0.0, 0.0]);
+        if (color == "red")
+            color_id = new Vec3([1.0, 0.0, 0.0]);
+        if (color == "green")
+            color_id = new Vec3([0.0, 1.0, 0.0]);
+        if (color == "blue")
+            color_id = new Vec3([0.0, 0.0, 1.0]);
+        if (color == "cyan")
+            color_id = new Vec3([0.0, 1.0, 1.0]);
+        if (color == "pink")
+            color_id = new Vec3([1.0, 0.0, 1.0]);
+        this.ray_colors.push(color_id.x);
+        this.ray_colors.push(color_id.y);
+        this.ray_colors.push(color_id.z);
+        this.ray_colors.push(color_id.x);
+        this.ray_colors.push(color_id.y);
+        this.ray_colors.push(color_id.z);
     }
     get_ray_indices() {
         return new Uint32Array(this.ray_indices);
     }
     get_ray_positions() {
-        console.log('ray_pos: ' + this.ray_positions);
         return new Float32Array(this.ray_positions);
+    }
+    get_ray_colors() {
+        return new Float32Array(this.ray_colors);
     }
 }
 export { CLoader as CLoader, };

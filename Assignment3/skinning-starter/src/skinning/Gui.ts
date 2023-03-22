@@ -54,6 +54,8 @@ export class GUI implements IGUI {
   public hoverX: number = 0;
   public hoverY: number = 0;
 
+  private mouse_ray : Ray;
+
 
   /**
    *
@@ -220,69 +222,18 @@ export class GUI implements IGUI {
     // 1) To highlight a bone, if the mouse is hovering over a bone;
     // 2) To rotate a bone, if the mouse button is pressed and currently highlighting a bone.
 
-    //console.log('\n')
+
     const cyls : Cylinder[] = this.animation.getScene().get_cylinders()
-    //console.log('cylinders: ' + cyls.length)
 
-    // normalized device coordinates
-    const x_ndc : number = x / this.width * 2.0  - 1.0   // -1 to +1
-    const y_ndc : number = 1.0 - y / this.height * 2.0   // -1 to +1
+    // convert mouse x y position to world ray
+    this.mouse_ray = this.screen_to_world_ray(x, y)
+  }
 
-    // homogeneous clip coordinates
-    const vec4_clip : Vec4 = new Vec4([x_ndc, y_ndc, -1.0, 1.0])
+  private screen_to_world_ray(x : number, y : number) : Ray
+  {
+    // TODO this
 
-    // eye (camera) coordinates
-    const proj_mat_inv : Mat4 = this.camera.projMatrix().inverse()
-    let vec4_eye : Vec4 = vec4_clip.multiplyMat4(proj_mat_inv)
-    vec4_eye[2] = -1.0
-    vec4_eye[3] = 0.0
-
-    // world coordinates
-    const view_mat_inv : Mat4 = this.camera.viewMatrix()
-    let vec4_world : Vec4 = vec4_eye.multiplyMat4(view_mat_inv)
-    vec4_world = vec4_world.normalize()
-    const vec3_world : Vec3 = new Vec3(vec4_world.xyz)
-
-    // create mouse ray + add to scene rays
-    const mouse_ray : Ray = new Ray(this.camera.pos(), vec3_world)
-
-    //console.log('screen.width: ' + this.width + ', screen.height: ' + this.height)
-    //console.log('mouse_scrn: {' + x_screen.toFixed(3), ', ' + y_screen.toFixed(3) + '}')
-
-    // get vector based on mouse position
-    // const z : number = -1.0 //this.camera.zNear()
-    // const ray_clip : Vec4 = new Vec4([x_screen, y_screen, z, 1.0])
-    // let ray_eye : Vec4 =  this.projMatrix().inverse().multiplyVec4(ray_clip)
-    // ray_eye = new Vec4([ray_eye.x, ray_eye.y, z, 0.0])
-    // const ray_world : Vec3 = new Vec3 (this.viewMatrix().inverse().multiplyVec4(ray_eye).xyz).normalize()
-
-    // create mouse ray
-    //const mouse_ray : Ray = new Ray(this.camera.pos(), ray_world)
-    
-    // console.log('cam_pos: {' + Ray.Vec3_toFixed(new Vec3(this.camera.pos().xyz)) + '}')
-    // console.log('cam_ray: {' + Ray.Vec3_toFixed(new Vec3(this.camera.forward().xyz)) + '}')
-    // console.log('mse_ray: {' + Ray.Vec3_toFixed(mouse_ray.get_direction()) + '}')
-
-    // check cyliner intersections - (might need a BVH)
-    let curr_bone : number = -1
-    let curr_t : number = Number.MAX_VALUE
-    for (let i = 0; i < cyls.length; i++)
-    {
-      let res = cyls[i].ray_interset(mouse_ray.copy())
-      //console.log('res[' + i + ']: {' + res[0] + ', ' + res[1] + '}')
-      if (res[0] && res[1] < curr_t)
-      {
-        //console.log('valid result!')
-        curr_t = res[1]
-        curr_bone = i
-      }
-    }
-    
-    // print out bone
-    if (curr_bone > -1)
-    {
-      //console.log('[HIT BONE] current bone: ' + cyls[curr_bone] + ' @ t=' + curr_t)
-    }
+    return new Ray(this.camera.pos(), this.camera.forward())
   }
 
   public getModeString(): string {
@@ -381,7 +332,6 @@ export class GUI implements IGUI {
       }
       case "KeyK": {
         if (this.mode === Mode.edit) {
-            // TODO
             // Add keyframe
         }
         break;
@@ -402,9 +352,22 @@ export class GUI implements IGUI {
           // camera and draw it to the screen.
           let cam_dir : Vec3 = this.camera.forward()
           const cam_ray : Ray = new Ray(this.camera.pos(), cam_dir)
-          this.animation.getScene().add_ray(cam_ray)
+          this.animation.getScene().add_ray(cam_ray, "cyan")
           
           console.log('new camera raycast: ' + cam_ray.print())
+          console.log('total rays: ' + this.animation.getScene().get_rays().length)
+          break;
+        }
+      case "KeyV":
+        {
+          // return if mouse_ray has not been created
+          if (!this.mouse_ray) return
+          
+          // custom button to shoot a ray from the 
+          // mouse and draw it to the screen.
+          this.animation.getScene().add_ray(this.mouse_ray, "pink")
+
+          console.log('new mouse raycast: ' + this.mouse_ray.print())
           console.log('total rays: ' + this.animation.getScene().get_rays().length)
           break;
         }

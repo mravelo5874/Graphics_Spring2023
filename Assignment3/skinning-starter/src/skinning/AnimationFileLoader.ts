@@ -230,7 +230,7 @@ class CLoader {
   private rays : Ray[]; // used to story rays to draw
   private ray_indices: number[];
   private ray_positions: number[];
-  private ray_index_attribute: number[];
+  private ray_colors: number[];
 
   private ray_index_count : number = 0;
 
@@ -244,7 +244,7 @@ class CLoader {
 
     this.ray_indices = new Array<number>();
     this.ray_positions = new Array<number>();
-    this.ray_index_attribute = new Array<number>();
+    this.ray_colors = new Array<number>();
   }
 
   public load(callback: Function): void {
@@ -358,7 +358,7 @@ class CLoader {
     return this.rays;
   }
 
-  public add_ray(r : Ray, length : number = -100.0) : void
+  public add_ray(r : Ray, color : string, length : number = -100.0) : void
   {
     // add to ray list
     this.rays.push(r)
@@ -377,6 +377,20 @@ class CLoader {
     this.ray_positions.push(end.x)
     this.ray_positions.push(end.y)
     this.ray_positions.push(end.z)
+
+    // add ray colors
+    let color_id : Vec3 = new Vec3([0.0, 0.0, 0.0])
+    if (color == "red") color_id = new Vec3([1.0, 0.0, 0.0])
+    if (color == "green") color_id = new Vec3([0.0, 1.0, 0.0])
+    if (color == "blue") color_id = new Vec3([0.0, 0.0, 1.0])
+    if (color == "cyan") color_id = new Vec3([0.0, 1.0, 1.0])
+    if (color == "pink") color_id = new Vec3([1.0, 0.0, 1.0])
+    this.ray_colors.push(color_id.x)
+    this.ray_colors.push(color_id.y)
+    this.ray_colors.push(color_id.z)
+    this.ray_colors.push(color_id.x)
+    this.ray_colors.push(color_id.y)
+    this.ray_colors.push(color_id.z)
   }
 
   public get_ray_indices(): Uint32Array 
@@ -386,8 +400,12 @@ class CLoader {
 
   public get_ray_positions(): Float32Array 
   {
-    console.log('ray_pos: ' + this.ray_positions)
     return new Float32Array(this.ray_positions);
+  }
+
+  public get_ray_colors() : Float32Array
+  {
+    return new Float32Array(this.ray_colors)
   }
 }
 

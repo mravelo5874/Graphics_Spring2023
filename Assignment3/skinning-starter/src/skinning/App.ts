@@ -252,6 +252,17 @@ export class SkinningAnimation extends CanvasAnimation
         0,
         undefined,
         this.scene.get_ray_positions());
+
+    // vertex colors
+    this.ray_render_pass.addAttribute(
+      "vertex_color",
+      3, 
+      this.ctx.FLOAT, 
+      false, 
+      3 * Float32Array.BYTES_PER_ELEMENT,
+      0,
+      undefined,
+      this.scene.get_ray_colors());
     
     // add matricies
     this.ray_render_pass.addUniform("world_mat",
@@ -270,8 +281,9 @@ export class SkinningAnimation extends CanvasAnimation
     this.ray_render_pass.setDrawData(this.ctx.LINES, this.scene.get_ray_indices().length, this.ctx.UNSIGNED_INT, 0);
     this.ray_render_pass.setup();
 
-    console.log('ray.init:\n\tray_indices: ' + this.scene.get_ray_indices() + 
-    '\n\tray_pos: ' + this.scene.get_ray_positions())
+    console.log('ray.init:\n\tray_indices: ' + this.scene.get_ray_indices().length + 
+    '\n\tray_pos: ' + this.scene.get_ray_positions().length +
+    '\n\tray_color: ' + this.scene.get_ray_colors().length)
   }
   
   /**

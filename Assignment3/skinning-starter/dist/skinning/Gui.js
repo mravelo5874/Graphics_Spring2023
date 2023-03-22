@@ -161,7 +161,7 @@ export class GUI {
         vec4_world = vec4_world.normalize();
         const vec3_world = new Vec3(vec4_world.xyz);
         // create mouse ray + add to scene rays
-        const mouse_ray = new Ray(this.camera.pos(), vec3_world);
+        this.mouse_ray = new Ray(this.camera.pos(), vec3_world);
         //console.log('screen.width: ' + this.width + ', screen.height: ' + this.height)
         //console.log('mouse_scrn: {' + x_screen.toFixed(3), ', ' + y_screen.toFixed(3) + '}')
         // get vector based on mouse position
@@ -179,7 +179,7 @@ export class GUI {
         let curr_bone = -1;
         let curr_t = Number.MAX_VALUE;
         for (let i = 0; i < cyls.length; i++) {
-            let res = cyls[i].ray_interset(mouse_ray.copy());
+            let res = cyls[i].ray_interset(this.mouse_ray.copy());
             //console.log('res[' + i + ']: {' + res[0] + ', ' + res[1] + '}')
             if (res[0] && res[1] < curr_t) {
                 //console.log('valid result!')
@@ -285,7 +285,6 @@ export class GUI {
             }
             case "KeyK": {
                 if (this.mode === Mode.edit) {
-                    // TODO
                     // Add keyframe
                 }
                 break;
@@ -306,8 +305,20 @@ export class GUI {
                     // camera and draw it to the screen.
                     let cam_dir = this.camera.forward();
                     const cam_ray = new Ray(this.camera.pos(), cam_dir);
-                    this.animation.getScene().add_ray(cam_ray);
+                    this.animation.getScene().add_ray(cam_ray, "cyan");
                     console.log('new camera raycast: ' + cam_ray.print());
+                    console.log('total rays: ' + this.animation.getScene().get_rays().length);
+                    break;
+                }
+            case "KeyV":
+                {
+                    // return if mouse_ray has not been created
+                    if (!this.mouse_ray)
+                        return;
+                    // custom button to shoot a ray from the 
+                    // mouse and draw it to the screen.
+                    this.animation.getScene().add_ray(this.mouse_ray, "pink");
+                    console.log('new mouse raycast: ' + this.mouse_ray.print());
                     console.log('total rays: ' + this.animation.getScene().get_rays().length);
                     break;
                 }
