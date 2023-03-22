@@ -358,7 +358,7 @@ class CLoader {
     return this.rays;
   }
 
-  public add_ray(r : Ray, length : number = 10) : void
+  public add_ray(r : Ray, length : number = -100.0) : void
   {
     // add to ray list
     this.rays.push(r)
@@ -371,11 +371,12 @@ class CLoader {
     // add ray positions
     const start : Vec3 = r.get_origin()
     const end : Vec3 = r.get_origin().add(r.get_direction().scale(length))
-    for (let i = 0; i < 3; i++) this.ray_positions.push(start[i])
-    for (let i = 0; i < 3; i++) this.ray_positions.push(end[i])
-
-    // add ray index attributes
-    for (let i = 0; i < 2; i++) this.ray_index_attribute.push(this.rays.length - 1)
+    this.ray_positions.push(start.x)
+    this.ray_positions.push(start.y)
+    this.ray_positions.push(start.z)
+    this.ray_positions.push(end.x)
+    this.ray_positions.push(end.y)
+    this.ray_positions.push(end.z)
   }
 
   public get_ray_indices(): Uint32Array 
@@ -385,12 +386,8 @@ class CLoader {
 
   public get_ray_positions(): Float32Array 
   {
+    console.log('ray_pos: ' + this.ray_positions)
     return new Float32Array(this.ray_positions);
-  }
-
-  public get_ray_index_attribute(): Float32Array 
-  {
-    return new Float32Array(this.ray_index_attribute);
   }
 }
 

@@ -144,8 +144,6 @@ export class SkinningAnimation extends CanvasAnimation {
         this.ray_render_pass.setIndexBufferData(this.scene.get_ray_indices());
         // vertex positions
         this.ray_render_pass.addAttribute("vertex_pos", 3, this.ctx.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.scene.get_ray_positions());
-        // add ray indices
-        this.ray_render_pass.addAttribute("ray_index", 1, this.ctx.FLOAT, false, 1 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.scene.get_ray_index_attribute());
         // add matricies
         this.ray_render_pass.addUniform("world_mat", (gl, loc) => {
             gl.uniformMatrix4fv(loc, false, new Float32Array(Mat4.identity.all()));
@@ -158,9 +156,8 @@ export class SkinningAnimation extends CanvasAnimation {
         });
         this.ray_render_pass.setDrawData(this.ctx.LINES, this.scene.get_ray_indices().length, this.ctx.UNSIGNED_INT, 0);
         this.ray_render_pass.setup();
-        console.log('ray.init:\n\tray_indices: ' + this.scene.get_ray_indices().length +
-            '\n\tray_pos: ' + this.scene.get_ray_positions().length +
-            '\n\tray_index: ' + this.scene.get_ray_index_attribute().length);
+        console.log('ray.init:\n\tray_indices: ' + this.scene.get_ray_indices() +
+            '\n\tray_pos: ' + this.scene.get_ray_positions());
     }
     /**
      * Sets up the floor drawing

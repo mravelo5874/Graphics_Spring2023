@@ -286,7 +286,7 @@ class CLoader {
     get_rays() {
         return this.rays;
     }
-    add_ray(r, length = 10) {
+    add_ray(r, length = -100.0) {
         // add to ray list
         this.rays.push(r);
         // add ray indices
@@ -297,22 +297,19 @@ class CLoader {
         // add ray positions
         const start = r.get_origin();
         const end = r.get_origin().add(r.get_direction().scale(length));
-        for (let i = 0; i < 3; i++)
-            this.ray_positions.push(start[i]);
-        for (let i = 0; i < 3; i++)
-            this.ray_positions.push(end[i]);
-        // add ray index attributes
-        for (let i = 0; i < 2; i++)
-            this.ray_index_attribute.push(this.rays.length - 1);
+        this.ray_positions.push(start.x);
+        this.ray_positions.push(start.y);
+        this.ray_positions.push(start.z);
+        this.ray_positions.push(end.x);
+        this.ray_positions.push(end.y);
+        this.ray_positions.push(end.z);
     }
     get_ray_indices() {
         return new Uint32Array(this.ray_indices);
     }
     get_ray_positions() {
+        console.log('ray_pos: ' + this.ray_positions);
         return new Float32Array(this.ray_positions);
-    }
-    get_ray_index_attribute() {
-        return new Float32Array(this.ray_index_attribute);
     }
 }
 export { CLoader as CLoader, };

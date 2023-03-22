@@ -401,7 +401,6 @@ export class GUI implements IGUI {
           // custom button to shoot a ray from the 
           // camera and draw it to the screen.
           let cam_dir : Vec3 = this.camera.forward()
-          // cam_dir.z = cam_dir.z * -1.0
           const cam_ray : Ray = new Ray(this.camera.pos(), cam_dir)
           this.animation.getScene().add_ray(cam_ray)
           

@@ -241,6 +241,7 @@ export class SkinningAnimation extends CanvasAnimation
   {
     // index buffer ray is ray indices
     this.ray_render_pass.setIndexBufferData(this.scene.get_ray_indices());
+
     // vertex positions
     this.ray_render_pass.addAttribute(
         "vertex_pos",
@@ -251,16 +252,6 @@ export class SkinningAnimation extends CanvasAnimation
         0,
         undefined,
         this.scene.get_ray_positions());
-    // add ray indices
-    this.ray_render_pass.addAttribute(
-      "ray_index",
-      1,
-      this.ctx.FLOAT,
-      false,
-      1 * Float32Array.BYTES_PER_ELEMENT,
-      0,
-      undefined,
-      this.scene.get_ray_index_attribute());
     
     // add matricies
     this.ray_render_pass.addUniform("world_mat",
@@ -279,9 +270,8 @@ export class SkinningAnimation extends CanvasAnimation
     this.ray_render_pass.setDrawData(this.ctx.LINES, this.scene.get_ray_indices().length, this.ctx.UNSIGNED_INT, 0);
     this.ray_render_pass.setup();
 
-    console.log('ray.init:\n\tray_indices: ' + this.scene.get_ray_indices().length + 
-    '\n\tray_pos: ' + this.scene.get_ray_positions().length + 
-    '\n\tray_index: ' + this.scene.get_ray_index_attribute().length)
+    console.log('ray.init:\n\tray_indices: ' + this.scene.get_ray_indices() + 
+    '\n\tray_pos: ' + this.scene.get_ray_positions())
   }
   
   /**

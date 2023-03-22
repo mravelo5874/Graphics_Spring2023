@@ -126,7 +126,6 @@ export const ray_vertex_shader = `
     precision mediump float;
 
     attribute vec3 vertex_pos;
-    attribute float ray_index;
 
     uniform mat4 world_mat;
     uniform mat4 proj_mat;
@@ -134,7 +133,7 @@ export const ray_vertex_shader = `
     
     void main() 
     {
-        gl_Position = proj_mat * view_mat * world_mat * vec4(vertex_pos, 1.0);
+        gl_Position = proj_mat * view_mat * world_mat * vec4(vertex_pos, 1.0); // 
     }
 `;
 export const ray_fragment_shader = `
