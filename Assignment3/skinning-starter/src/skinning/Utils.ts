@@ -98,7 +98,7 @@ export class Ray
 // class used to convert bones into hex prisms
 export class Hex
 {
-    public static radius : number = 0.2
+    public static radius : number = 0.1
     public static pi_over_3 : number = Math.PI / 3
 
     private start : Vec3;

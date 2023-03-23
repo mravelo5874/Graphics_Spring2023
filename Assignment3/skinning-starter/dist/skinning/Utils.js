@@ -215,7 +215,7 @@ export class Hex {
         return new Float32Array(this.hex_colors);
     }
 }
-Hex.radius = 0.2;
+Hex.radius = 0.1;
 Hex.pi_over_3 = Math.PI / 3;
 export class Cylinder {
     constructor(_start_point, _end_point, _radius, _id) {
