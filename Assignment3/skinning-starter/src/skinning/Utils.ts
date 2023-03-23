@@ -208,9 +208,8 @@ export class Hex
 
     private convert() : void
     {
-        let dir : Vec3 = this.end.copy().subtract(this.start.copy()).normalize()
-        let per : Vec3 = Util.get_perpendicular(dir.copy()).normalize()
-        let len : number = Vec3.distance(this.start.copy(), this.end.copy())
+        const dir : Vec3 = this.end.copy().subtract(this.start.copy()).normalize()
+        const per : Vec3 = Util.get_perpendicular(dir.copy()).normalize()
         
         // console.log('[HEX]' + 
         // '\n\tstart: ' + Util.Vec3_toFixed(this.start) +
@@ -222,7 +221,6 @@ export class Hex
     
         // calculate 6 hex points around start point
         const init_p : Vec3 = per.copy().scale(Hex.radius)
-        //console.log('start point: ' + Ray.Vec3_toFixed(start_point))
         const a1 : Vec3 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 0).add(this.start.copy())
         const b1 : Vec3 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 1).add(this.start.copy())
         const c1 : Vec3 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 2).add(this.start.copy())

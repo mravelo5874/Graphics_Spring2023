@@ -1,6 +1,7 @@
 import { Camera } from "../lib/webglutils/Camera.js";
 import { Vec3, Vec4 } from "../lib/TSM.js";
 import { Ray } from "./Utils.js";
+import { BoneRotator } from "./BoneRotator.js";
 export var Mode;
 (function (Mode) {
     Mode[Mode["playback"] = 0] = "playback";
@@ -20,6 +21,7 @@ export class GUI {
     constructor(canvas, animation) {
         this.hoverX = 0;
         this.hoverY = 0;
+        this.bone_id = -1;
         this.height = canvas.height;
         this.viewPortHeight = this.height - 200;
         this.width = canvas.width;
@@ -78,11 +80,9 @@ export class GUI {
             // outside the main panel
             return;
         }
-        // TODO
-        // Some logic to rotate the bones, instead of moving the camera, if there is a currently highlighted bone
-        this.dragging = true;
         this.prevX = mouse.screenX;
         this.prevY = mouse.screenY;
+        this.dragging = true;
     }
     incrementTime(dT) {
         if (this.mode === Mode.playback) {
@@ -117,25 +117,38 @@ export class GUI {
             if (dx === 0 && dy === 0) {
                 return;
             }
-            switch (mouse.buttons) {
-                case 1: {
-                    let rotAxis = Vec3.cross(this.camera.forward(), mouseDir);
-                    rotAxis = rotAxis.normalize();
-                    if (this.fps) {
-                        this.camera.rotate(rotAxis, GUI.rotationSpeed);
-                    }
-                    else {
-                        this.camera.orbitTarget(rotAxis, GUI.rotationSpeed);
-                    }
-                    break;
-                }
-                case 2: {
-                    /* Right button, or secondary button */
-                    this.camera.offsetDist(Math.sign(mouseDir.y) * GUI.zoomSpeed);
-                    break;
-                }
-                default: {
-                    break;
+            else {
+                switch (mouse.buttons) {
+                    case 1:
+                        {
+                            // rotate bone
+                            if (this.bone_id > -1) {
+                                let cam_dir = this.camera.forward();
+                                const cam_ray = new Ray(this.camera.pos(), cam_dir);
+                                BoneRotator.rotate_bone(this.animation.getScene(), this.bone_id, this.mouse_ray, cam_ray);
+                            }
+                            else {
+                                let rotAxis = Vec3.cross(this.camera.forward(), mouseDir);
+                                rotAxis = rotAxis.normalize();
+                                if (this.fps) {
+                                    this.camera.rotate(rotAxis, GUI.rotationSpeed);
+                                }
+                                else {
+                                    this.camera.orbitTarget(rotAxis, GUI.rotationSpeed);
+                                }
+                            }
+                            break;
+                        }
+                    case 2:
+                        {
+                            /* Right button, or secondary button */
+                            this.camera.offsetDist(Math.sign(mouseDir.y) * GUI.zoomSpeed);
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
                 }
             }
         }
@@ -146,23 +159,25 @@ export class GUI {
         const cyls = this.animation.getScene().get_cylinders();
         // convert mouse x y position to world ray
         this.mouse_ray = this.screen_to_world_ray(x, y);
-        // check intersections
-        let bone_id = -1;
+        // check intersections - might need BVH !!!
+        let id = -1;
         let min_t = Number.MAX_VALUE;
         for (let i = 0; i < cyls.length; i++) {
             let res = cyls[i].ray_interset(this.mouse_ray);
             if (res[0] && res[1] < min_t) {
-                bone_id = i;
+                id = i;
                 min_t = res[1];
             }
         }
         // set bone highlight
-        if (bone_id >= 0) {
-            this.animation.getScene().hex.set(cyls[bone_id].get_start(), cyls[bone_id].get_end(), bone_id);
+        if (id >= 0) {
+            this.animation.getScene().hex.set(cyls[id].get_start(), cyls[id].get_end(), id);
+            this.bone_id = id;
         }
         // no bone hightlight    
         else {
             this.animation.getScene().hex.del();
+            this.bone_id = -1;
         }
     }
     screen_to_world_ray(x, y) {

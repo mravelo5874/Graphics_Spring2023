@@ -5,6 +5,7 @@ import { Mat4, Vec3, Vec4, Vec2, Mat2, Quat } from "../lib/TSM.js";
 import { Mesh, Bone } from "./Scene.js";
 import { RenderPass } from "../lib/webglutils/RenderPass.js";
 import { Cylinder, Hex, Ray } from "./Utils.js"
+import { BoneRotator } from "./BoneRotator.js";
 
 /**
  * Might be useful for designing any animation GUI
@@ -55,6 +56,7 @@ export class GUI implements IGUI {
   public hoverY: number = 0;
 
   private mouse_ray : Ray;
+  private bone_id : number = -1;
 
 
   /**
@@ -143,19 +145,17 @@ export class GUI implements IGUI {
    * Callback function for the start of a drag event.
    * @param mouse
    */
-  public dragStart(mouse: MouseEvent): void {
-    if (mouse.offsetY > 600) {
+  public dragStart(mouse: MouseEvent): void 
+  {
+    if (mouse.offsetY > 600) 
+    {
       // outside the main panel
       return;
     }
-    
-    // TODO
-    // Some logic to rotate the bones, instead of moving the camera, if there is a currently highlighted bone
-    
-    this.dragging = true;
+
     this.prevX = mouse.screenX;
     this.prevY = mouse.screenY;
-    
+    this.dragging = true;
   }
 
   public incrementTime(dT: number): void {
@@ -179,7 +179,8 @@ export class GUI implements IGUI {
     let y = mouse.offsetY;
     //console.log('mouse.pos: {' + mouse.x + ', ' + mouse.y + '}')
     //console.log('mouse.offset: {' + mouse.offsetX + ', ' + mouse.offsetY + '}')
-    if (this.dragging) {
+    if (this.dragging) 
+    {
       const dx = mouse.screenX - this.prevX;
       const dy = mouse.screenY - this.prevY;
       this.prevX = mouse.screenX;
@@ -191,29 +192,50 @@ export class GUI implements IGUI {
       mouseDir.add(this.camera.up().scale(dy));
       mouseDir.normalize();
 
-      if (dx === 0 && dy === 0) {
+      if (dx === 0 && dy === 0) 
+      {
         return;
       }
 
-      switch (mouse.buttons) {
-        case 1: {
-          let rotAxis: Vec3 = Vec3.cross(this.camera.forward(), mouseDir);
-          rotAxis = rotAxis.normalize();
-
-          if (this.fps) {
-            this.camera.rotate(rotAxis, GUI.rotationSpeed);
-          } else {
-            this.camera.orbitTarget(rotAxis, GUI.rotationSpeed);
+      else
+      {
+        switch (mouse.buttons) 
+        {
+          case 1: 
+          {
+            // rotate bone
+            if (this.bone_id > -1)
+            {
+              let cam_dir : Vec3 = this.camera.forward()
+              const cam_ray : Ray = new Ray(this.camera.pos(), cam_dir)
+              BoneRotator.rotate_bone(this.animation.getScene(), this.bone_id, this.mouse_ray, cam_ray)
+            }
+            else
+            {
+              let rotAxis: Vec3 = Vec3.cross(this.camera.forward(), mouseDir);
+              rotAxis = rotAxis.normalize();
+    
+              if (this.fps) 
+              {
+                this.camera.rotate(rotAxis, GUI.rotationSpeed);
+              } 
+              else 
+              {
+                this.camera.orbitTarget(rotAxis, GUI.rotationSpeed);
+              }
+            }
+            break;
           }
-          break;
-        }
-        case 2: {
-          /* Right button, or secondary button */
-          this.camera.offsetDist(Math.sign(mouseDir.y) * GUI.zoomSpeed);
-          break;
-        }
-        default: {
-          break;
+          case 2: 
+          {
+            /* Right button, or secondary button */
+            this.camera.offsetDist(Math.sign(mouseDir.y) * GUI.zoomSpeed);
+            break;
+          }
+          default: 
+          {
+            break;
+          }
         }
       }
     } 
@@ -228,28 +250,30 @@ export class GUI implements IGUI {
     // convert mouse x y position to world ray
     this.mouse_ray = this.screen_to_world_ray(x, y)
 
-    // check intersections - might need BVH
-    let bone_id = -1
+    // check intersections - might need BVH !!!
+    let id = -1
     let min_t = Number.MAX_VALUE    
     for (let i = 0; i < cyls.length; i++)
     {
       let res : [boolean, number] = cyls[i].ray_interset(this.mouse_ray)
       if (res[0] && res[1] < min_t)
       {
-        bone_id = i
+        id = i
         min_t = res[1]
       }
     }
 
     // set bone highlight
-    if (bone_id >= 0)
+    if (id >= 0)
     {
-      this.animation.getScene().hex.set(cyls[bone_id].get_start(), cyls[bone_id].get_end(), bone_id)
+      this.animation.getScene().hex.set(cyls[id].get_start(), cyls[id].get_end(), id)
+      this.bone_id = id
     }
     // no bone hightlight    
     else
     { 
       this.animation.getScene().hex.del()
+      this.bone_id = -1
     }
   }
 

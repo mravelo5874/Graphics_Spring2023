@@ -52,7 +52,8 @@ export class Bone
   public offset: number; // used when parsing the Collada file---you probably don't need to touch these
   public initialTransformation: Mat4;
 
-  constructor(bone: BoneLoader) {
+  constructor(bone: BoneLoader) 
+  {
     this.parent = bone.parent;
     this.children = Array.from(bone.children);
     this.position = bone.position.copy();
@@ -65,7 +66,8 @@ export class Bone
   }
 }
 
-export class Mesh {
+export class Mesh 
+{
   public geometry: MeshGeometry;
   public worldMatrix: Mat4; // in this project all meshes and rigs have been transformed into world coordinates for you
   public rotation: Vec3;
@@ -77,7 +79,8 @@ export class Mesh {
   private bonePositions: Float32Array;
   private boneIndexAttribute: Float32Array;
 
-  constructor(mesh: MeshLoader) {
+  constructor(mesh: MeshLoader) 
+  {
     this.geometry = new MeshGeometry(mesh.geometry);
     this.worldMatrix = mesh.worldMatrix.copy();
     this.rotation = mesh.rotation.copy();
@@ -92,15 +95,18 @@ export class Mesh {
     this.boneIndexAttribute = new Float32Array(mesh.boneIndexAttribute);
   }
 
-  public getBoneIndices(): Uint32Array {
+  public getBoneIndices(): Uint32Array 
+  {
     return new Uint32Array(this.boneIndices);
   }
 
-  public getBonePositions(): Float32Array {
+  public getBonePositions(): Float32Array 
+  {
     return this.bonePositions;
   }
 
-  public getBoneIndexAttribute(): Float32Array {
+  public getBoneIndexAttribute(): Float32Array
+  {
     return this.boneIndexAttribute;
   }
 

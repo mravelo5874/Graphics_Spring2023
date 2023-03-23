@@ -142,42 +142,41 @@ export class Hex {
         this.update = true;
     }
     convert() {
-        let dir = this.end.copy().subtract(this.start.copy()).normalize();
-        let per = Util.get_perpendicular(dir.copy()).normalize();
-        let len = Vec3.distance(this.start.copy(), this.end.copy());
-        console.log('[HEX]' +
-            '\n\tstart: ' + Util.Vec3_toFixed(this.start) +
-            '\n\tend: ' + Util.Vec3_toFixed(this.end) +
-            '\n\tdir: ' + Util.Vec3_toFixed(dir) +
-            '\n\tper: ' + Util.Vec3_toFixed(per) +
-            '\n\tlen: ' + len.toFixed(3));
+        const dir = this.end.copy().subtract(this.start.copy()).normalize();
+        const per = Util.get_perpendicular(dir.copy()).normalize();
+        // console.log('[HEX]' + 
+        // '\n\tstart: ' + Util.Vec3_toFixed(this.start) +
+        // '\n\tend: ' + Util.Vec3_toFixed(this.end) +
+        // '\n\tdir: ' + Util.Vec3_toFixed(dir) +
+        // '\n\tper: ' + Util.Vec3_toFixed(per) +
+        // '\n\tlen: ' + len.toFixed(3)
+        // )
         // calculate 6 hex points around start point
         const init_p = per.copy().scale(Hex.radius);
-        //console.log('start point: ' + Ray.Vec3_toFixed(start_point))
         const a1 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 0).add(this.start.copy());
         const b1 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 1).add(this.start.copy());
         const c1 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 2).add(this.start.copy());
         const d1 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 3).add(this.start.copy());
         const e1 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 4).add(this.start.copy());
         const f1 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 5).add(this.start.copy());
-        console.log('a1: ' + Util.Vec3_toFixed(a1) +
-            '\nb1: ' + Util.Vec3_toFixed(b1) +
-            '\nc1: ' + Util.Vec3_toFixed(c1) +
-            '\nd1: ' + Util.Vec3_toFixed(d1) +
-            '\ne1: ' + Util.Vec3_toFixed(e1) +
-            '\nf1: ' + Util.Vec3_toFixed(f1));
+        // console.log('a1: ' + Util.Vec3_toFixed(a1) +
+        // '\nb1: ' + Util.Vec3_toFixed(b1) +
+        // '\nc1: ' + Util.Vec3_toFixed(c1) +
+        // '\nd1: ' + Util.Vec3_toFixed(d1) +
+        // '\ne1: ' + Util.Vec3_toFixed(e1) +
+        // '\nf1: ' + Util.Vec3_toFixed(f1))
         const a2 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 0).add(this.end.copy());
         const b2 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 1).add(this.end.copy());
         const c2 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 2).add(this.end.copy());
         const d2 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 3).add(this.end.copy());
         const e2 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 4).add(this.end.copy());
         const f2 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 5).add(this.end.copy());
-        console.log('a2: ' + Util.Vec3_toFixed(a2) +
-            '\nb2: ' + Util.Vec3_toFixed(b2) +
-            '\nc2: ' + Util.Vec3_toFixed(c2) +
-            '\nd2: ' + Util.Vec3_toFixed(d2) +
-            '\ne2: ' + Util.Vec3_toFixed(e2) +
-            '\nf2: ' + Util.Vec3_toFixed(f2));
+        // console.log('a2: ' + Util.Vec3_toFixed(a2) +
+        // '\nb2: ' + Util.Vec3_toFixed(b2) +
+        // '\nc2: ' + Util.Vec3_toFixed(c2) +
+        // '\nd2: ' + Util.Vec3_toFixed(d2) +
+        // '\ne2: ' + Util.Vec3_toFixed(e2) +
+        // '\nf2: ' + Util.Vec3_toFixed(f2))
         // [ create line segments and store ]
         // add ray indices (should be 18 lines = 36 indices)
         for (let i = 0; i < 36; i++)
