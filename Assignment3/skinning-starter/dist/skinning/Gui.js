@@ -1,5 +1,5 @@
 import { Camera } from "../lib/webglutils/Camera.js";
-import { Vec3, Vec4 } from "../lib/TSM.js";
+import { Vec3, Vec4, Vec2 } from "../lib/TSM.js";
 import { Ray } from "./Utils.js";
 import { BoneRotator } from "./BoneRotator.js";
 export var Mode;
@@ -125,7 +125,8 @@ export class GUI {
                             if (this.bone_id > -1) {
                                 let cam_dir = this.camera.forward();
                                 const cam_ray = new Ray(this.camera.pos(), cam_dir);
-                                BoneRotator.rotate_bone(this.animation.getScene(), this.bone_id, this.mouse_ray, cam_ray);
+                                const mouse_offset = new Vec2([dx, dy]);
+                                BoneRotator.rotate_bone(this.animation.getScene(), this.bone_id, mouse_offset, cam_ray);
                             }
                             else {
                                 let rotAxis = Vec3.cross(this.camera.forward(), mouseDir);

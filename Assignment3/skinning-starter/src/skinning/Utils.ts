@@ -1,4 +1,4 @@
-import { Vec3, Mat4, Vec4, Quat } from "../lib/TSM.js";
+import { Vec3, Mat4, Vec4, Quat, Mat3 } from "../lib/TSM.js";
 import { CLoader } from "./AnimationFileLoader.js";
 import { Bone, Mesh } from "./Scene.js"
 
