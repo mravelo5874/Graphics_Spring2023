@@ -2,7 +2,7 @@ import { Debugger } from "../lib/webglutils/Debugging.js";
 import { CanvasAnimation } from "../lib/webglutils/CanvasAnimation.js";
 import { Floor } from "../lib/webglutils/Floor.js";
 import { GUI } from "./Gui.js";
-import { sceneFSText, sceneVSText, floorFSText, floorVSText, skeletonFSText, skeletonVSText, sBackVSText, sBackFSText, ray_vertex_shader, ray_fragment_shader } from "./Shaders.js";
+import { sceneFSText, sceneVSText, floorFSText, floorVSText, skeletonFSText, skeletonVSText, sBackVSText, sBackFSText, ray_vertex_shader, ray_fragment_shader, hex_vertex_shader, hex_fragment_shader } from "./Shaders.js";
 import { Mat4, Vec4 } from "../lib/TSM.js";
 import { CLoader } from "./AnimationFileLoader.js";
 import { RenderPass } from "../lib/webglutils/RenderPass.js";
@@ -11,6 +11,8 @@ export class SkinningAnimation extends CanvasAnimation {
         super(canvas);
         // render pass for rendering rays
         this.prev_ray_length = 0;
+        // render pass for hex-highlighting
+        this.render_hex = false;
         this.canvas2d = document.getElementById("textCanvas");
         this.ctx2 = this.canvas2d.getContext("2d");
         if (this.ctx2) {
@@ -32,7 +34,7 @@ export class SkinningAnimation extends CanvasAnimation {
         this.sBackRenderPass = new RenderPass(this.extVAO, gl, sBackVSText, sBackFSText);
         // custom render passes
         this.ray_render_pass = new RenderPass(this.extVAO, gl, ray_vertex_shader, ray_fragment_shader);
-        this.hex_render_pass = new RenderPass(this.extVAO, gl, ray_vertex_shader, ray_fragment_shader);
+        this.hex_render_pass = new RenderPass(this.extVAO, gl, hex_vertex_shader, hex_fragment_shader);
         this.initGui();
         this.millis = new Date().getTime();
     }
@@ -231,14 +233,18 @@ export class SkinningAnimation extends CanvasAnimation {
         this.millis = curr;
         deltaT /= 1000;
         this.getGUI().incrementTime(deltaT);
-        // If the mesh is animating, probably you want to do some updating of the skeleton state here
+        // init hex updates
         if (this.scene.hex.get_update()) {
-            //this.init_hex();
-            //this.scene.hex.got_update();
+            this.render_hex = true;
+            this.init_hex();
+            this.scene.hex.got_update();
+            console.log('init hex');
         }
+        // init rays update
         if (this.prev_ray_length < this.scene.rr.get_rays().length) {
             this.prev_ray_length = this.scene.rr.get_rays().length;
             this.init_rays();
+            console.log('init rays');
         }
         // draw the status message
         if (this.ctx2) {
@@ -274,8 +280,12 @@ export class SkinningAnimation extends CanvasAnimation {
             gl.disable(gl.DEPTH_TEST);
             this.skeletonRenderPass.draw();
             gl.enable(gl.DEPTH_TEST);
-            // draw hex
+        }
+        // draw hex
+        if (this.render_hex) {
+            gl.disable(gl.DEPTH_TEST);
             this.hex_render_pass.draw();
+            gl.enable(gl.DEPTH_TEST);
         }
         // draw rays
         if (this.prev_ray_length > 0) {

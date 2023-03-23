@@ -228,11 +228,9 @@ export class GUI implements IGUI {
     // convert mouse x y position to world ray
     this.mouse_ray = this.screen_to_world_ray(x, y)
 
-    //console.log('\n')
     // check intersections
     let bone_id = -1
-    let min_t = Number.MAX_VALUE
-    
+    let min_t = Number.MAX_VALUE    
     for (let i = 0; i < cyls.length; i++)
     {
       let res : [boolean, number] = cyls[i].ray_interset(this.mouse_ray)
@@ -246,8 +244,7 @@ export class GUI implements IGUI {
     // set bone highlight
     if (bone_id >= 0)
     {
-      //console.log('HIGHLIGHT BONE ' + bone_id)
-      this.animation.getScene().hex.set(cyls[bone_id].get_start(), cyls[bone_id].get_end())
+      this.animation.getScene().hex.set(cyls[bone_id].get_start(), cyls[bone_id].get_end(), bone_id)
     }
     // no bone hightlight    
     else
@@ -419,6 +416,9 @@ export class GUI implements IGUI {
           // mouse and draw it to the screen.
           // convert mouse x y position to world ray
           this.animation.getScene().rr.add_ray(this.mouse_ray, "pink")
+          
+          // const cyls : Cylinder[] = this.animation.getScene().get_cylinders()
+          // let res : [boolean, number] = cyls[0].ray_interset(this.mouse_ray, this.animation.getScene())
 
           console.log('new mouse raycast: ' + this.mouse_ray.print())
           console.log('total rays: ' + this.animation.getScene().rr.get_rays().length)

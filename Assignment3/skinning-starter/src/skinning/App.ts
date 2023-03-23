@@ -15,7 +15,9 @@ import {
   sBackVSText,
   sBackFSText,
   ray_vertex_shader,
-  ray_fragment_shader
+  ray_fragment_shader,
+  hex_vertex_shader,
+  hex_fragment_shader
 } from "./Shaders.js";
 import { Mat4, Vec4, Vec3 } from "../lib/TSM.js";
 import { CLoader } from "./AnimationFileLoader.js";
@@ -48,6 +50,7 @@ export class SkinningAnimation extends CanvasAnimation
   private ray_render_pass : RenderPass;
 
   // render pass for hex-highlighting
+  private render_hex : boolean = false;
   private hex_render_pass : RenderPass;
   
   /* Global Rendering Info */
@@ -89,7 +92,7 @@ export class SkinningAnimation extends CanvasAnimation
   
     // custom render passes
     this.ray_render_pass = new RenderPass(this.extVAO, gl, ray_vertex_shader, ray_fragment_shader)
-    this.hex_render_pass = new RenderPass(this.extVAO, gl, ray_vertex_shader, ray_fragment_shader)
+    this.hex_render_pass = new RenderPass(this.extVAO, gl, hex_vertex_shader, hex_fragment_shader)
     
     this.initGui();
     this.millis = new Date().getTime();
@@ -404,18 +407,21 @@ export class SkinningAnimation extends CanvasAnimation
     deltaT /= 1000;
     this.getGUI().incrementTime(deltaT);
 
-    // If the mesh is animating, probably you want to do some updating of the skeleton state here
+    // init hex updates
     if (this.scene.hex.get_update())
     {
-      //this.init_hex();
-      //this.scene.hex.got_update();
+      this.render_hex = true;
+      this.init_hex();
+      this.scene.hex.got_update();
+      console.log('init hex')
     }
       
-
+    // init rays update
     if (this.prev_ray_length < this.scene.rr.get_rays().length)
     {
       this.prev_ray_length = this.scene.rr.get_rays().length;
       this.init_rays();
+      console.log('init rays')
     }
     
     // draw the status message
@@ -463,9 +469,14 @@ export class SkinningAnimation extends CanvasAnimation
       gl.disable(gl.DEPTH_TEST);
       this.skeletonRenderPass.draw();
       gl.enable(gl.DEPTH_TEST); 
-      
-      // draw hex
+    }
+
+    // draw hex
+    if (this.render_hex)
+    {
+      gl.disable(gl.DEPTH_TEST);
       this.hex_render_pass.draw();
+      gl.enable(gl.DEPTH_TEST); 
     }
 
     // draw rays

@@ -59,10 +59,16 @@ export class Util {
         res = Math.sqrt(res);
         return res;
     }
+    static mid_point(p1, p2) {
+        const x = (p1.x + p2.x) / 2.0;
+        const y = (p1.y + p2.y) / 2.0;
+        const z = (p1.z + p2.z) / 2.0;
+        return new Vec3([x, y, z]);
+    }
 }
 export class Ray {
     get_origin() { return new Vec3(this.origin.xyz); }
-    get_direction() { return new Vec3(this.direction.xyz); }
+    get_direction() { return new Vec3(this.direction.xyz).normalize(); }
     constructor(_origin, _direction) {
         this.origin = _origin;
         this.direction = _direction;
@@ -79,37 +85,55 @@ export class Hex {
     get_update() { return this.update; }
     got_update() { this.update = false; }
     constructor() {
-        this.init = false;
         this.update = false;
-        if (!this.init) {
-            this.start = Vec3.zero.copy();
-            this.end = Vec3.zero.copy();
-            this.hex_indices = new Array();
-            this.hex_positions = new Array();
-            this.hex_colors = new Array();
-            this.init = true;
-        }
+        this.start = Vec3.zero.copy();
+        this.end = Vec3.zero.copy();
+        this.id = -1;
+        this.deleted = false;
+        this.hex_indices = new Array();
+        this.hex_positions = new Array();
+        this.hex_colors = new Array();
     }
-    set(_start, _end) {
-        if (!this.update) {
-            this.start = _start.copy();
-            this.end = _end.copy();
-            this.hex_indices = new Array();
-            this.hex_positions = new Array();
-            this.hex_colors = new Array();
-            this.convert();
-            this.update = true;
-        }
+    set(_start, _end, _id) {
+        // return if same id
+        if (this.id == _id)
+            return;
+        // set new values
+        this.id = _id;
+        this.deleted = false;
+        // console.log('Hex.set()')
+        // console.log('this.start: ' + Util.Vec3_toFixed(this.start))
+        // console.log('_start: ' + Util.Vec3_toFixed(_start))
+        // console.log('this.end: ' + Util.Vec3_toFixed(this.end))
+        // console.log('_end: ' + Util.Vec3_toFixed(_end))
+        // console.log('\n')
+        this.start = _start.copy();
+        this.end = _end.copy();
+        this.hex_indices = new Array();
+        this.hex_positions = new Array();
+        this.hex_colors = new Array();
+        this.convert();
+        this.update = true;
     }
     del() {
-        if (!this.update) {
-            this.start = Vec3.zero.copy();
-            this.end = Vec3.zero.copy();
-            this.hex_indices = new Array();
-            this.hex_positions = new Array();
-            this.hex_colors = new Array();
-            this.update = true;
-        }
+        // return already deleted
+        if (this.deleted)
+            return;
+        // set new values
+        this.id = -1;
+        this.deleted = true;
+        // console.log('Hex.del()')
+        // console.log('this.start: ' + Util.Vec3_toFixed(this.start))
+        // console.log('_start: ' + Util.Vec3_toFixed(Vec3.zero.copy()))
+        // console.log('this.end: ' + Util.Vec3_toFixed(this.end))
+        // console.log('_end: ' + Util.Vec3_toFixed(Vec3.zero.copy()))
+        // console.log('\n')
+        this.start = Vec3.zero.copy();
+        this.end = Vec3.zero.copy();
+        this.hex_indices.splice(0, this.hex_indices.length);
+        this.hex_positions.splice(0, this.hex_positions.length);
+        this.hex_colors.splice(0, this.hex_colors.length);
+        this.update = true;
     }
     convert() {
         let dir = this.end.copy().subtract(this.start.copy()).normalize();
@@ -264,7 +288,7 @@ export class Cylinder {
     constructor(_start_point, _end_point, _radius, _id) {
         this.start_point = _start_point.copy();
         this.end_point = _end_point.copy();
-        this.mid_point = Vec3.difference(_end_point.copy(), _start_point.copy());
+        this.mid_point = Util.mid_point(_start_point.copy(), _end_point.copy());
         this.length = Vec3.distance(_end_point.copy(), _start_point.copy());
         //console.log('cyl: ' + _id + ', start: ' + Util.Vec3_toFixed(_start_point) + ', end: ' + Util.Vec3_toFixed(_end_point) + ', radius: ' + _radius)
     }
@@ -291,6 +315,8 @@ export class Cylinder {
         const p2 = ray_pos.copy().add(ray_dir.copy().scale(t2));
         // confirm
         const dist = Vec3.distance(p1.copy(), p2.copy());
+        // add as line to scene.rr
+        //scene.rr.add_ray(new Ray(p1.copy(), p2.copy().subtract(p1.copy())), "blue", dist)
         /*
         console.log('[INTERSECT]\n' +
         '\tcyl: {pos: ' + Util.Vec3_toFixed(cyl_pos) + ', dir: ' + Util.Vec3_toFixed(cyl_dir) + '\n' +
@@ -304,10 +330,12 @@ export class Cylinder {
         */
         // return if dist > radius
         if (dist > Hex.radius)
-            [false, Number.MIN_VALUE];
+            return [false, Number.MIN_VALUE];
         // return if dist(mid_point -> p1) > length / 2
         if (Vec3.distance(this.mid_point.copy(), p1.copy()) > this.length / 2)
-            [false, Number.MIN_VALUE];
+            return [false, Number.MIN_VALUE];
+        // add as line to scene.rr
+        // if (scene != null) scene.rr.add_ray(new Ray(p1.copy(), p2.copy().subtract(p1.copy())), "pink", dist)
         // now, return true
         return [true, (t2 * -1.0)];
     }

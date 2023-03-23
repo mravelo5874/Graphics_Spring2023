@@ -140,6 +140,34 @@ export const ray_vertex_shader = `
         ray_color = vertex_color; 
     }
 `;
+export const hex_fragment_shader = `
+    precision mediump float;
+
+    varying vec3 ray_color;
+
+    void main()
+    {
+        gl_FragColor = vec4(ray_color, 1.0);
+    }
+`;
+export const hex_vertex_shader = `
+    precision mediump float;
+
+    attribute vec3 vertex_pos;
+    attribute vec3 vertex_color;
+
+    uniform mat4 world_mat;
+    uniform mat4 proj_mat;
+    uniform mat4 view_mat;
+
+    varying vec3 ray_color;
+    
+    void main() 
+    {
+        gl_Position = proj_mat * view_mat * world_mat * vec4(vertex_pos, 1.0);
+        ray_color = vertex_color; 
+    }
+`;
 export const ray_fragment_shader = `
     precision mediump float;
 

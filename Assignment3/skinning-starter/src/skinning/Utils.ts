@@ -1,4 +1,5 @@
 import { Vec3, Mat4 } from "../lib/TSM.js";
+import { CLoader } from "./AnimationFileLoader.js";
 import { Bone, Mesh } from "./Scene.js"
 
 // http-server dist -c-1
@@ -79,7 +80,15 @@ export class Util
         let res : number = a + b + c
         res = Math.sqrt(res)
         return res
-    }   
+    }
+
+    public static mid_point(p1 : Vec3, p2 : Vec3) : Vec3
+    {
+        const x : number = (p1.x + p2.x) / 2.0
+        const y : number = (p1.y + p2.y) / 2.0
+        const z : number = (p1.z + p2.z) / 2.0
+        return new Vec3([x, y, z])
+    }
 }
 
 export class Ray
@@ -88,7 +97,7 @@ export class Ray
     private direction : Vec3
 
     public get_origin() : Vec3 { return new Vec3(this.origin.xyz) }
-    public get_direction() : Vec3 { return new Vec3(this.direction.xyz) }
+    public get_direction() : Vec3 { return new Vec3(this.direction.xyz).normalize() }
 
     constructor(_origin : Vec3, _direction : Vec3)
     {
@@ -115,12 +124,13 @@ export class Hex
 
     private start : Vec3;
     private end : Vec3;
+    private id : number;
+    private deleted : boolean;
 
     private hex_indices : number[];
     private hex_positions : number[];
     private hex_colors : number[];
 
-    private init : boolean = false
     private update : boolean = false
 
     public get_update() : boolean { return this.update }
@@ -128,43 +138,64 @@ export class Hex
 
     constructor()
     {
-        if (!this.init)
-        {
-            this.start = Vec3.zero.copy()
-            this.end = Vec3.zero.copy()
+        this.start = Vec3.zero.copy()
+        this.end = Vec3.zero.copy()
+        this.id = -1
+        this.deleted = false
 
-            this.hex_indices = new Array<number>();
-            this.hex_positions = new Array<number>();
-            this.hex_colors = new Array<number>();
-            this.init = true
-        }
+        this.hex_indices = new Array<number>()
+        this.hex_positions = new Array<number>()
+        this.hex_colors = new Array<number>()
     }
 
-    public set(_start : Vec3, _end : Vec3)
+    public set(_start : Vec3, _end : Vec3, _id : number)
     {
-        if (!this.update)
-        {
-            this.start = _start.copy();
-            this.end = _end.copy();
-            this.hex_indices = new Array<number>();
-            this.hex_positions = new Array<number>();
-            this.hex_colors = new Array<number>();
-            this.convert()
-            this.update = true
-        }
+        // return if same id
+        if (this.id == _id) 
+            return
+        // set new values
+        this.id = _id
+        this.deleted = false
+        
+        // console.log('Hex.set()')
+        // console.log('this.start: ' + Util.Vec3_toFixed(this.start))
+        // console.log('_start: ' + Util.Vec3_toFixed(_start))
+        // console.log('this.end: ' + Util.Vec3_toFixed(this.end))
+        // console.log('_end: ' + Util.Vec3_toFixed(_end))
+        // console.log('\n')
+
+        this.start = _start.copy()
+        this.end = _end.copy()
+        this.hex_indices = new Array<number>()
+        this.hex_positions = new Array<number>()
+        this.hex_colors = new Array<number>()
+        this.convert()
+
+        this.update = true
     }
 
     public del()
     {
-        if (!this.update)
-        {
-            this.start = Vec3.zero.copy()
-            this.end = Vec3.zero.copy()
-            this.hex_indices = new Array<number>();
-            this.hex_positions = new Array<number>();
-            this.hex_colors = new Array<number>();
-            this.update = true
-        }
+        // return already deleted
+        if (this.deleted) 
+            return
+        // set new values
+        this.id = -1
+        this.deleted = true
+
+        // console.log('Hex.del()')
+        // console.log('this.start: ' + Util.Vec3_toFixed(this.start))
+        // console.log('_start: ' + Util.Vec3_toFixed(Vec3.zero.copy()))
+        // console.log('this.end: ' + Util.Vec3_toFixed(this.end))
+        // console.log('_end: ' + Util.Vec3_toFixed(Vec3.zero.copy()))
+        // console.log('\n')
+
+        this.start = Vec3.zero.copy()
+        this.end = Vec3.zero.copy()
+        this.hex_indices.splice(0, this.hex_indices.length)
+        this.hex_positions.splice(0, this.hex_positions.length)
+        this.hex_colors.splice(0, this.hex_colors.length)
+        this.update = true
     }
 
     private convert() : void
@@ -325,7 +356,7 @@ export class Cylinder
     {
         this.start_point = _start_point.copy()
         this.end_point = _end_point.copy()
-        this.mid_point = Vec3.difference(_end_point.copy(), _start_point.copy())
+        this.mid_point = Util.mid_point(_start_point.copy(), _end_point.copy())
         this.length = Vec3.distance(_end_point.copy(), _start_point.copy())
         //console.log('cyl: ' + _id + ', start: ' + Util.Vec3_toFixed(_start_point) + ', end: ' + Util.Vec3_toFixed(_end_point) + ', radius: ' + _radius)
     }
@@ -356,9 +387,11 @@ export class Cylinder
         // compute p1 and p2
         const p1 : Vec3 = cyl_pos.copy().add(cyl_dir.copy().scale(t1))
         const p2 : Vec3 = ray_pos.copy().add(ray_dir.copy().scale(t2))
-
         // confirm
         const dist : number = Vec3.distance(p1.copy(), p2.copy())
+
+        // add as line to scene.rr
+        //scene.rr.add_ray(new Ray(p1.copy(), p2.copy().subtract(p1.copy())), "blue", dist)
         
         /*
         console.log('[INTERSECT]\n' +
@@ -371,12 +404,15 @@ export class Cylinder
         '\tp1: ' + Util.Vec3_toFixed(p1) + '\n' +
         '\tp2: ' + Util.Vec3_toFixed(p2) + '\n')
         */
-
+    
         // return if dist > radius
-        if (dist > Hex.radius) [false, Number.MIN_VALUE]
+        if (dist > Hex.radius) return [false, Number.MIN_VALUE]
 
         // return if dist(mid_point -> p1) > length / 2
-        if (Vec3.distance(this.mid_point.copy(), p1.copy()) > this.length / 2) [false, Number.MIN_VALUE]
+        if (Vec3.distance(this.mid_point.copy(), p1.copy()) > this.length / 2) return [false, Number.MIN_VALUE]
+
+        // add as line to scene.rr
+        // if (scene != null) scene.rr.add_ray(new Ray(p1.copy(), p2.copy().subtract(p1.copy())), "pink", dist)
      
         // now, return true
         return [true, (t2 * -1.0)]
