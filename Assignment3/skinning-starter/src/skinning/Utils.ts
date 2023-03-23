@@ -72,11 +72,12 @@ export class Ray
             z = (non_zero_coord * other_coord * -1.0) / v.at(2)
         }
         const p : Vec3 = new Vec3([non_zero_coord, other_coord, z])
+        console.log('per: ' + Ray.Vec3_toFixed(p))
         return p
     }
 
 
-    public static rotate(ray : Ray, axis : Vec3, radians : number) : Vec3
+    public static rotate_point(point : Vec3, axis : Vec3, radians : number) : Vec3
     {
         console.assert(axis != null);
         console.assert(radians != null);
@@ -86,13 +87,10 @@ export class Ray
         const rotMat: Mat4 = new Mat4().setIdentity();
         rotMat.rotate(radians, axis);
 
-        const pos : Vec3 = ray.get_origin()
-        const dir : Vec3 = ray.get_direction()
-        let posToEye: Vec3 = Vec3.difference(dir, pos);
-        posToEye = rotMat.multiplyPt3(posToEye);
-        const res : Vec3 = Vec3.sum(pos, posToEye);
+        console.log('[ROTATE] point: ' + Ray.Vec3_toFixed(point) + ', axis: ' + Ray.Vec3_toFixed(axis))
+        const res : Vec3 = rotMat.multiplyPt3(point);
 
-        console.log('rotate: ' + Ray.Vec3_toFixed(res))
+        //console.log('rotate: ' + Ray.Vec3_toFixed(res))
         return res
     }
 }
@@ -100,7 +98,7 @@ export class Ray
 // class used to convert bones into hex prisms
 export class Hex
 {
-    public static radius : number = 1.0
+    public static radius : number = 0.2
     public static pi_over_3 : number = Math.PI / 3
 
     private start : Vec3;
@@ -137,13 +135,14 @@ export class Hex
         )
         
         // calculate 6 hex points around start point
-        const per_ray_start : Ray = new Ray(this.start.copy(), dir.copy())
-        let a1 : Vec3 = Ray.rotate(per_ray_start, dir.copy(), Hex.pi_over_3 * 0)
-        let b1 : Vec3 = Ray.rotate(per_ray_start, dir.copy(), Hex.pi_over_3 * 1)
-        let c1 : Vec3 = Ray.rotate(per_ray_start, dir.copy(), Hex.pi_over_3 * 2)
-        let d1 : Vec3 = Ray.rotate(per_ray_start, dir.copy(), Hex.pi_over_3 * 3)
-        let e1 : Vec3 = Ray.rotate(per_ray_start, dir.copy(), Hex.pi_over_3 * 4)
-        let f1 : Vec3 = Ray.rotate(per_ray_start, dir.copy(), Hex.pi_over_3 * 5)
+        const start_point : Vec3 = this.start.copy().add(per.copy().scale(Hex.radius))
+        console.log('start point: ' + Ray.Vec3_toFixed(start_point))
+        const a1 : Vec3 = Ray.rotate_point(start_point, dir.copy(), Hex.pi_over_3 * 0)
+        const b1 : Vec3 = Ray.rotate_point(start_point, dir.copy(), Hex.pi_over_3 * 1)
+        const c1 : Vec3 = Ray.rotate_point(start_point, dir.copy(), Hex.pi_over_3 * 2)
+        const d1 : Vec3 = Ray.rotate_point(start_point, dir.copy(), Hex.pi_over_3 * 3)
+        const e1 : Vec3 = Ray.rotate_point(start_point, dir.copy(), Hex.pi_over_3 * 4)
+        const f1 : Vec3 = Ray.rotate_point(start_point, dir.copy(), Hex.pi_over_3 * 5)
 
         console.log('a1: ' + Ray.Vec3_toFixed(a1) +
         '\nb1: ' + Ray.Vec3_toFixed(b1) +
@@ -153,13 +152,14 @@ export class Hex
         '\nf1: ' + Ray.Vec3_toFixed(f1))
 
         // calculate 6 hex points around end point
-        const per_ray_end : Ray = new Ray(this.end.copy(), dir.copy())
-        let a2 : Vec3 = Ray.rotate(per_ray_end, dir.copy(), Hex.pi_over_3 * 0)
-        let b2 : Vec3 = Ray.rotate(per_ray_end, dir.copy(), Hex.pi_over_3 * 1)
-        let c2 : Vec3 = Ray.rotate(per_ray_end, dir.copy(), Hex.pi_over_3 * 2)
-        let d2 : Vec3 = Ray.rotate(per_ray_end, dir.copy(), Hex.pi_over_3 * 3)
-        let e2 : Vec3 = Ray.rotate(per_ray_end, dir.copy(), Hex.pi_over_3 * 4)
-        let f2 : Vec3 = Ray.rotate(per_ray_end, dir.copy(), Hex.pi_over_3 * 5)
+        const end_point : Vec3 = this.end.copy().add(per.copy().scale(Hex.radius))
+        console.log('end point: ' + Ray.Vec3_toFixed(end_point))
+        const a2 : Vec3 = Ray.rotate_point(end_point, dir.copy(), Hex.pi_over_3 * 0)
+        const b2 : Vec3 = Ray.rotate_point(end_point, dir.copy(), Hex.pi_over_3 * 1)
+        const c2 : Vec3 = Ray.rotate_point(end_point, dir.copy(), Hex.pi_over_3 * 2)
+        const d2 : Vec3 = Ray.rotate_point(end_point, dir.copy(), Hex.pi_over_3 * 3)
+        const e2 : Vec3 = Ray.rotate_point(end_point, dir.copy(), Hex.pi_over_3 * 4)
+        const f2 : Vec3 = Ray.rotate_point(end_point, dir.copy(), Hex.pi_over_3 * 5)
 
         console.log('a2: ' + Ray.Vec3_toFixed(a2) +
         '\nb2: ' + Ray.Vec3_toFixed(b2) +

@@ -48,21 +48,19 @@ export class Ray {
             z = (non_zero_coord * other_coord * -1.0) / v.at(2);
         }
         const p = new Vec3([non_zero_coord, other_coord, z]);
+        console.log('per: ' + Ray.Vec3_toFixed(p));
         return p;
     }
-    static rotate(ray, axis, radians) {
+    static rotate_point(point, axis, radians) {
         console.assert(axis != null);
         console.assert(radians != null);
         axis.normalize();
         // Compute rotation matrix
         const rotMat = new Mat4().setIdentity();
         rotMat.rotate(radians, axis);
-        const pos = ray.get_origin();
-        const dir = ray.get_direction();
-        let posToEye = Vec3.difference(dir, pos);
-        posToEye = rotMat.multiplyPt3(posToEye);
-        const res = Vec3.sum(pos, posToEye);
-        console.log('rotate: ' + Ray.Vec3_toFixed(res));
+        console.log('[ROTATE] point: ' + Ray.Vec3_toFixed(point) + ', axis: ' + Ray.Vec3_toFixed(axis));
+        const res = rotMat.multiplyPt3(point);
+        //console.log('rotate: ' + Ray.Vec3_toFixed(res))
         return res;
     }
 }
@@ -87,13 +85,14 @@ export class Hex {
             '\n\tper: ' + Ray.Vec3_toFixed(per) +
             '\n\tlen: ' + len.toFixed(3));
         // calculate 6 hex points around start point
-        const per_ray_start = new Ray(this.start.copy(), dir.copy());
-        let a1 = Ray.rotate(per_ray_start, dir.copy(), Hex.pi_over_3 * 0);
-        let b1 = Ray.rotate(per_ray_start, dir.copy(), Hex.pi_over_3 * 1);
-        let c1 = Ray.rotate(per_ray_start, dir.copy(), Hex.pi_over_3 * 2);
-        let d1 = Ray.rotate(per_ray_start, dir.copy(), Hex.pi_over_3 * 3);
-        let e1 = Ray.rotate(per_ray_start, dir.copy(), Hex.pi_over_3 * 4);
-        let f1 = Ray.rotate(per_ray_start, dir.copy(), Hex.pi_over_3 * 5);
+        const start_point = this.start.copy().add(per.copy().scale(Hex.radius));
+        console.log('start point: ' + Ray.Vec3_toFixed(start_point));
+        const a1 = Ray.rotate_point(start_point, dir.copy(), Hex.pi_over_3 * 0);
+        const b1 = Ray.rotate_point(start_point, dir.copy(), Hex.pi_over_3 * 1);
+        const c1 = Ray.rotate_point(start_point, dir.copy(), Hex.pi_over_3 * 2);
+        const d1 = Ray.rotate_point(start_point, dir.copy(), Hex.pi_over_3 * 3);
+        const e1 = Ray.rotate_point(start_point, dir.copy(), Hex.pi_over_3 * 4);
+        const f1 = Ray.rotate_point(start_point, dir.copy(), Hex.pi_over_3 * 5);
         console.log('a1: ' + Ray.Vec3_toFixed(a1) +
             '\nb1: ' + Ray.Vec3_toFixed(b1) +
             '\nc1: ' + Ray.Vec3_toFixed(c1) +
@@ -101,13 +100,14 @@ export class Hex {
             '\ne1: ' + Ray.Vec3_toFixed(e1) +
             '\nf1: ' + Ray.Vec3_toFixed(f1));
         // calculate 6 hex points around end point
-        const per_ray_end = new Ray(this.end.copy(), dir.copy());
-        let a2 = Ray.rotate(per_ray_end, dir.copy(), Hex.pi_over_3 * 0);
-        let b2 = Ray.rotate(per_ray_end, dir.copy(), Hex.pi_over_3 * 1);
-        let c2 = Ray.rotate(per_ray_end, dir.copy(), Hex.pi_over_3 * 2);
-        let d2 = Ray.rotate(per_ray_end, dir.copy(), Hex.pi_over_3 * 3);
-        let e2 = Ray.rotate(per_ray_end, dir.copy(), Hex.pi_over_3 * 4);
-        let f2 = Ray.rotate(per_ray_end, dir.copy(), Hex.pi_over_3 * 5);
+        const end_point = this.end.copy().add(per.copy().scale(Hex.radius));
+        console.log('end point: ' + Ray.Vec3_toFixed(end_point));
+        const a2 = Ray.rotate_point(end_point, dir.copy(), Hex.pi_over_3 * 0);
+        const b2 = Ray.rotate_point(end_point, dir.copy(), Hex.pi_over_3 * 1);
+        const c2 = Ray.rotate_point(end_point, dir.copy(), Hex.pi_over_3 * 2);
+        const d2 = Ray.rotate_point(end_point, dir.copy(), Hex.pi_over_3 * 3);
+        const e2 = Ray.rotate_point(end_point, dir.copy(), Hex.pi_over_3 * 4);
+        const f2 = Ray.rotate_point(end_point, dir.copy(), Hex.pi_over_3 * 5);
         console.log('a2: ' + Ray.Vec3_toFixed(a2) +
             '\nb2: ' + Ray.Vec3_toFixed(b2) +
             '\nc2: ' + Ray.Vec3_toFixed(c2) +
@@ -215,7 +215,7 @@ export class Hex {
         return new Float32Array(this.hex_colors);
     }
 }
-Hex.radius = 1.0;
+Hex.radius = 0.2;
 Hex.pi_over_3 = Math.PI / 3;
 export class Cylinder {
     constructor(_start_point, _end_point, _radius, _id) {
