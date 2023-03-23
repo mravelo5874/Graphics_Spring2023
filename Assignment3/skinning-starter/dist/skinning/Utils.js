@@ -1,4 +1,4 @@
-import { Vec3, Mat4 } from "../lib/TSM.js";
+import { Vec3, Mat4, Quat } from "../lib/TSM.js";
 // http-server dist -c-1
 export class Util {
     // used to print a Vec3 with rounded float values
@@ -70,6 +70,17 @@ export class Util {
         cross1 = cross1.subtract(v.copy().scale(q.w));
         let cross2 = Vec3.cross(cross1.copy(), new Vec3(q.xyz));
         return v.copy().add(cross2.copy().scale(2));
+    }
+    static create_quaternion_from_axis_and_angle(axis, angle) {
+        // Here we calculate the sin( theta / 2) once for optimization
+        const factor = Math.sin(angle / 2.0);
+        // Calculate the x, y and z of the quaternion
+        const x = axis.at(0) * factor;
+        const y = axis.at(1) * factor;
+        const z = axis.at(2) * factor;
+        // Calcualte the w value by cos( theta / 2 )
+        const w = Math.cos(angle / 2.0);
+        return new Quat([x, y, z, w]).normalize();
     }
 }
 export class Ray {

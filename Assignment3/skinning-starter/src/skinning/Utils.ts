@@ -1,4 +1,4 @@
-import { Vec3, Mat4, Vec4 } from "../lib/TSM.js";
+import { Vec3, Mat4, Vec4, Quat } from "../lib/TSM.js";
 import { CLoader } from "./AnimationFileLoader.js";
 import { Bone, Mesh } from "./Scene.js"
 
@@ -96,6 +96,22 @@ export class Util
         cross1 = cross1.subtract(v.copy().scale(q.w))
         let cross2 : Vec3 = Vec3.cross(cross1.copy(), new Vec3(q.xyz))
         return v.copy().add(cross2.copy().scale(2))
+    }
+
+    public static create_quaternion_from_axis_and_angle(axis : Vec3, angle : number) : Quat
+    {
+        // Here we calculate the sin( theta / 2) once for optimization
+        const factor : number = Math.sin(angle / 2.0);
+
+        // Calculate the x, y and z of the quaternion
+        const x : number = axis.at(0) * factor;
+        const y : number = axis.at(1) * factor;
+        const z : number = axis.at(2) * factor;
+
+        // Calcualte the w value by cos( theta / 2 )
+        const w : number = Math.cos(angle / 2.0);
+
+        return new Quat([x, y, z, w]).normalize();
     }
 }
 

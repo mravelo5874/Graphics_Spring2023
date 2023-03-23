@@ -16,12 +16,7 @@ export class BoneRotator
 
         // TODO this
 
-        // get current angle of endpoint based off of axis
-
-        //bone.endpoint = Util.rotate_point(bone.endpoint, axis.copy(), 0.1)
-        let rot : Quat = new Quat(bone.rotation.xyzw)
-        rot.x += 0.1
-        bone.rotation = rot.copy()
+        bone.rotation = Util.create_quaternion_from_axis_and_angle(axis.copy(), 0.1).multiply(bone.rotation.copy());
 
         /*
         const p1 : Vec3 = bone.position.copy()  // r1
