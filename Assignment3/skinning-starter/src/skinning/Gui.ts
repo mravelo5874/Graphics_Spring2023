@@ -228,7 +228,7 @@ export class GUI implements IGUI {
     // convert mouse x y position to world ray
     this.mouse_ray = this.screen_to_world_ray(x, y)
 
-    // check intersections
+    // check intersections - might need BVH
     let bone_id = -1
     let min_t = Number.MAX_VALUE    
     for (let i = 0; i < cyls.length; i++)

@@ -1,9 +1,9 @@
 import { ColladaLoader } from "../lib/threejs/examples/jsm/loaders/ColladaLoader.js";
 import { Vec3 } from "../lib/tsm/Vec3.js";
-import { Mat4 } from "../lib/TSM.js";
+import { Mat4, Vec4 } from "../lib/TSM.js";
 import { Quat } from "../lib/tsm/Quat.js";
 import { Mesh } from "../skinning/Scene.js";
-import { Cylinder, Hex } from "./Utils.js";
+import { Cylinder, Hex, Util } from "./Utils.js";
 import { RaycastRenderer } from "./RaycastRenderer.js";
 export class AttributeLoader {
     constructor(values, count, itemSize) {
@@ -266,18 +266,33 @@ class CLoader {
         });
     }
     get_cylinders() {
-        let cylinders = new Array;
-        for (let i = 0; i < this.meshes.length; i++) {
-            let num_bones = this.meshes[i].getBoneIndices().length / 2;
-            let bone_pos = this.meshes[i].getBonePositions();
-            let b = 0;
-            for (let j = 0; j < num_bones; j++) {
-                let pos0 = new Vec3([bone_pos[b], bone_pos[b + 1], bone_pos[b + 2]]);
-                let pos1 = new Vec3([bone_pos[b + 3], bone_pos[b + 4], bone_pos[b + 5]]);
-                b += 6;
-                cylinders.push(new Cylinder(pos0, pos1, Hex.radius, j));
-            }
-            //console.log('mesh[' + i + '] \n\tbone_indicies: ' + this.meshes[i].getBoneIndices() + '\n\tbone_pos:' + this.meshes[i].getBonePositions() + '\n\tbone_attri:' + this.meshes[i].getBoneIndexAttribute())
+        const cylinders = new Array;
+        const num_bones = this.meshes[0].getBoneIndices().length / 2;
+        const bone_pos = this.meshes[0].getBonePositions();
+        const bone_rot = this.meshes[0].getBoneRotations();
+        const bone_tra = this.meshes[0].getBoneTranslations();
+        /*
+        console.log('[CYLS]:\n' +
+        '\tnum_bones: ' + num_bones + '\n' +
+        '\tbone_pos:' + bone_pos + '\n' +
+        '\tbone_rot:' + bone_rot + '\n' +
+        '\tbone_tra: ' + bone_tra + '\n')
+        */
+        let b = 0;
+        let q = 0;
+        let t = 0;
+        for (let j = 0; j < num_bones; j++) {
+            const pos0 = new Vec3([bone_pos[b], bone_pos[b + 1], bone_pos[b + 2]]);
+            const pos1 = new Vec3([bone_pos[b + 3], bone_pos[b + 4], bone_pos[b + 5]]);
+            // apply rotation and translation
+            const quat = new Vec4([bone_rot[q], bone_rot[q + 1], bone_rot[q + 2], bone_rot[q + 3]]);
+            const tran = new Vec3([bone_tra[t], bone_tra[t + 1], bone_tra[t + 2]]);
+            const pos0_new = Util.apply_quaternion(quat.copy(), pos0.copy()).add(tran.copy());
+            const pos1_new = Util.apply_quaternion(quat.copy(), pos1.copy()).add(tran.copy());
+            b += 6;
+            q += 4;
+            t += 3;
+            cylinders.push(new Cylinder(pos0_new, pos1_new));
         }
         return cylinders;
     }

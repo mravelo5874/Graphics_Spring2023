@@ -413,7 +413,7 @@ export class SkinningAnimation extends CanvasAnimation
       this.render_hex = true;
       this.init_hex();
       this.scene.hex.got_update();
-      console.log('init hex')
+      //console.log('init hex')
     }
       
     // init rays update
@@ -421,7 +421,7 @@ export class SkinningAnimation extends CanvasAnimation
     {
       this.prev_ray_length = this.scene.rr.get_rays().length;
       this.init_rays();
-      console.log('init rays')
+      //console.log('init rays')
     }
     
     // draw the status message

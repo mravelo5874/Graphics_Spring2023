@@ -65,16 +65,22 @@ export class Util {
         const z = (p1.z + p2.z) / 2.0;
         return new Vec3([x, y, z]);
     }
+    static apply_quaternion(q, v) {
+        let cross1 = Vec3.cross(v.copy(), new Vec3(q.xyz));
+        cross1 = cross1.subtract(v.copy().scale(q.w));
+        let cross2 = Vec3.cross(cross1.copy(), new Vec3(q.xyz));
+        return v.copy().add(cross2.copy().scale(2));
+    }
 }
 export class Ray {
     get_origin() { return new Vec3(this.origin.xyz); }
     get_direction() { return new Vec3(this.direction.xyz).normalize(); }
     constructor(_origin, _direction) {
-        this.origin = _origin;
-        this.direction = _direction;
+        this.origin = _origin.copy();
+        this.direction = _direction.copy();
     }
     copy() {
-        return new Ray(this.origin, this.direction);
+        return new Ray(this.origin.copy(), this.direction.copy());
     }
     print() {
         return '{origin: ' + Util.Vec3_toFixed(this.origin, 3) + ', direction: ' + Util.Vec3_toFixed(this.direction, 3) + '}';
@@ -139,49 +145,39 @@ export class Hex {
         let dir = this.end.copy().subtract(this.start.copy()).normalize();
         let per = Util.get_perpendicular(dir.copy()).normalize();
         let len = Vec3.distance(this.start.copy(), this.end.copy());
-        /*
         console.log('[HEX]' +
-        '\n\tstart: ' + Ray.Vec3_toFixed(this.start) +
-        '\n\tend: ' + Ray.Vec3_toFixed(this.end) +
-        '\n\tdir: ' + Ray.Vec3_toFixed(dir) +
-        '\n\tper: ' + Ray.Vec3_toFixed(per) +
-        '\n\tlen: ' + len.toFixed(3)
-        )
-        */
+            '\n\tstart: ' + Util.Vec3_toFixed(this.start) +
+            '\n\tend: ' + Util.Vec3_toFixed(this.end) +
+            '\n\tdir: ' + Util.Vec3_toFixed(dir) +
+            '\n\tper: ' + Util.Vec3_toFixed(per) +
+            '\n\tlen: ' + len.toFixed(3));
         // calculate 6 hex points around start point
-        const start_point = this.start.copy().add(per.copy().scale(Hex.radius));
+        const init_p = per.copy().scale(Hex.radius);
         //console.log('start point: ' + Ray.Vec3_toFixed(start_point))
-        const a1 = Util.rotate_point(start_point, dir.copy(), Hex.pi_over_3 * 0);
-        const b1 = Util.rotate_point(start_point, dir.copy(), Hex.pi_over_3 * 1);
-        const c1 = Util.rotate_point(start_point, dir.copy(), Hex.pi_over_3 * 2);
-        const d1 = Util.rotate_point(start_point, dir.copy(), Hex.pi_over_3 * 3);
-        const e1 = Util.rotate_point(start_point, dir.copy(), Hex.pi_over_3 * 4);
-        const f1 = Util.rotate_point(start_point, dir.copy(), Hex.pi_over_3 * 5);
-        /*
-        console.log('a1: ' + Ray.Vec3_toFixed(a1) +
-        '\nb1: ' + Ray.Vec3_toFixed(b1) +
-        '\nc1: ' + Ray.Vec3_toFixed(c1) +
-        '\nd1: ' + Ray.Vec3_toFixed(d1) +
-        '\ne1: ' + Ray.Vec3_toFixed(e1) +
-        '\nf1: ' + Ray.Vec3_toFixed(f1))
-        */
-        // calculate 6 hex points around end point
-        const end_point = this.end.copy().add(per.copy().scale(Hex.radius));
-        //console.log('end point: ' + Ray.Vec3_toFixed(end_point))
-        const a2 = Util.rotate_point(end_point, dir.copy(), Hex.pi_over_3 * 0);
-        const b2 = Util.rotate_point(end_point, dir.copy(), Hex.pi_over_3 * 1);
-        const c2 = Util.rotate_point(end_point, dir.copy(), Hex.pi_over_3 * 2);
-        const d2 = Util.rotate_point(end_point, dir.copy(), Hex.pi_over_3 * 3);
-        const e2 = Util.rotate_point(end_point, dir.copy(), Hex.pi_over_3 * 4);
-        const f2 = Util.rotate_point(end_point, dir.copy(), Hex.pi_over_3 * 5);
-        /*
-        console.log('a2: ' + Ray.Vec3_toFixed(a2) +
-        '\nb2: ' + Ray.Vec3_toFixed(b2) +
-        '\nc2: ' + Ray.Vec3_toFixed(c2) +
-        '\nd2: ' + Ray.Vec3_toFixed(d2) +
-        '\ne2: ' + Ray.Vec3_toFixed(e2) +
-        '\nf2: ' + Ray.Vec3_toFixed(f2))
-        */
+        const a1 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 0).add(this.start.copy());
+        const b1 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 1).add(this.start.copy());
+        const c1 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 2).add(this.start.copy());
+        const d1 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 3).add(this.start.copy());
+        const e1 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 4).add(this.start.copy());
+        const f1 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 5).add(this.start.copy());
+        console.log('a1: ' + Util.Vec3_toFixed(a1) +
+            '\nb1: ' + Util.Vec3_toFixed(b1) +
+            '\nc1: ' + Util.Vec3_toFixed(c1) +
+            '\nd1: ' + Util.Vec3_toFixed(d1) +
+            '\ne1: ' + Util.Vec3_toFixed(e1) +
+            '\nf1: ' + Util.Vec3_toFixed(f1));
+        const a2 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 0).add(this.end.copy());
+        const b2 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 1).add(this.end.copy());
+        const c2 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 2).add(this.end.copy());
+        const d2 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 3).add(this.end.copy());
+        const e2 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 4).add(this.end.copy());
+        const f2 = Util.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 5).add(this.end.copy());
+        console.log('a2: ' + Util.Vec3_toFixed(a2) +
+            '\nb2: ' + Util.Vec3_toFixed(b2) +
+            '\nc2: ' + Util.Vec3_toFixed(c2) +
+            '\nd2: ' + Util.Vec3_toFixed(d2) +
+            '\ne2: ' + Util.Vec3_toFixed(e2) +
+            '\nf2: ' + Util.Vec3_toFixed(f2));
         // [ create line segments and store ]
         // add ray indices (should be 18 lines = 36 indices)
         for (let i = 0; i < 36; i++)
@@ -285,12 +281,12 @@ Hex.pi_over_3 = Math.PI / 3;
 export class Cylinder {
     get_start() { return this.start_point.copy(); }
     get_end() { return this.end_point.copy(); }
-    constructor(_start_point, _end_point, _radius, _id) {
+    constructor(_start_point, _end_point) {
         this.start_point = _start_point.copy();
         this.end_point = _end_point.copy();
         this.mid_point = Util.mid_point(_start_point.copy(), _end_point.copy());
         this.length = Vec3.distance(_end_point.copy(), _start_point.copy());
-        //console.log('cyl: ' + _id + ', start: ' + Util.Vec3_toFixed(_start_point) + ', end: ' + Util.Vec3_toFixed(_end_point) + ', radius: ' + _radius)
+        //console.log('cyl: ' + ', start: ' + Util.Vec3_toFixed(_start_point) + ', end: ' + Util.Vec3_toFixed(_end_point))
     }
     // checks if the ray intersects this cyliner and returns t value at intersection
     ray_interset(ray) {
@@ -304,7 +300,7 @@ export class Cylinder {
         if (n == Vec3.zero)
             return [false, Number.MIN_VALUE];
         // compute distance bewteen p1 and p2
-        const d = Math.abs(Vec3.dot(n.copy(), (cyl_pos.copy().subtract(ray_pos.copy())))) / Util.magnitude(n.copy());
+        //const d : number = Math.abs(Vec3.dot(n.copy(), (cyl_pos.copy().subtract(ray_pos.copy())))) / Util.magnitude(n.copy())
         const r2_sub_r1 = ray_pos.copy().subtract(cyl_pos.copy());
         const n_dot_n = Vec3.dot(n.copy(), n.copy());
         // compute t1 and t2
@@ -319,9 +315,9 @@ export class Cylinder {
         //scene.rr.add_ray(new Ray(p1.copy(), p2.copy().subtract(p1.copy())), "blue", dist)
         /*
         console.log('[INTERSECT]\n' +
-        '\tcyl: {pos: ' + Util.Vec3_toFixed(cyl_pos) + ', dir: ' + Util.Vec3_toFixed(cyl_dir) + '\n' +
-        '\tray: {pos: ' + Util.Vec3_toFixed(ray_pos) + ', dir: ' + Util.Vec3_toFixed(ray_dir) + '\n' +
-        '\td: ' + d.toFixed(3) + '\n' +
+        '\tcyl: {pos: ' + Util.Vec3_toFixed(cyl_pos) + ', dir: ' + Util.Vec3_toFixed(cyl_dir) + '}\n' +
+        '\tray: {pos: ' + Util.Vec3_toFixed(ray_pos) + ', dir: ' + Util.Vec3_toFixed(ray_dir) + '}\n' +
+        //'\td: ' + d.toFixed(3) + '\n' +
         '\tdist: ' + dist.toFixed(3) + '\n' +
         '\tt1: ' + t1.toFixed(3) + '\n' +
         '\tt2: ' + t2.toFixed(3) + '\n' +
