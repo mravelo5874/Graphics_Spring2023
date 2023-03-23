@@ -3,7 +3,8 @@ import { Vec3 } from "../lib/tsm/Vec3.js";
 import { Mat4 } from "../lib/TSM.js";
 import { Quat } from "../lib/tsm/Quat.js";
 import { Mesh, Bone } from "../skinning/Scene.js";
-import { Cylinder } from "./Utils.js";
+import { Cylinder, Hex } from "./Utils.js";
+import { RaycastRenderer } from "./RaycastRenderer.js";
 export class AttributeLoader {
     constructor(values, count, itemSize) {
         this.values = values;
@@ -171,16 +172,13 @@ export class MeshLoader {
 }
 class CLoader {
     constructor(location) {
-        this.ray_index_count = 0;
         this.fileLocation = location;
         this.loader = new ColladaLoader();
         this.scene = null;
         this.skinnedMeshes = [];
         this.meshes = [];
-        this.rays = [];
-        this.ray_indices = new Array();
-        this.ray_positions = new Array();
-        this.ray_colors = new Array();
+        this.rr = new RaycastRenderer();
+        this.hex = new Hex(new Vec3([0.0, 0.0, 0.0]), new Vec3([0.0, 1.0, 0.0]));
     }
     load(callback) {
         this.loader.load(this.fileLocation, (collada) => {
@@ -282,54 +280,6 @@ class CLoader {
             //console.log('mesh[' + i + '] \n\tbone_indicies: ' + this.meshes[i].getBoneIndices() + '\n\tbone_pos:' + this.meshes[i].getBonePositions() + '\n\tbone_attri:' + this.meshes[i].getBoneIndexAttribute())
         }
         return cylinders;
-    }
-    get_rays() {
-        return this.rays;
-    }
-    add_ray(r, color, length = -100.0) {
-        // add to ray list
-        this.rays.push(r);
-        // add ray indices
-        const new_ray_indices = new Array(this.ray_index_count, this.ray_index_count + 1);
-        this.ray_index_count += 2;
-        for (let i = 0; i < 2; i++)
-            this.ray_indices.push(new_ray_indices[i]);
-        // add ray positions
-        const start = r.get_origin();
-        const end = r.get_origin().add(r.get_direction().scale(length));
-        this.ray_positions.push(start.x);
-        this.ray_positions.push(start.y);
-        this.ray_positions.push(start.z);
-        this.ray_positions.push(end.x);
-        this.ray_positions.push(end.y);
-        this.ray_positions.push(end.z);
-        // add ray colors
-        let color_id = new Vec3([0.0, 0.0, 0.0]);
-        if (color == "red")
-            color_id = new Vec3([1.0, 0.0, 0.0]);
-        if (color == "green")
-            color_id = new Vec3([0.0, 1.0, 0.0]);
-        if (color == "blue")
-            color_id = new Vec3([0.0, 0.0, 1.0]);
-        if (color == "cyan")
-            color_id = new Vec3([0.0, 1.0, 1.0]);
-        if (color == "pink")
-            color_id = new Vec3([1.0, 0.0, 1.0]);
-        this.ray_colors.push(color_id.x);
-        this.ray_colors.push(color_id.y);
-        this.ray_colors.push(color_id.z);
-        this.ray_colors.push(color_id.x);
-        this.ray_colors.push(color_id.y);
-        this.ray_colors.push(color_id.z);
-    }
-    get_ray_indices() {
-        return new Uint32Array(this.ray_indices);
-    }
-    get_ray_positions() {
-        return new Float32Array(this.ray_positions);
-    }
-    get_ray_colors() {
-        return new Float32Array(this.ray_colors);
     }
 }
 export { CLoader as CLoader, };

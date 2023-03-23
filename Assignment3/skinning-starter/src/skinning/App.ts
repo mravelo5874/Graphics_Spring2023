@@ -46,6 +46,9 @@ export class SkinningAnimation extends CanvasAnimation
   // render pass for rendering rays
   private prev_ray_length : number = 0;
   private ray_render_pass : RenderPass;
+
+  // render pass for hex-highlighting
+  private hex_render_pass : RenderPass;
   
   /* Global Rendering Info */
   private lightPosition: Vec4;
@@ -84,8 +87,9 @@ export class SkinningAnimation extends CanvasAnimation
     // Status bar
     this.sBackRenderPass = new RenderPass(this.extVAO, gl, sBackVSText, sBackFSText);
   
-    // render pass for ray rendering
+    // custom render passes
     this.ray_render_pass = new RenderPass(this.extVAO, gl, ray_vertex_shader, ray_fragment_shader)
+    this.hex_render_pass = new RenderPass(this.extVAO, gl, ray_vertex_shader, ray_fragment_shader)
     
     this.initGui();
     this.millis = new Date().getTime();
@@ -121,6 +125,7 @@ export class SkinningAnimation extends CanvasAnimation
     if (this.scene.meshes.length === 0) { return; }
     this.initModel();
     this.initSkeleton();
+    this.init_hex();
     this.gui.reset();
   }
 
@@ -240,7 +245,7 @@ export class SkinningAnimation extends CanvasAnimation
   public init_rays() : void 
   {
     // index buffer ray is ray indices
-    this.ray_render_pass.setIndexBufferData(this.scene.get_ray_indices());
+    this.ray_render_pass.setIndexBufferData(this.scene.rr.get_ray_indices());
 
     // vertex positions
     this.ray_render_pass.addAttribute(
@@ -251,7 +256,7 @@ export class SkinningAnimation extends CanvasAnimation
         3 * Float32Array.BYTES_PER_ELEMENT,
         0,
         undefined,
-        this.scene.get_ray_positions());
+        this.scene.rr.get_ray_positions());
 
     // vertex colors
     this.ray_render_pass.addAttribute(
@@ -262,7 +267,7 @@ export class SkinningAnimation extends CanvasAnimation
       3 * Float32Array.BYTES_PER_ELEMENT,
       0,
       undefined,
-      this.scene.get_ray_colors());
+      this.scene.rr.get_ray_colors());
     
     // add matricies
     this.ray_render_pass.addUniform("world_mat",
@@ -278,12 +283,61 @@ export class SkinningAnimation extends CanvasAnimation
         gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.viewMatrix().all()));
     });
       
-    this.ray_render_pass.setDrawData(this.ctx.LINES, this.scene.get_ray_indices().length, this.ctx.UNSIGNED_INT, 0);
+    this.ray_render_pass.setDrawData(this.ctx.LINES, this.scene.rr.get_ray_indices().length, this.ctx.UNSIGNED_INT, 0);
     this.ray_render_pass.setup();
 
-    console.log('ray.init:\n\tray_indices: ' + this.scene.get_ray_indices().length + 
-    '\n\tray_pos: ' + this.scene.get_ray_positions().length +
-    '\n\tray_color: ' + this.scene.get_ray_colors().length)
+    console.log('ray.init:\n\tray_indices: ' + this.scene.rr.get_ray_indices().length + 
+    '\n\tray_pos: ' + this.scene.rr.get_ray_positions().length +
+    '\n\tray_color: ' + this.scene.rr.get_ray_colors().length)
+  }
+
+  public init_hex() : void
+  {
+    // index buffer ray is ray indices
+    this.hex_render_pass.setIndexBufferData(this.scene.hex.get_hex_indices());
+
+    // vertex positions
+    this.hex_render_pass.addAttribute(
+        "vertex_pos",
+        3, 
+        this.ctx.FLOAT, 
+        false, 
+        3 * Float32Array.BYTES_PER_ELEMENT,
+        0,
+        undefined,
+        this.scene.hex.get_hex_positions());
+
+    // vertex colors
+    this.hex_render_pass.addAttribute(
+      "vertex_color",
+      3, 
+      this.ctx.FLOAT, 
+      false, 
+      3 * Float32Array.BYTES_PER_ELEMENT,
+      0,
+      undefined,
+      this.scene.hex.get_hex_colors());
+    
+    // add matricies
+    this.hex_render_pass.addUniform("world_mat",
+      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+        gl.uniformMatrix4fv(loc, false, new Float32Array(Mat4.identity.all()));
+    });
+    this.hex_render_pass.addUniform("proj_mat",
+      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+        gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.projMatrix().all()));
+    });
+    this.hex_render_pass.addUniform("view_mat",
+      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+        gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.viewMatrix().all()));
+    });
+      
+    this.hex_render_pass.setDrawData(this.ctx.LINES, this.scene.hex.get_hex_indices().length, this.ctx.UNSIGNED_INT, 0);
+    this.hex_render_pass.setup();
+
+    console.log('hex.init:\n\thex_indices: ' + this.scene.hex.get_hex_indices().length + 
+    '\n\thex_pos: ' + this.scene.hex.get_hex_positions().length +
+    '\n\thex_color: ' + this.scene.hex.get_hex_colors().length)
   }
   
   /**
@@ -346,9 +400,9 @@ export class SkinningAnimation extends CanvasAnimation
 
     // If the mesh is animating, probably you want to do some updating of the skeleton state here
 
-    if (this.prev_ray_length < this.scene.get_rays().length)
+    if (this.prev_ray_length < this.scene.rr.get_rays().length)
     {
-      this.prev_ray_length = this.scene.get_rays().length;
+      this.prev_ray_length = this.scene.rr.get_rays().length;
       this.init_rays();
     }
     
@@ -389,20 +443,23 @@ export class SkinningAnimation extends CanvasAnimation
 
     this.floorRenderPass.draw();
 
-    // draw rays
-    if (this.prev_ray_length > 0)
-    {
-      this.ray_render_pass.draw();
-    }
-
     /* Draw Scene */
     if (this.scene.meshes.length > 0) 
     {
       this.sceneRenderPass.draw();
+
       gl.disable(gl.DEPTH_TEST);
       this.skeletonRenderPass.draw();
-      // Also draw the highlighted bone (if applicable)
-      gl.enable(gl.DEPTH_TEST);      
+      gl.enable(gl.DEPTH_TEST); 
+      
+      // draw hex
+      this.hex_render_pass.draw();
+    }
+
+    // draw rays
+    if (this.prev_ray_length > 0)
+    {
+      this.ray_render_pass.draw();  
     }
   }
 

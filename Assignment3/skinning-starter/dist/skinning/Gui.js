@@ -142,22 +142,45 @@ export class GUI {
         // You will want logic here:
         // 1) To highlight a bone, if the mouse is hovering over a bone;
         // 2) To rotate a bone, if the mouse button is pressed and currently highlighting a bone.
+        // get all cylinders cooresponding to bones
         const cyls = this.animation.getScene().get_cylinders();
         // convert mouse x y position to world ray
         this.mouse_ray = this.screen_to_world_ray(x, y);
+        console.log('\n');
+        // check intersections
+        for (let i = 0; i < cyls.length; i++) {
+            let res = cyls[i].ray_interset(this.mouse_ray);
+            if (res[0]) {
+                //console.log('[HIT CYLINDER] bone: ' + i)
+            }
+        }
     }
     screen_to_world_ray(x, y) {
         // convert x y to ndc
         const x_ndc = ((2.0 * x) / this.width) - 1.0;
-        const y_ndc = 1.0 - ((2.0 * y) / this.height);
+        const y_ndc = 1.0 - ((2.0 * y) / (this.viewPortHeight));
+        //console.log('ndc: {' + x_ndc.toFixed(3) + ', ' + y_ndc.toFixed(3) + '}')
         // inverse projections
-        const ray_ndc = new Vec4([x_ndc, y_ndc, -1.0, 1.0]);
-        let ray_cam = this.camera.projMatrix().inverse().multiplyVec4(ray_ndc);
-        //ray_cam = new Vec4([ray_cam.x, ray_cam.y, -1.0, 1.0])
-        const ray_world = this.camera.viewMatrix().inverse().multiplyVec4(ray_cam);
-        let ray_vec3 = new Vec3(ray_world.xyz);
-        ray_vec3 = ray_vec3.normalize();
-        return new Ray(this.camera.pos(), ray_vec3);
+        const proj_mat = this.camera.projMatrix().inverse();
+        const view_mat = this.camera.viewMatrix().inverse();
+        // get to and from points
+        let from_v4 = proj_mat.multiplyVec4(new Vec4([x_ndc, y_ndc, -1.0, 1.0]));
+        let to_v4 = proj_mat.multiplyVec4(new Vec4([x_ndc, y_ndc, 1.0, 1.0]));
+        // perspective divide
+        //from_v4 = from_v4.scale(1/from_v4.w)
+        //to_v4 = to_v4.scale(1/to_v4.w)
+        // convert to v3
+        const from_v3 = new Vec3([from_v4.at(0) / from_v4.at(3), from_v4.at(1) / from_v4.at(3), from_v4.at(2) / from_v4.at(3)]);
+        const to_v3 = new Vec3([to_v4.at(0) / to_v4.at(3), to_v4.at(1) / to_v4.at(3), to_v4.at(2) / to_v4.at(3)]);
+        // console.log('\n')
+        // console.log('from: ' + Ray.Vec3_toFixed(from_v3))
+        // console.log('to: ' + Ray.Vec3_toFixed(to_v3))
+        let dir = from_v3.subtract(to_v3).normalize();
+        let dir_v4 = new Vec4([dir.x, dir.y, dir.z, 0.0]);
+        dir_v4 = view_mat.multiplyVec4(dir_v4);
+        const dir_v3 = new Vec3(dir_v4.xyz);
+        //console.log('dir: ' + Ray.Vec3_toFixed(dir_v3))
+        return new Ray(this.camera.pos(), dir_v3.normalize());
     }
     getModeString() {
         switch (this.mode) {
@@ -177,7 +200,6 @@ export class GUI {
         this.dragging = false;
         this.prevX = 0;
         this.prevY = 0;
-        // TODO
         // Maybe your bone highlight/dragging logic needs to do stuff here too
     }
     /**
@@ -272,9 +294,9 @@ export class GUI {
                     // camera and draw it to the screen.
                     let cam_dir = this.camera.forward();
                     const cam_ray = new Ray(this.camera.pos(), cam_dir);
-                    this.animation.getScene().add_ray(cam_ray, "cyan");
+                    this.animation.getScene().rr.add_ray(cam_ray, "cyan");
                     console.log('new camera raycast: ' + cam_ray.print());
-                    console.log('total rays: ' + this.animation.getScene().get_rays().length);
+                    console.log('total rays: ' + this.animation.getScene().rr.get_rays().length);
                     break;
                 }
             case "KeyV":
@@ -284,9 +306,10 @@ export class GUI {
                         return;
                     // custom button to shoot a ray from the 
                     // mouse and draw it to the screen.
-                    this.animation.getScene().add_ray(this.mouse_ray, "pink");
+                    // convert mouse x y position to world ray
+                    this.animation.getScene().rr.add_ray(this.mouse_ray, "pink");
                     console.log('new mouse raycast: ' + this.mouse_ray.print());
-                    console.log('total rays: ' + this.animation.getScene().get_rays().length);
+                    console.log('total rays: ' + this.animation.getScene().rr.get_rays().length);
                     break;
                 }
             default: {
