@@ -98,7 +98,7 @@ export class Ray {
     }
 }
 // class used to convert bones into hex prisms
-export class Hex {
+class Hex {
     get_update() { return this.update; }
     got_update() { this.update = false; }
     constructor() {
@@ -288,6 +288,7 @@ export class Hex {
 }
 Hex.radius = 0.1;
 Hex.pi_over_3 = Math.PI / 3;
+export { Hex };
 export class Cylinder {
     get_start() { return this.start_point.copy(); }
     get_end() { return this.end_point.copy(); }

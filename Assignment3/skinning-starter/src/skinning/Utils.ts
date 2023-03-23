@@ -113,6 +113,15 @@ export class Util
 
         return new Quat([x, y, z, w]).normalize();
     }
+
+    public static find_quaternion_twist(quat : Quat, axis : Vec3) : number
+    {
+        axis.copy().normalize()
+
+        const orth : Vec3 = this.get_perpendicular(axis.copy())
+        //const trans : Vec3 = Vec3.
+        return 0
+    }
 }
 
 export class Ray

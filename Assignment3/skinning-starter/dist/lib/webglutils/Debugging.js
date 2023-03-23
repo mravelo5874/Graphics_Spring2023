@@ -6,7 +6,7 @@
 /**
  * Provides debugging tools for WebGL
  */
-export class Debugger {
+class Debugger {
     /**
      * Prints a message to the console
      * @param msg the message
@@ -577,4 +577,5 @@ Debugger.glEnums = null;
  * Map of names to numbers.
  */
 Debugger.enumStringToValue = null;
+export { Debugger };
 //# sourceMappingURL=Debugging.js.map

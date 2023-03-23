@@ -1,5 +1,5 @@
 import { Camera } from "../lib/webglutils/Camera.js";
-import { Vec3, Vec4, Vec2 } from "../lib/TSM.js";
+import { Vec3, Vec4 } from "../lib/TSM.js";
 import { Ray } from "./Utils.js";
 import { BoneRotator } from "./BoneRotator.js";
 export var Mode;
@@ -11,7 +11,7 @@ export var Mode;
  * Handles Mouse and Button events along with
  * the the camera.
  */
-export class GUI {
+class GUI {
     /**
      *
      * @param canvas required to get the width and height of the canvas
@@ -125,8 +125,7 @@ export class GUI {
                             if (this.bone_id > -1) {
                                 let cam_dir = this.camera.forward();
                                 const cam_ray = new Ray(this.camera.pos(), cam_dir);
-                                const mouse_offset = new Vec2([dx, dy]);
-                                BoneRotator.rotate_bone(this.animation.getScene(), this.bone_id, mouse_offset, cam_ray);
+                                BoneRotator.rotate_bone(this.animation.getScene(), this.bone_id, this.mouse_ray, cam_ray);
                             }
                             else {
                                 let rotAxis = Vec3.cross(this.camera.forward(), mouseDir);
@@ -365,4 +364,5 @@ GUI.rotationSpeed = 0.05;
 GUI.zoomSpeed = 0.1;
 GUI.rollSpeed = 0.1;
 GUI.panSpeed = 0.1;
+export { GUI };
 //# sourceMappingURL=Gui.js.map

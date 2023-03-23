@@ -2,7 +2,7 @@ import { epsilon } from "./Constants.js";
 /**
  * A 3x1 Vector of numbers.
  */
-export class Vec3 {
+class Vec3 {
     /**
      * Swizzle operators.
      */
@@ -393,4 +393,5 @@ Vec3.up = new Vec3([0, 1, 0]);
 Vec3.right = new Vec3([1, 0, 0]);
 /** z element is 1. */
 Vec3.forward = new Vec3([0, 0, 1]);
+export { Vec3 };
 //# sourceMappingURL=Vec3.js.map
