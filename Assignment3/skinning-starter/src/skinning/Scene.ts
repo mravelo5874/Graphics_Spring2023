@@ -38,8 +38,8 @@ export class MeshGeometry {
   }
 }
 
-export class Bone {
-  public static BONE_CYLINDER_RADIUS = 1.0
+export class Bone 
+{
   public parent: number;
   public children: number[];
   public position: Vec3; // current position of the bone's joint *in world coordinates*. Used by the provided skeleton shader, so you need to keep this up to date.

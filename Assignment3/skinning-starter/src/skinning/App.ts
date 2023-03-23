@@ -234,12 +234,14 @@ export class SkinningAnimation extends CanvasAnimation
     this.skeletonRenderPass.setDrawData(this.ctx.LINES,
       this.scene.meshes[0].getBoneIndices().length, this.ctx.UNSIGNED_INT, 0);
     this.skeletonRenderPass.setup();
-
+    
+    /*
     console.log('skele.init:\n\tskele_indices: ' + this.scene.meshes[0].getBoneIndices().length + 
     '\n\tskele_pos: ' + this.scene.meshes[0].getBonePositions().length + 
     '\n\tskele_index: ' + this.scene.meshes[0].getBoneIndexAttribute().length + 
     '\n\tskele_trans: ' + this.getScene().meshes[0].getBoneTranslations().length + 
     '\n\tskele_rot: ' + this.getScene().meshes[0].getBoneRotations().length)
+    */
   }
 
   public init_rays() : void 
@@ -286,9 +288,11 @@ export class SkinningAnimation extends CanvasAnimation
     this.ray_render_pass.setDrawData(this.ctx.LINES, this.scene.rr.get_ray_indices().length, this.ctx.UNSIGNED_INT, 0);
     this.ray_render_pass.setup();
 
+    /*
     console.log('ray.init:\n\tray_indices: ' + this.scene.rr.get_ray_indices().length + 
     '\n\tray_pos: ' + this.scene.rr.get_ray_positions().length +
     '\n\tray_color: ' + this.scene.rr.get_ray_colors().length)
+    */
   }
 
   public init_hex() : void
@@ -335,9 +339,11 @@ export class SkinningAnimation extends CanvasAnimation
     this.hex_render_pass.setDrawData(this.ctx.LINES, this.scene.hex.get_hex_indices().length, this.ctx.UNSIGNED_INT, 0);
     this.hex_render_pass.setup();
 
+    /*
     console.log('hex.init:\n\thex_indices: ' + this.scene.hex.get_hex_indices().length + 
     '\n\thex_pos: ' + this.scene.hex.get_hex_positions().length +
     '\n\thex_color: ' + this.scene.hex.get_hex_colors().length)
+    */
   }
   
   /**
@@ -399,6 +405,12 @@ export class SkinningAnimation extends CanvasAnimation
     this.getGUI().incrementTime(deltaT);
 
     // If the mesh is animating, probably you want to do some updating of the skeleton state here
+    if (this.scene.hex.get_update())
+    {
+      //this.init_hex();
+      //this.scene.hex.got_update();
+    }
+      
 
     if (this.prev_ray_length < this.scene.rr.get_rays().length)
     {

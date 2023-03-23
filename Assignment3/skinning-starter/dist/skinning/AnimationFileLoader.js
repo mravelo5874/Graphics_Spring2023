@@ -2,7 +2,7 @@ import { ColladaLoader } from "../lib/threejs/examples/jsm/loaders/ColladaLoader
 import { Vec3 } from "../lib/tsm/Vec3.js";
 import { Mat4 } from "../lib/TSM.js";
 import { Quat } from "../lib/tsm/Quat.js";
-import { Mesh, Bone } from "../skinning/Scene.js";
+import { Mesh } from "../skinning/Scene.js";
 import { Cylinder, Hex } from "./Utils.js";
 import { RaycastRenderer } from "./RaycastRenderer.js";
 export class AttributeLoader {
@@ -178,7 +178,7 @@ class CLoader {
         this.skinnedMeshes = [];
         this.meshes = [];
         this.rr = new RaycastRenderer();
-        this.hex = new Hex(new Vec3([0.0, 0.0, 0.0]), new Vec3([0.0, 1.0, 0.0]));
+        this.hex = new Hex();
     }
     load(callback) {
         this.loader.load(this.fileLocation, (collada) => {
@@ -275,7 +275,7 @@ class CLoader {
                 let pos0 = new Vec3([bone_pos[b], bone_pos[b + 1], bone_pos[b + 2]]);
                 let pos1 = new Vec3([bone_pos[b + 3], bone_pos[b + 4], bone_pos[b + 5]]);
                 b += 6;
-                cylinders.push(new Cylinder(pos0, pos1, Bone.BONE_CYLINDER_RADIUS, j));
+                cylinders.push(new Cylinder(pos0, pos1, Hex.radius, j));
             }
             //console.log('mesh[' + i + '] \n\tbone_indicies: ' + this.meshes[i].getBoneIndices() + '\n\tbone_pos:' + this.meshes[i].getBonePositions() + '\n\tbone_attri:' + this.meshes[i].getBoneIndexAttribute())
         }

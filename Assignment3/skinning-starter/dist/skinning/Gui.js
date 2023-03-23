@@ -146,13 +146,25 @@ export class GUI {
         const cyls = this.animation.getScene().get_cylinders();
         // convert mouse x y position to world ray
         this.mouse_ray = this.screen_to_world_ray(x, y);
-        console.log('\n');
+        //console.log('\n')
         // check intersections
+        let bone_id = -1;
+        let min_t = Number.MAX_VALUE;
         for (let i = 0; i < cyls.length; i++) {
             let res = cyls[i].ray_interset(this.mouse_ray);
-            if (res[0]) {
-                //console.log('[HIT CYLINDER] bone: ' + i)
+            if (res[0] && res[1] < min_t) {
+                bone_id = i;
+                min_t = res[1];
             }
+        }
+        // set bone highlight
+        if (bone_id >= 0) {
+            //console.log('HIGHLIGHT BONE ' + bone_id)
+            this.animation.getScene().hex.set(cyls[bone_id].get_start(), cyls[bone_id].get_end());
+        }
+        // no bone hightlight    
+        else {
+            this.animation.getScene().hex.del();
         }
     }
     screen_to_world_ray(x, y) {

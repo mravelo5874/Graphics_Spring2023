@@ -4,7 +4,7 @@ import { SkinningAnimation } from "./App.js";
 import { Mat4, Vec3, Vec4, Vec2, Mat2, Quat } from "../lib/TSM.js";
 import { Mesh, Bone } from "./Scene.js";
 import { RenderPass } from "../lib/webglutils/RenderPass.js";
-import { Cylinder, Ray } from "./Utils.js"
+import { Cylinder, Hex, Ray } from "./Utils.js"
 
 /**
  * Might be useful for designing any animation GUI
@@ -228,15 +228,31 @@ export class GUI implements IGUI {
     // convert mouse x y position to world ray
     this.mouse_ray = this.screen_to_world_ray(x, y)
 
-    console.log('\n')
+    //console.log('\n')
     // check intersections
+    let bone_id = -1
+    let min_t = Number.MAX_VALUE
+    
     for (let i = 0; i < cyls.length; i++)
-    { 
+    {
       let res : [boolean, number] = cyls[i].ray_interset(this.mouse_ray)
-      if (res[0])
+      if (res[0] && res[1] < min_t)
       {
-        //console.log('[HIT CYLINDER] bone: ' + i)
+        bone_id = i
+        min_t = res[1]
       }
+    }
+
+    // set bone highlight
+    if (bone_id >= 0)
+    {
+      //console.log('HIGHLIGHT BONE ' + bone_id)
+      this.animation.getScene().hex.set(cyls[bone_id].get_start(), cyls[bone_id].get_end())
+    }
+    // no bone hightlight    
+    else
+    { 
+      this.animation.getScene().hex.del()
     }
   }
 

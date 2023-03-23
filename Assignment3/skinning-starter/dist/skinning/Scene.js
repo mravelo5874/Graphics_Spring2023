@@ -33,7 +33,6 @@ export class Bone {
         this.initialTransformation = bone.initialTransformation.copy();
     }
 }
-Bone.BONE_CYLINDER_RADIUS = 1.0;
 export class Mesh {
     constructor(mesh) {
         this.geometry = new MeshGeometry(mesh.geometry);
