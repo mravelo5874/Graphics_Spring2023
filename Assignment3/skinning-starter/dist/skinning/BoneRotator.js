@@ -6,9 +6,9 @@ export class BoneRotator {
         const bone = scene.meshes[0].bones[id];
         // rotate bone using dx
         const rads = -dx * this.rotate_scale;
-        const q = (Util.create_quaternion_from_axis_and_angle(axis.copy(), rads)).normalize();
+        const q = (Util.create_quaternion_from_axis_and_angle(axis.copy(), rads));
         // get new rotation and points
-        const new_rot = q.copy().multiply(bone.rotation.copy());
+        const new_rot = bone.rotation.copy().multiply(q.copy());
         const new_pos = bone.position.copy().multiplyByQuat(q.copy());
         const new_end = bone.endpoint.copy().multiplyByQuat(q.copy());
         // update bone and hex
@@ -24,9 +24,9 @@ export class BoneRotator {
             // get child bone
             const child_bone = scene.meshes[0].bones[i];
             // rotate bone using dx
-            const q = (Util.create_quaternion_from_axis_and_angle(axis.copy(), rads)).normalize();
+            const q = (Util.create_quaternion_from_axis_and_angle(axis.copy(), rads));
             // get new rotation and points
-            const new_rot = q.copy().multiply(child_bone.rotation.copy());
+            const new_rot = child_bone.rotation.copy().multiply(q.copy());
             const new_pos = child_bone.position.copy().multiplyByQuat(q.copy());
             const new_end = child_bone.endpoint.copy().multiplyByQuat(q.copy());
             // update bone
