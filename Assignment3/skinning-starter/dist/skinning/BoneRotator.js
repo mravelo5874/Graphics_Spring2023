@@ -12,8 +12,7 @@ export class BoneRotator {
         const new_pos = bone.position.copy().multiplyByQuat(q.copy());
         const new_end = bone.endpoint.copy().multiplyByQuat(q.copy());
         // update bone and hex
-        bone.update_bone(bone.position.copy(), new_end.copy(), q.copy());
-        // TODO update hex correctly and with no lag (maybe precompute hex verticies?)
+        bone.update_bone(bone.position.copy(), new_end.copy(), new_rot.copy());
         scene.hex.set_color(Util.get_color('green'));
         scene.hex.rotate(q);
         // recurssively update children
@@ -31,7 +30,7 @@ export class BoneRotator {
             const new_pos = child_bone.position.copy().multiplyByQuat(q.copy());
             const new_end = child_bone.endpoint.copy().multiplyByQuat(q.copy());
             // update bone
-            child_bone.update_bone(new_pos.copy(), new_end.copy(), q.copy());
+            child_bone.update_bone(new_pos.copy(), new_end.copy(), new_rot.copy());
             // recurse to child bones
             this.update_children(child_bone, axis.copy(), rads, scene);
         });

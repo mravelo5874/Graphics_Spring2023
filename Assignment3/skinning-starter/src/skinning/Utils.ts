@@ -264,6 +264,7 @@ export class Hex
                 this.hex_colors.push(this.color.z)
             }
         }
+        this.update = true
     }
 
     public rotate(quat : Quat)

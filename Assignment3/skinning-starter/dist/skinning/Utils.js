@@ -183,6 +183,7 @@ export class Hex {
                 this.hex_colors.push(this.color.z);
             }
         }
+        this.update = true;
     }
     rotate(quat) {
         let i = 0;

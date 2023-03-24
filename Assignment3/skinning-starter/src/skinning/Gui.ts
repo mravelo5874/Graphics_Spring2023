@@ -330,12 +330,13 @@ export class GUI implements IGUI {
    * Callback function for the end of a drag event
    * @param mouse
    */
-  public dragEnd(mouse: MouseEvent): void {
+  public dragEnd(mouse: MouseEvent): void 
+  {
     this.dragging = false;
     this.prevX = 0;
     this.prevY = 0;
     
-    // Maybe your bone highlight/dragging logic needs to do stuff here too
+    this.animation.getScene().hex.set_color(Util.get_color('cyan'))
   }
 
   /**

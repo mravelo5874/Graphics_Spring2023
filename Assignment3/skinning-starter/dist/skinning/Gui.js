@@ -232,7 +232,7 @@ export class GUI {
         this.dragging = false;
         this.prevX = 0;
         this.prevY = 0;
-        // Maybe your bone highlight/dragging logic needs to do stuff here too
+        this.animation.getScene().hex.set_color(Util.get_color('cyan'));
     }
     /**
      * Callback function for a key press event
