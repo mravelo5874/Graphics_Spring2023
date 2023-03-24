@@ -1,6 +1,6 @@
-import { Mat4, Quat, Vec3 } from "../lib/TSM.js";
+import { Mat4, Quat, Vec3, Vec4 } from "../lib/TSM.js";
 import { AttributeLoader, MeshGeometryLoader, BoneLoader, MeshLoader } from "./AnimationFileLoader.js";
-import { Cylinder } from "./Utils.js"
+import { Util } from "./Utils.js"
 
 export class Attribute {
   values: Float32Array;
@@ -42,6 +42,7 @@ export class Bone
 {
   public parent: number;
   public children: number[];
+
   public position: Vec3; // current position of the bone's joint *in world coordinates*. Used by the provided skeleton shader, so you need to keep this up to date.
   public endpoint: Vec3; // current position of the bone's second (non-joint) endpoint, in world coordinates
   public rotation: Quat; // current orientation of the joint *with respect to world coordinates*
@@ -63,6 +64,16 @@ export class Bone
     this.initialPosition = bone.initialPosition.copy();
     this.initialEndpoint = bone.initialEndpoint.copy();
     this.initialTransformation = bone.initialTransformation.copy();
+  }
+
+  // this should update the bone's current position, endpoint, and rotation
+  public update_bone(_new_pos : Vec3, _new_end : Vec3, _new_rot : Quat) : void
+  {
+    this.position = _new_pos.copy()
+    this.endpoint = _new_end.copy()
+    this.rotation = _new_rot.copy()
+
+    // TODO recurssively update children
   }
 }
 

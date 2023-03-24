@@ -1,9 +1,12 @@
-import { Vec3, Mat4, Quat } from "../lib/TSM.js";
+import { Vec3, Mat4, Quat, Vec2 } from "../lib/TSM.js";
 // http-server dist -c-1
 export class Util {
     // used to print a Vec3 with rounded float values
     static Vec3_toFixed(vec, digits = 3) {
         return vec.x.toFixed(digits) + ', ' + vec.y.toFixed(digits) + ', ' + vec.z.toFixed(digits);
+    }
+    static Vec2_toFixed(vec, digits = 3) {
+        return vec.x.toFixed(digits) + ', ' + vec.y.toFixed(digits);
     }
     static get_perpendicular(v) {
         // find non-zero coord
@@ -82,7 +85,61 @@ export class Util {
         const w = Math.cos(angle / 2.0);
         return new Quat([x, y, z, w]).normalize();
     }
+    static find_quaternion_twist(quat, axis) {
+        axis.copy().normalize();
+        // Take the axis you want to find the rotation around, 
+        // and find an orthogonal vector to it.
+        const orth = this.find_orthonormal_vectors(axis.copy())[0];
+        // Rotate this new vector using your quaternion.
+        // Project this rotated vector onto the plane the 
+        // normal of which is your axis
+        const flat = orth.copy().subtract(axis.copy().scale(Vec3.dot(orth.copy(), axis.copy())));
+        // The acos of the dot product of this projected 
+        // vector and the original orthogonal is your angle.
+        const twist_angle = Math.acos(Vec3.dot(orth.copy(), flat.copy()));
+        return twist_angle;
+    }
+    static rotate_vec_using_quat(vec, quat) {
+        // Convert vector to quaternion with w = 0
+        const v = new Quat([vec.x, vec.y, vec.z, 0]);
+        // Apply rotation to vector by multiplying quaternions
+        const res = quat.copy().multiply(v.copy().multiply(quat.copy().conjugate()));
+        // Extract x, y, z components of resulting quaternion
+        return new Vec3(res.xyz);
+    }
+    static find_orthonormal_vectors(normal) {
+        let w = this.rotate_vec_using_quat(normal.copy(), this.ortho_x_quat.copy());
+        const dot = Vec3.dot(normal.copy(), w.copy());
+        if (Math.abs(dot) > 0.0) {
+            w = this.rotate_vec_using_quat(normal.copy(), this.ortho_y_quat.copy());
+        }
+        w.normalize();
+        const orthonormal_1 = Vec3.cross(normal.copy(), w.copy()).normalize();
+        const orthonormal_2 = Vec3.cross(normal.copy(), orthonormal_1.copy()).normalize();
+        return [orthonormal_1, orthonormal_2];
+    }
+    static project_vec_onto_plane(vec, norm, tang) {
+        const proj_x = Vec3.dot(vec.copy(), norm.copy());
+        const proj_y = Vec3.dot(vec.copy(), tang.copy());
+        return new Vec2([proj_x, proj_y]);
+    }
+    static quat_to_vec3(quat) {
+        const x = quat.x;
+        const y = quat.y;
+        const z = quat.z;
+        const w = quat.w;
+        const vx = 2 * (x * z + w * y);
+        const vy = 2 * (y * z - w * x);
+        const vz = 1 - 2 * (x * x + y * y);
+        return new Vec3([vx, vy, vz]);
+    }
 }
+// public static sin_90 : number = Math.sin(Math.PI / 2)
+// public static cos_90 : number = Math.cos(Math.PI / 2)
+// public static ortho_x : Mat4 = new Mat4([1, 0, 0, 0, 0, this.cos_90, -this.sin_90, 0, 0, this.sin_90, this.cos_90, 0, 0, 0, 0, 1])
+// public static ortho_y : Mat4 = new Mat4([this.cos_90, 0, this.sin_90, 0, 0, 1, 0, 0, -this.sin_90, 0, this.cos_90, 0, 0, 0, 0, 1])
+Util.ortho_x_quat = new Quat([-0.7071068, 0, 0, 0.7071068]);
+Util.ortho_y_quat = new Quat([0, 0.7071068, 0, 0.7071068]);
 export class Ray {
     get_origin() { return new Vec3(this.origin.xyz); }
     get_direction() { return new Vec3(this.direction.xyz).normalize(); }
@@ -98,7 +155,7 @@ export class Ray {
     }
 }
 // class used to convert bones into hex prisms
-class Hex {
+export class Hex {
     get_update() { return this.update; }
     got_update() { this.update = false; }
     constructor() {
@@ -111,10 +168,12 @@ class Hex {
         this.hex_positions = new Array();
         this.hex_colors = new Array();
     }
-    set(_start, _end, _id) {
+    set(_start, _end, _id, override_id) {
         // return if same id
-        if (this.id == _id)
-            return;
+        if (!override_id) {
+            if (this.id == _id)
+                return;
+        }
         // set new values
         this.id = _id;
         this.deleted = false;
@@ -126,9 +185,9 @@ class Hex {
         // console.log('\n')
         this.start = _start.copy();
         this.end = _end.copy();
-        this.hex_indices = new Array();
-        this.hex_positions = new Array();
-        this.hex_colors = new Array();
+        this.hex_indices.splice(0, this.hex_indices.length);
+        this.hex_positions.splice(0, this.hex_positions.length);
+        this.hex_colors.splice(0, this.hex_colors.length);
         this.convert();
         this.update = true;
     }
@@ -154,7 +213,7 @@ class Hex {
     }
     convert() {
         const dir = this.end.copy().subtract(this.start.copy()).normalize();
-        const per = Util.get_perpendicular(dir.copy()).normalize();
+        const per = Util.find_orthonormal_vectors(dir.copy())[0].normalize();
         // console.log('[HEX]' + 
         // '\n\tstart: ' + Util.Vec3_toFixed(this.start) +
         // '\n\tend: ' + Util.Vec3_toFixed(this.end) +
@@ -288,15 +347,20 @@ class Hex {
 }
 Hex.radius = 0.1;
 Hex.pi_over_3 = Math.PI / 3;
-export { Hex };
 export class Cylinder {
     get_start() { return this.start_point.copy(); }
     get_end() { return this.end_point.copy(); }
-    constructor(_start_point, _end_point) {
+    get_id() { return this.bone_id; }
+    get_quat() { return this.quat; }
+    get_tran() { return this.tran; }
+    constructor(_bone_id, _start_point, _end_point, _quat, _tran) {
+        this.bone_id = _bone_id;
         this.start_point = _start_point.copy();
         this.end_point = _end_point.copy();
         this.mid_point = Util.mid_point(_start_point.copy(), _end_point.copy());
         this.length = Vec3.distance(_end_point.copy(), _start_point.copy());
+        this.quat = _quat.copy();
+        this.tran = _tran.copy();
         //console.log('cyl: ' + ', start: ' + Util.Vec3_toFixed(_start_point) + ', end: ' + Util.Vec3_toFixed(_end_point))
     }
     // checks if the ray intersects this cyliner and returns t value at intersection

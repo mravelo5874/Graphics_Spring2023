@@ -232,6 +232,8 @@ class CLoader
   public rr : RaycastRenderer;
   public hex : Hex;
 
+  public is_loaded : boolean = false
+
   constructor(location: string) 
   {
     this.fileLocation = location;
@@ -301,6 +303,8 @@ class CLoader
       console.error("Loading collada file failed");
         console.error(event);
     });
+
+    this.is_loaded = true
   }
 
   private findSkinnedMeshes(element?: Object3D): void {
@@ -329,26 +333,50 @@ class CLoader
     });
   }
 
-  public get_cylinders() : Cylinder[]
+  public get_cylinder(id : number) : Cylinder
   {
-    const cylinders = new Array<Cylinder>
-
-    const num_bones = this.meshes[0].getBoneIndices().length / 2
     const bone_pos = this.meshes[0].getBonePositions()
     const bone_rot = this.meshes[0].getBoneRotations()
     const bone_tra = this.meshes[0].getBoneTranslations()
 
-    /*
-    console.log('[CYLS]:\n' + 
-    '\tnum_bones: ' + num_bones + '\n' + 
-    '\tbone_pos:' + bone_pos + '\n' + 
-    '\tbone_rot:' + bone_rot + '\n' +
-    '\tbone_tra: ' + bone_tra + '\n')
-    */
+    const b : number = id * 6
+    const q : number = id * 4
+    const t : number = id * 3
+    const a : number = id * 2
 
+    const pos0 : Vec3 = new Vec3([bone_pos[b], bone_pos[b+1], bone_pos[b+2]])
+    const pos1 : Vec3 = new Vec3([bone_pos[b+3], bone_pos[b+4], bone_pos[b+5]])
+
+    // apply rotation and translation
+    const quat : Vec4 = new Vec4([bone_rot[q], bone_rot[q+1], bone_rot[q+2], bone_rot[q+3]])
+    const tran : Vec3 = new Vec3([bone_tra[t], bone_tra[t+1], bone_tra[t+2]])
+    const pos0_new = Util.apply_quaternion(quat.copy(), pos0.copy()).add(tran.copy())
+    const pos1_new = Util.apply_quaternion(quat.copy(), pos1.copy()).add(tran.copy())
+
+    return new Cylinder(id, pos0_new, pos1_new, quat, tran)
+  }
+
+  public get_cylinders() : Cylinder[]
+  {
+    const cylinders = new Array<Cylinder>
+
+    const num_bones = this.meshes[0].getBonePositions().length / 2
+    const bone_pos = this.meshes[0].getBonePositions()
+    const bone_rot = this.meshes[0].getBoneRotations()
+    const bone_tra = this.meshes[0].getBoneTranslations()
+    const bone_atr = this.meshes[0].getBoneIndexAttribute()
+
+    // console.log('[CYLS]:\n' + 
+    // '\tnum_bones: ' + num_bones + '\n' + 
+    // '\tbone_pos:' + bone_pos + '\n' + 
+    // '\tbone_rot:' + bone_rot + '\n' +
+    // '\tbone_tra: ' + bone_tra + '\n' +
+    // '\tbone_atr: ' + bone_atr)
+    
     let b = 0
     let q = 0
     let t = 0
+    let a = 0
     for (let j = 0; j < num_bones; j++)
     {
       const pos0 : Vec3 = new Vec3([bone_pos[b], bone_pos[b+1], bone_pos[b+2]])
@@ -360,10 +388,13 @@ class CLoader
       const pos0_new = Util.apply_quaternion(quat.copy(), pos0.copy()).add(tran.copy())
       const pos1_new = Util.apply_quaternion(quat.copy(), pos1.copy()).add(tran.copy())
 
+      const id : number = bone_atr[a]
+
       b += 6
       q += 4
       t += 3
-      cylinders.push(new Cylinder(pos0_new, pos1_new))
+      a += 2
+      cylinders.push(new Cylinder(id, pos0_new, pos1_new, quat, tran))
     }
     
     return cylinders

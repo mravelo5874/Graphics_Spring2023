@@ -1,6 +1,4 @@
-import { Vec3, Mat4, Vec4, Quat, Mat3 } from "../lib/TSM.js";
-import { CLoader } from "./AnimationFileLoader.js";
-import { Bone, Mesh } from "./Scene.js"
+import { Vec3, Vec4, Mat4, Quat, Vec2 } from "../lib/TSM.js";
 
 // http-server dist -c-1
 
@@ -10,6 +8,11 @@ export class Util
     public static Vec3_toFixed(vec : Vec3, digits : number = 3)
     {
         return vec.x.toFixed(digits) + ', ' + vec.y.toFixed(digits) + ', ' + vec.z.toFixed(digits)
+    }
+
+    public static Vec2_toFixed(vec : Vec2, digits : number = 3)
+    {
+        return vec.x.toFixed(digits) + ', ' + vec.y.toFixed(digits)
     }
 
     public static get_perpendicular(v : Vec3) : Vec3
@@ -118,9 +121,76 @@ export class Util
     {
         axis.copy().normalize()
 
-        const orth : Vec3 = this.get_perpendicular(axis.copy())
-        //const trans : Vec3 = Vec3.
-        return 0
+        // Take the axis you want to find the rotation around, 
+        // and find an orthogonal vector to it.
+        const orth : Vec3 = this.find_orthonormal_vectors(axis.copy())[0]
+
+        // Rotate this new vector using your quaternion.
+        
+        // Project this rotated vector onto the plane the 
+        // normal of which is your axis
+        const flat : Vec3 = orth.copy().subtract(axis.copy().scale(Vec3.dot(orth.copy(), axis.copy())))
+
+        // The acos of the dot product of this projected 
+        // vector and the original orthogonal is your angle.
+        const twist_angle : number = Math.acos(Vec3.dot(orth.copy(), flat.copy()))
+
+        return twist_angle
+    }
+
+    public static rotate_vec_using_quat(vec : Vec3, quat : Quat) : Vec3
+    {
+        // Convert vector to quaternion with w = 0
+        const v : Quat = new Quat([vec.x, vec.y, vec.z, 0])
+        // Apply rotation to vector by multiplying quaternions
+        const res : Quat = quat.copy().multiply(v.copy().multiply(quat.copy().conjugate()))
+        // Extract x, y, z components of resulting quaternion
+        return new Vec3(res.xyz)
+    }
+
+    // public static sin_90 : number = Math.sin(Math.PI / 2)
+    // public static cos_90 : number = Math.cos(Math.PI / 2)
+    // public static ortho_x : Mat4 = new Mat4([1, 0, 0, 0, 0, this.cos_90, -this.sin_90, 0, 0, this.sin_90, this.cos_90, 0, 0, 0, 0, 1])
+    // public static ortho_y : Mat4 = new Mat4([this.cos_90, 0, this.sin_90, 0, 0, 1, 0, 0, -this.sin_90, 0, this.cos_90, 0, 0, 0, 0, 1])
+    public static ortho_x_quat : Quat = new Quat([-0.7071068, 0, 0, 0.7071068])
+    public static ortho_y_quat : Quat = new Quat([0, 0.7071068, 0, 0.7071068])
+
+    public static find_orthonormal_vectors(normal : Vec3) : [Vec3, Vec3]
+    {
+        let w : Vec3 = this.rotate_vec_using_quat(normal.copy(), this.ortho_x_quat.copy())
+        const dot : number = Vec3.dot(normal.copy(), w.copy())
+
+        if (Math.abs(dot) > 0.0)
+        {
+            w = this.rotate_vec_using_quat(normal.copy(), this.ortho_y_quat.copy())
+        }
+
+        w.normalize()
+
+        const orthonormal_1 : Vec3 = Vec3.cross(normal.copy(), w.copy()).normalize()
+        const orthonormal_2 : Vec3 = Vec3.cross(normal.copy(), orthonormal_1.copy()).normalize()
+        return [orthonormal_1, orthonormal_2]
+    }
+
+    public static project_vec_onto_plane(vec : Vec3, norm : Vec3, tang : Vec3) : Vec2
+    {
+        const proj_x : number = Vec3.dot(vec.copy(), norm.copy())
+        const proj_y : number = Vec3.dot(vec.copy(), tang.copy())
+        return new Vec2([proj_x, proj_y])
+    }
+
+    public static quat_to_vec3(quat : Quat) : Vec3
+    {
+        const x : number = quat.x
+        const y : number = quat.y
+        const z : number = quat.z
+        const w : number = quat.w
+
+        const vx : number = 2 * (x * z + w * y)
+        const vy : number = 2 * (y * z - w * x)
+        const vz : number = 1 - 2 * (x * x + y * y)
+
+        return new Vec3([vx, vy, vz])
     }
 }
 
@@ -181,11 +251,15 @@ export class Hex
         this.hex_colors = new Array<number>()
     }
 
-    public set(_start : Vec3, _end : Vec3, _id : number)
+    public set(_start : Vec3, _end : Vec3, _id : number, override_id? : boolean) : void 
     {
         // return if same id
-        if (this.id == _id) 
-            return
+        if (!override_id)
+        {
+            if (this.id == _id) 
+                return
+        }
+        
         // set new values
         this.id = _id
         this.deleted = false
@@ -199,15 +273,15 @@ export class Hex
 
         this.start = _start.copy()
         this.end = _end.copy()
-        this.hex_indices = new Array<number>()
-        this.hex_positions = new Array<number>()
-        this.hex_colors = new Array<number>()
+        this.hex_indices.splice(0, this.hex_indices.length)
+        this.hex_positions.splice(0, this.hex_positions.length)
+        this.hex_colors.splice(0, this.hex_colors.length)
         this.convert()
 
         this.update = true
     }
 
-    public del()
+    public del() : void
     {
         // return already deleted
         if (this.deleted) 
@@ -234,7 +308,7 @@ export class Hex
     private convert() : void
     {
         const dir : Vec3 = this.end.copy().subtract(this.start.copy()).normalize()
-        const per : Vec3 = Util.get_perpendicular(dir.copy()).normalize()
+        const per : Vec3 = Util.find_orthonormal_vectors(dir.copy())[0].normalize()
         
         // console.log('[HEX]' + 
         // '\n\tstart: ' + Util.Vec3_toFixed(this.start) +
@@ -366,20 +440,30 @@ export class Hex
 
 export class Cylinder
 {
+    private bone_id : number
     private start_point : Vec3
     private end_point : Vec3
     private mid_point : Vec3
     private length : number
 
+    private quat : Vec4
+    private tran : Vec3
+
     public get_start() : Vec3 { return this.start_point.copy() }
     public get_end() : Vec3 { return this.end_point.copy() }
+    public get_id() : number { return this.bone_id }
+    public get_quat() : Vec4 { return this.quat }
+    public get_tran() : Vec3 { return this.tran }
     
-    constructor(_start_point : Vec3, _end_point)
+    constructor(_bone_id : number, _start_point : Vec3, _end_point : Vec3, _quat : Vec4, _tran : Vec3)
     {
+        this.bone_id = _bone_id
         this.start_point = _start_point.copy()
         this.end_point = _end_point.copy()
         this.mid_point = Util.mid_point(_start_point.copy(), _end_point.copy())
         this.length = Vec3.distance(_end_point.copy(), _start_point.copy())
+        this.quat = _quat.copy()
+        this.tran = _tran.copy()
 
         //console.log('cyl: ' + ', start: ' + Util.Vec3_toFixed(_start_point) + ', end: ' + Util.Vec3_toFixed(_end_point))
     }

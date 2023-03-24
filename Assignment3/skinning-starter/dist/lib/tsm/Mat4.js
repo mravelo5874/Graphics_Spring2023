@@ -8,7 +8,7 @@ import { epsilon } from "./Constants.js";
 /**
  * A 4x4 Matrix of numbers.
  */
-class Mat4 {
+export class Mat4 {
     /**
      * Computes the frustrum matrix
      * @param left coordinate for the left vertical clipping plane
@@ -780,5 +780,4 @@ class Mat4 {
  * and the off diagonals are 0s
  */
 Mat4.identity = new Mat4().setIdentity();
-export { Mat4 };
 //# sourceMappingURL=Mat4.js.map

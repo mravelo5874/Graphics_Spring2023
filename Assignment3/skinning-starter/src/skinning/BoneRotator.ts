@@ -1,41 +1,28 @@
-import { Quat, Vec2, Vec3 } from "../lib/TSM.js";
+import { Mat4, Quat, Vec2, Vec3 } from "../lib/TSM.js";
 import { CLoader } from "./AnimationFileLoader.js";
-import { Util, Ray } from "./Utils.js";
+import { Util, Ray, Cylinder } from "./Utils.js";
 import { Bone } from "./Scene.js"
 
 export class BoneRotator
 {
-    public static rotate_bone(scene : CLoader, id : number, mouse_ray : Ray, camera_ray : Ray)
+    private static rotate_scale : number = 0.02
+
+    public static rotate_bone(scene : CLoader, id : number, dx : number, camera_ray : Ray)
     {
         const axis : Vec3 = camera_ray.get_direction().normalize()
-        
 
         // get bone
-        const bone : Bone = scene.meshes[0].bones[id]
+        let bone : Bone = scene.meshes[0].bones[id]
 
-        console.log('rotating bone: ' + id)
-
-        // TODO this
+        // rotate bone using dx
+        const rads : number = -dx * this.rotate_scale
+        const new_rot : Quat = Util.create_quaternion_from_axis_and_angle(axis.copy(), rads).multiply(bone.rotation.copy());
         
-        // determine bone's current angle on plane created by axis (treat the axis as a normal)
-        
+        // update bone and hex
+        const new_end : Vec3 = Util.rotate_point(bone.endpoint.copy(), axis.copy(), rads)
+        scene.meshes[0].bones[id].update_bone(bone.position.copy(), new_end.copy(), new_rot.copy())
 
-        // determine the mouse ray's angle on the same plane
-
-        // rotate bone using difference
-        bone.rotation = Util.create_quaternion_from_axis_and_angle(axis.copy(), 0.1).multiply(bone.rotation.copy());
-
-        /*
-        const p1 : Vec3 = bone.position.copy()  // r1
-        const v1 : Vec3 = camera_ray.get_direction().normalize() // e1
-
-        const p2 : Vec3 = mouse_ray.get_origin() // r2
-        const v2 : Vec3 = mouse_ray.get_direction().normalize() // e2
-
-        // line connecting closest points has dir vector n
-        const n : Vec3 = Vec3.cross(v1.copy(), v2.copy()) // e1 x e2
-        */
-
-
+        // TODO update hex correctly and with no lag (maybe precompute hex verticies?)
+        //scene.hex.set(bone.position.copy(), new_end.copy(), id, true)
     }
 }

@@ -174,7 +174,8 @@ export class GUI implements IGUI {
    * before dragEnd.
    * @param mouse
    */
-  public drag(mouse: MouseEvent): void {
+  public drag(mouse: MouseEvent): void 
+  {
     let x = mouse.offsetX;
     let y = mouse.offsetY;
     //console.log('mouse.pos: {' + mouse.x + ', ' + mouse.y + '}')
@@ -203,12 +204,13 @@ export class GUI implements IGUI {
         {
           case 1: 
           {
-            // rotate bone
+            // rotate current bone
             if (this.bone_id > -1)
             {
+              // roate bone based on dx
               let cam_dir : Vec3 = this.camera.forward()
               const cam_ray : Ray = new Ray(this.camera.pos(), cam_dir)
-              BoneRotator.rotate_bone(this.animation.getScene(), this.bone_id, this.mouse_ray, cam_ray)
+              BoneRotator.rotate_bone(this.animation.getScene(), this.bone_id, dx, cam_ray)
             }
             else
             {
@@ -244,36 +246,42 @@ export class GUI implements IGUI {
     // 1) To highlight a bone, if the mouse is hovering over a bone;
     // 2) To rotate a bone, if the mouse button is pressed and currently highlighting a bone.
 
-    // get all cylinders cooresponding to bones
-    const cyls : Cylinder[] = this.animation.getScene().get_cylinders()
-
-    // convert mouse x y position to world ray
-    this.mouse_ray = this.screen_to_world_ray(x, y)
-
-    // check intersections - might need BVH !!!
-    let id = -1
-    let min_t = Number.MAX_VALUE    
-    for (let i = 0; i < cyls.length; i++)
+    if (!this.dragging)
     {
-      let res : [boolean, number] = cyls[i].ray_interset(this.mouse_ray)
-      if (res[0] && res[1] < min_t)
+      // make sure scene is finished loading
+      if (!this.animation.getScene().is_loaded) return
+
+      // get all cylinders cooresponding to bones
+      const cyls : Cylinder[] = this.animation.getScene().get_cylinders()
+
+      // convert mouse x y position to world ray
+      this.mouse_ray = this.screen_to_world_ray(x, y)
+
+      // check intersections - might need BVH !!!
+      let id = -1
+      let min_t = Number.MAX_VALUE    
+      for (let i = 0; i < cyls.length; i++)
       {
-        id = i
-        min_t = res[1]
+        let res : [boolean, number] = cyls[i].ray_interset(this.mouse_ray)
+        if (res[0] && res[1] < min_t)
+        {
+          id = cyls[i].get_id()
+          min_t = res[1]
+        }
       }
-    }
 
-    // set bone highlight
-    if (id >= 0)
-    {
-      this.animation.getScene().hex.set(cyls[id].get_start(), cyls[id].get_end(), id)
-      this.bone_id = id
-    }
-    // no bone hightlight    
-    else
-    { 
-      this.animation.getScene().hex.del()
-      this.bone_id = -1
+      // set bone highlight
+      if (id >= 0)
+      {
+        this.animation.getScene().hex.set(cyls[id].get_start(), cyls[id].get_end(), id)
+        this.bone_id = id
+      }
+      // no bone hightlight    
+      else
+      { 
+        this.animation.getScene().hex.del()
+        this.bone_id = -1
+      }
     }
   }
 

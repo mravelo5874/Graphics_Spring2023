@@ -32,6 +32,13 @@ export class Bone {
         this.initialEndpoint = bone.initialEndpoint.copy();
         this.initialTransformation = bone.initialTransformation.copy();
     }
+    // this should update the bone's current position, endpoint, and rotation
+    update_bone(_new_pos, _new_end, _new_rot) {
+        this.position = _new_pos.copy();
+        this.endpoint = _new_end.copy();
+        this.rotation = _new_rot.copy();
+        // TODO recurssively update children
+    }
 }
 export class Mesh {
     constructor(mesh) {

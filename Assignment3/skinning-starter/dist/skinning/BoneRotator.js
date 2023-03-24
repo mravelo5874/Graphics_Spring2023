@@ -1,25 +1,18 @@
 import { Util } from "./Utils.js";
 export class BoneRotator {
-    static rotate_bone(scene, id, mouse_ray, camera_ray) {
+    static rotate_bone(scene, id, dx, camera_ray) {
         const axis = camera_ray.get_direction().normalize();
         // get bone
-        const bone = scene.meshes[0].bones[id];
-        console.log('rotating bone: ' + id);
-        // TODO this
-        // determine bone's current angle on plane created by axis (treat the axis as a normal)
-        // determine the mouse ray's angle on the same plane
-        // rotate bone using difference
-        bone.rotation = Util.create_quaternion_from_axis_and_angle(axis.copy(), 0.1).multiply(bone.rotation.copy());
-        /*
-        const p1 : Vec3 = bone.position.copy()  // r1
-        const v1 : Vec3 = camera_ray.get_direction().normalize() // e1
-
-        const p2 : Vec3 = mouse_ray.get_origin() // r2
-        const v2 : Vec3 = mouse_ray.get_direction().normalize() // e2
-
-        // line connecting closest points has dir vector n
-        const n : Vec3 = Vec3.cross(v1.copy(), v2.copy()) // e1 x e2
-        */
+        let bone = scene.meshes[0].bones[id];
+        // rotate bone using dx
+        const rads = -dx * this.rotate_scale;
+        const new_rot = Util.create_quaternion_from_axis_and_angle(axis.copy(), rads).multiply(bone.rotation.copy());
+        // update bone and hex
+        const new_end = Util.rotate_point(bone.endpoint.copy(), axis.copy(), rads);
+        scene.meshes[0].bones[id].update_bone(bone.position.copy(), new_end.copy(), new_rot.copy());
+        // TODO update hex correctly and with no lag (maybe precompute hex verticies?)
+        //scene.hex.set(bone.position.copy(), new_end.copy(), id, true)
     }
 }
+BoneRotator.rotate_scale = 0.02;
 //# sourceMappingURL=BoneRotator.js.map

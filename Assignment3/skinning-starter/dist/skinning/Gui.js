@@ -11,7 +11,7 @@ export var Mode;
  * Handles Mouse and Button events along with
  * the the camera.
  */
-class GUI {
+export class GUI {
     /**
      *
      * @param canvas required to get the width and height of the canvas
@@ -121,11 +121,12 @@ class GUI {
                 switch (mouse.buttons) {
                     case 1:
                         {
-                            // rotate bone
+                            // rotate current bone
                             if (this.bone_id > -1) {
+                                // roate bone based on dx
                                 let cam_dir = this.camera.forward();
                                 const cam_ray = new Ray(this.camera.pos(), cam_dir);
-                                BoneRotator.rotate_bone(this.animation.getScene(), this.bone_id, this.mouse_ray, cam_ray);
+                                BoneRotator.rotate_bone(this.animation.getScene(), this.bone_id, dx, cam_ray);
                             }
                             else {
                                 let rotAxis = Vec3.cross(this.camera.forward(), mouseDir);
@@ -155,29 +156,34 @@ class GUI {
         // You will want logic here:
         // 1) To highlight a bone, if the mouse is hovering over a bone;
         // 2) To rotate a bone, if the mouse button is pressed and currently highlighting a bone.
-        // get all cylinders cooresponding to bones
-        const cyls = this.animation.getScene().get_cylinders();
-        // convert mouse x y position to world ray
-        this.mouse_ray = this.screen_to_world_ray(x, y);
-        // check intersections - might need BVH !!!
-        let id = -1;
-        let min_t = Number.MAX_VALUE;
-        for (let i = 0; i < cyls.length; i++) {
-            let res = cyls[i].ray_interset(this.mouse_ray);
-            if (res[0] && res[1] < min_t) {
-                id = i;
-                min_t = res[1];
+        if (!this.dragging) {
+            // make sure scene is finished loading
+            if (!this.animation.getScene().is_loaded)
+                return;
+            // get all cylinders cooresponding to bones
+            const cyls = this.animation.getScene().get_cylinders();
+            // convert mouse x y position to world ray
+            this.mouse_ray = this.screen_to_world_ray(x, y);
+            // check intersections - might need BVH !!!
+            let id = -1;
+            let min_t = Number.MAX_VALUE;
+            for (let i = 0; i < cyls.length; i++) {
+                let res = cyls[i].ray_interset(this.mouse_ray);
+                if (res[0] && res[1] < min_t) {
+                    id = cyls[i].get_id();
+                    min_t = res[1];
+                }
             }
-        }
-        // set bone highlight
-        if (id >= 0) {
-            this.animation.getScene().hex.set(cyls[id].get_start(), cyls[id].get_end(), id);
-            this.bone_id = id;
-        }
-        // no bone hightlight    
-        else {
-            this.animation.getScene().hex.del();
-            this.bone_id = -1;
+            // set bone highlight
+            if (id >= 0) {
+                this.animation.getScene().hex.set(cyls[id].get_start(), cyls[id].get_end(), id);
+                this.bone_id = id;
+            }
+            // no bone hightlight    
+            else {
+                this.animation.getScene().hex.del();
+                this.bone_id = -1;
+            }
         }
     }
     screen_to_world_ray(x, y) {
@@ -364,5 +370,4 @@ GUI.rotationSpeed = 0.05;
 GUI.zoomSpeed = 0.1;
 GUI.rollSpeed = 0.1;
 GUI.panSpeed = 0.1;
-export { GUI };
 //# sourceMappingURL=Gui.js.map
