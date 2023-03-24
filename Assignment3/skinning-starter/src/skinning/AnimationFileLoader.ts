@@ -127,7 +127,8 @@ export class BoneLoader {
   }
 
 }
-export class MeshLoader {
+export class MeshLoader 
+{
   public geometry: MeshGeometryLoader;
   public worldMatrix: Mat4;
   public rotation: Vec3;
@@ -140,7 +141,8 @@ export class MeshLoader {
 
   public name: String;
 
-  constructor(skinnedMesh: SkinnedMesh) {
+  constructor(skinnedMesh: SkinnedMesh) 
+  {
     this.name = skinnedMesh.name;
 
     let x = skinnedMesh.rotation.x;

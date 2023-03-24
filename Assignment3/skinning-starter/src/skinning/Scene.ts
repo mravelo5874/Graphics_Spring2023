@@ -53,6 +53,8 @@ export class Bone
   public offset: number; // used when parsing the Collada file---you probably don't need to touch these
   public initialTransformation: Mat4;
 
+  public length : number; // length of bone
+
   constructor(bone: BoneLoader) 
   {
     this.parent = bone.parent;
@@ -64,16 +66,15 @@ export class Bone
     this.initialPosition = bone.initialPosition.copy();
     this.initialEndpoint = bone.initialEndpoint.copy();
     this.initialTransformation = bone.initialTransformation.copy();
+    this.length = Vec3.distance(this.initialPosition.copy(), this.initialEndpoint.copy())
   }
 
   // this should update the bone's current position, endpoint, and rotation
   public update_bone(_new_pos : Vec3, _new_end : Vec3, _new_rot : Quat) : void
   {
     this.position = _new_pos.copy()
-    this.endpoint = _new_end.copy()
+    //this.endpoint = _new_end.copy()
     this.rotation = _new_rot.copy()
-
-    // TODO recurssively update children
   }
 }
 
