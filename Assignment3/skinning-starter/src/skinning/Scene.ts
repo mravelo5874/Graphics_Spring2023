@@ -73,7 +73,7 @@ export class Bone
   public update_bone(_new_pos : Vec3, _new_end : Vec3, _new_rot : Quat) : void
   {
     this.position = _new_pos.copy()
-    //this.endpoint = _new_end.copy()
+    this.endpoint = _new_end.copy()
     this.rotation = _new_rot.copy()
   }
 }

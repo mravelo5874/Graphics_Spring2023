@@ -1,6 +1,6 @@
 import { Camera } from "../lib/webglutils/Camera.js";
 import { Vec3, Vec4 } from "../lib/TSM.js";
-import { Ray } from "./Utils.js";
+import { Ray, Util } from "./Utils.js";
 import { BoneRotator } from "./BoneRotator.js";
 export var Mode;
 (function (Mode) {
@@ -176,6 +176,7 @@ export class GUI {
             }
             // set bone highlight
             if (id >= 0) {
+                this.animation.getScene().hex.set_color(Util.get_color('cyan'));
                 this.animation.getScene().hex.set(cyls[id].get_start(), cyls[id].get_end(), id);
                 this.bone_id = id;
             }

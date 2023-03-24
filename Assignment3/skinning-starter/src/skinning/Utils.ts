@@ -4,6 +4,23 @@ import { Vec3, Vec4, Mat4, Quat, Vec2 } from "../lib/TSM.js";
 
 export class Util
 {
+    public static get_color(_name : string) : Vec3
+    {
+        switch (_name)
+        {
+            case "white":   return new Vec3([0.0, 0.0, 0.0])
+            case "black":   return new Vec3([1.0, 1.0, 1.0])
+            case "red":     return new Vec3([1.0, 0.0, 0.0])
+            case "green":   return new Vec3([0.0, 1.0, 0.0])
+            case "blue":    return new Vec3([0.0, 0.0, 1.0])
+            case "cyan":    return new Vec3([0.0, 1.0, 1.0])
+            case "pink":    return new Vec3([1.0, 0.0, 1.0])
+            default:        break;
+        }
+        // return white as default
+        return new Vec3([0.0, 0.0, 0.0])
+    }
+
     // used to print a Vec3 with rounded float values
     public static Vec3_toFixed(vec : Vec3, digits : number = 3)
     {
@@ -117,26 +134,27 @@ export class Util
         return new Quat([x, y, z, w]).normalize();
     }
 
-    public static find_quaternion_twist(quat : Quat, axis : Vec3) : number
-    {
-        axis.copy().normalize()
+    // no longer needed :-)
+    // public static find_quaternion_twist(quat : Quat, axis : Vec3) : number
+    // {
+    //     axis.copy().normalize()
 
-        // Take the axis you want to find the rotation around, 
-        // and find an orthogonal vector to it.
-        const orth : Vec3 = this.find_orthonormal_vectors(axis.copy())[0]
+    //     // Take the axis you want to find the rotation around, 
+    //     // and find an orthogonal vector to it.
+    //     const orth : Vec3 = this.find_orthonormal_vectors(axis.copy())[0]
 
-        // Rotate this new vector using your quaternion.
+    //     // Rotate this new vector using your quaternion.
         
-        // Project this rotated vector onto the plane the 
-        // normal of which is your axis
-        const flat : Vec3 = orth.copy().subtract(axis.copy().scale(Vec3.dot(orth.copy(), axis.copy())))
+    //     // Project this rotated vector onto the plane the 
+    //     // normal of which is your axis
+    //     const flat : Vec3 = orth.copy().subtract(axis.copy().scale(Vec3.dot(orth.copy(), axis.copy())))
 
-        // The acos of the dot product of this projected 
-        // vector and the original orthogonal is your angle.
-        const twist_angle : number = Math.acos(Vec3.dot(orth.copy(), flat.copy()))
+    //     // The acos of the dot product of this projected 
+    //     // vector and the original orthogonal is your angle.
+    //     const twist_angle : number = Math.acos(Vec3.dot(orth.copy(), flat.copy()))
 
-        return twist_angle
-    }
+    //     return twist_angle
+    // }
 
     public static rotate_vec_using_quat(vec : Vec3, quat : Quat) : Vec3
     {
@@ -148,13 +166,8 @@ export class Util
         return new Vec3(res.xyz)
     }
 
-    // public static sin_90 : number = Math.sin(Math.PI / 2)
-    // public static cos_90 : number = Math.cos(Math.PI / 2)
-    // public static ortho_x : Mat4 = new Mat4([1, 0, 0, 0, 0, this.cos_90, -this.sin_90, 0, 0, this.sin_90, this.cos_90, 0, 0, 0, 0, 1])
-    // public static ortho_y : Mat4 = new Mat4([this.cos_90, 0, this.sin_90, 0, 0, 1, 0, 0, -this.sin_90, 0, this.cos_90, 0, 0, 0, 0, 1])
     public static ortho_x_quat : Quat = new Quat([-0.7071068, 0, 0, 0.7071068])
     public static ortho_y_quat : Quat = new Quat([0, 0.7071068, 0, 0.7071068])
-
     public static find_orthonormal_vectors(normal : Vec3) : [Vec3, Vec3]
     {
         let w : Vec3 = this.rotate_vec_using_quat(normal.copy(), this.ortho_x_quat.copy())
@@ -170,27 +183,6 @@ export class Util
         const orthonormal_1 : Vec3 = Vec3.cross(normal.copy(), w.copy()).normalize()
         const orthonormal_2 : Vec3 = Vec3.cross(normal.copy(), orthonormal_1.copy()).normalize()
         return [orthonormal_1, orthonormal_2]
-    }
-
-    public static project_vec_onto_plane(vec : Vec3, norm : Vec3, tang : Vec3) : Vec2
-    {
-        const proj_x : number = Vec3.dot(vec.copy(), norm.copy())
-        const proj_y : number = Vec3.dot(vec.copy(), tang.copy())
-        return new Vec2([proj_x, proj_y])
-    }
-
-    public static quat_to_vec3(quat : Quat) : Vec3
-    {
-        const x : number = quat.x
-        const y : number = quat.y
-        const z : number = quat.z
-        const w : number = quat.w
-
-        const vx : number = 2 * (x * z + w * y)
-        const vy : number = 2 * (y * z - w * x)
-        const vz : number = 1 - 2 * (x * x + y * y)
-
-        return new Vec3([vx, vy, vz])
     }
 }
 
@@ -225,6 +217,7 @@ export class Hex
     public static radius : number = 0.1
     public static pi_over_3 : number = Math.PI / 3
 
+    private color : Vec3;
     private start : Vec3;
     private end : Vec3;
     private id : number;
@@ -245,20 +238,60 @@ export class Hex
         this.end = Vec3.zero.copy()
         this.id = -1
         this.deleted = false
+        this.color = new Vec3([0.0, 1.0, 0.0]) // default color is green
 
         this.hex_indices = new Array<number>()
         this.hex_positions = new Array<number>()
         this.hex_colors = new Array<number>()
     }
 
-    public set(_start : Vec3, _end : Vec3, _id : number, override_id? : boolean) : void 
+    public set_color(_color : Vec3) : void 
+    { 
+        // return if already this color
+        if (this.color == _color) return
+        // set color
+        this.color = _color 
+        // update current colors
+        if (this.hex_colors.length > 0)
+        {
+            // remove colors
+            this.hex_colors.splice(0, this.hex_colors.length)
+            // add ray colors (should be 18 lines = 36 indices = 108 pos values = 108 color values
+            for (let i = 0; i < 36; i++)
+            {
+                this.hex_colors.push(this.color.x)
+                this.hex_colors.push(this.color.y)
+                this.hex_colors.push(this.color.z)
+            }
+        }
+    }
+
+    public rotate(quat : Quat)
+    {
+        let i : number = 0
+        while (i < this.hex_positions.length)
+        {
+            // get pos
+            const x : number = this.hex_positions[i]
+            const y : number = this.hex_positions[i+1]
+            const z : number = this.hex_positions[i+2]
+            const pos : Vec3 = new Vec3([x, y, z])
+            // rotate pos
+            const rot_pos : Vec3 = pos.copy().multiplyByQuat(quat)
+            // re-assign pos
+            this.hex_positions[i]   = rot_pos.x
+            this.hex_positions[i+1] = rot_pos.y
+            this.hex_positions[i+2] = rot_pos.z
+            i += 3
+        }
+        this.update = true
+    }   
+
+    public set(_start : Vec3, _end : Vec3, _id : number) : void 
     {
         // return if same id
-        if (!override_id)
-        {
-            if (this.id == _id) 
-                return
-        }
+        if (this.id == _id) 
+            return
         
         // set new values
         this.id = _id
@@ -412,13 +445,12 @@ export class Hex
         for (let i = 0; i < 3; i++) this.hex_positions.push(f1.at(i))
         for (let i = 0; i < 3; i++) this.hex_positions.push(f2.at(i))
 
-        // add ray colors (should be 18 lines = 36 indices = 108 pos values = 108 color values)
-        let color_id : Vec3 = new Vec3([0.0, 1.0, 0.0])
+        // add ray colors (should be 18 lines = 36 indices = 108 pos values = 108 color values
         for (let i = 0; i < 36; i++)
         {
-            this.hex_colors.push(color_id.x)
-            this.hex_colors.push(color_id.y)
-            this.hex_colors.push(color_id.z)
+            this.hex_colors.push(this.color.x)
+            this.hex_colors.push(this.color.y)
+            this.hex_colors.push(this.color.z)
         }
     }
 

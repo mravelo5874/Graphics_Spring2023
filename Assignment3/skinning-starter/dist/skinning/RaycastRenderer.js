@@ -1,4 +1,4 @@
-import { Vec3 } from "../lib/TSM.js";
+import { Util } from "./Utils.js";
 export class RaycastRenderer {
     constructor() {
         this.ray_index_count = 0;
@@ -29,17 +29,7 @@ export class RaycastRenderer {
         this.ray_positions.push(end.y);
         this.ray_positions.push(end.z);
         // add ray colors
-        let color_id = new Vec3([0.0, 0.0, 0.0]);
-        if (color == "red")
-            color_id = new Vec3([1.0, 0.0, 0.0]);
-        if (color == "green")
-            color_id = new Vec3([0.0, 1.0, 0.0]);
-        if (color == "blue")
-            color_id = new Vec3([0.0, 0.0, 1.0]);
-        if (color == "cyan")
-            color_id = new Vec3([0.0, 1.0, 1.0]);
-        if (color == "pink")
-            color_id = new Vec3([1.0, 0.0, 1.0]);
+        let color_id = Util.get_color(color);
         this.ray_colors.push(color_id.x);
         this.ray_colors.push(color_id.y);
         this.ray_colors.push(color_id.z);

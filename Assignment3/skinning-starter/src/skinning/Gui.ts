@@ -4,7 +4,7 @@ import { SkinningAnimation } from "./App.js";
 import { Mat4, Vec3, Vec4, Vec2, Mat2, Quat } from "../lib/TSM.js";
 import { Mesh, Bone } from "./Scene.js";
 import { RenderPass } from "../lib/webglutils/RenderPass.js";
-import { Cylinder, Hex, Ray } from "./Utils.js"
+import { Cylinder, Hex, Ray, Util } from "./Utils.js"
 import { BoneRotator } from "./BoneRotator.js";
 
 /**
@@ -273,6 +273,7 @@ export class GUI implements IGUI {
       // set bone highlight
       if (id >= 0)
       {
+        this.animation.getScene().hex.set_color(Util.get_color('cyan'))
         this.animation.getScene().hex.set(cyls[id].get_start(), cyls[id].get_end(), id)
         this.bone_id = id
       }
