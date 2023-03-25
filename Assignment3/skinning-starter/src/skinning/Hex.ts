@@ -62,6 +62,7 @@ export class Hex
         let i : number = 0
         while (i < this.hex_positions.length)
         {
+            // TODO fix this :<
             // get pos
             const x : number = this.hex_positions[i]
             const y : number = this.hex_positions[i+1]

@@ -53,8 +53,6 @@ export class Bone
   public offset: number; // used when parsing the Collada file---you probably don't need to touch these
   public initialTransformation: Mat4;
 
-  public trans : Mat4 // current Translation matrix
-
   public length : number; // length of bone
 
   constructor(bone: BoneLoader) 
@@ -68,32 +66,36 @@ export class Bone
     this.initialPosition = bone.initialPosition.copy();
     this.initialEndpoint = bone.initialEndpoint.copy();
     this.initialTransformation = bone.initialTransformation.copy();
-    this.trans = bone.initialTransformation.copy();
     this.length = Vec3.distance(this.initialPosition.copy(), this.initialEndpoint.copy())
   }
 
   // this should update the bone's current position, endpoint, and rotation
   public apply_rotation(q : Quat) : void
   {
-    const q4 : Vec4 = new Vec4(q.xyzw)
+    // update rotation
     const new_rot : Quat = this.rotation.copy().multiply(q.copy())
-    const tran : Vec3 = new Vec3([this.trans.at(12), this.trans.at(13), this.trans.at(14)])
-    
+    this.rotation = new_rot.copy()
 
     // TODO fix this
-    const new_pos : Vec3 = this.position.copy().multiplyByQuat(q.copy())
-    const new_end : Vec3 = this.endpoint.copy().multiplyByQuat(q.copy())
+    const quat : Vec4 = new Vec4(q.xyzw)
 
-    // apply rotation and translation
-    // const pos0_new = Utils.apply_quaternion(q4.copy(), this.initialPosition.copy()).add(tran.copy())
-    // const pos1_new = Utils.apply_quaternion(q4.copy(), this.initialEndpoint.copy()).add(tran.copy())
+    // const pos0 : Vec3 = Vec3.zero.copy()
+    // const end0 : Vec3 = new Vec3([this.initialEndpoint.x - this.initialPosition.x, this.initialEndpoint.y - this.initialPosition.y, this.initialEndpoint.z - this.initialPosition.z])
 
-    // update translation matrix
-    //this.trans.setIdentity().translate(pos0_new)
+    // const pos_new : Vec3 = Utils.apply_quaternion(quat.copy(), pos0.copy()).add(this.position.copy())
+    // const end_new : Vec3 = Utils.apply_quaternion(quat.copy(), end0.copy()).add(this.position.copy())
 
-    this.position = new_pos.copy()
-    this.endpoint = new_end.copy()
-    this.rotation = new_rot.copy()
+    // this.position = pos_new.copy()
+    // this.endpoint = end_new.copy()
+    
+    let new_pos = this.position.copy().multiplyByQuat(q.copy());
+    let new_end = this.endpoint.copy().multiplyByQuat(q.copy());
+
+    // new_pos = new_pos.copy().subtract(offset.copy())
+    // new_end = new_end.copy().subtract(offset.copy())
+
+    this.position = new_pos.copy();
+    this.endpoint = new_end.copy();
   }
 }
 

@@ -37,6 +37,7 @@ export class Hex {
     rotate(quat) {
         let i = 0;
         while (i < this.hex_positions.length) {
+            // TODO fix this :<
             // get pos
             const x = this.hex_positions[i];
             const y = this.hex_positions[i + 1];
