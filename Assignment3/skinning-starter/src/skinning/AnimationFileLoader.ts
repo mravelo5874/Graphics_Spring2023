@@ -3,9 +3,11 @@ import { Object3D, Scene, MeshLambertMaterial, SkinnedMesh, BufferGeometry} from
 import { Vec3 } from "../lib/tsm/Vec3.js";
 import { Mat4, Vec4 } from "../lib/TSM.js";
 import { Quat } from "../lib/tsm/Quat.js";
-import { Mesh, Bone } from "../skinning/Scene.js";
-import { Cylinder, Hex, Util } from "./Utils.js";
+import { Mesh } from "../skinning/Scene.js";
+import { Utils } from "./Utils.js";
 import { RaycastRenderer } from "./RaycastRenderer.js";
+import { Hex } from "./Hex.js";
+import { Cylinder } from "./Cylinder.js";
 
 export class AttributeLoader {
   values: Float32Array;
@@ -352,8 +354,8 @@ class CLoader
     // apply rotation and translation
     const quat : Vec4 = new Vec4([bone_rot[q], bone_rot[q+1], bone_rot[q+2], bone_rot[q+3]])
     const tran : Vec3 = new Vec3([bone_tra[t], bone_tra[t+1], bone_tra[t+2]])
-    const pos0_new = Util.apply_quaternion(quat.copy(), pos0.copy()).add(tran.copy())
-    const pos1_new = Util.apply_quaternion(quat.copy(), pos1.copy()).add(tran.copy())
+    const pos0_new = Utils.apply_quaternion(quat.copy(), pos0.copy()).add(tran.copy())
+    const pos1_new = Utils.apply_quaternion(quat.copy(), pos1.copy()).add(tran.copy())
 
     return new Cylinder(id, pos0_new, pos1_new, quat, tran)
   }
@@ -387,8 +389,8 @@ class CLoader
       // apply rotation and translation
       const quat : Vec4 = new Vec4([bone_rot[q], bone_rot[q+1], bone_rot[q+2], bone_rot[q+3]])
       const tran : Vec3 = new Vec3([bone_tra[t], bone_tra[t+1], bone_tra[t+2]])
-      const pos0_new = Util.apply_quaternion(quat.copy(), pos0.copy()).add(tran.copy())
-      const pos1_new = Util.apply_quaternion(quat.copy(), pos1.copy()).add(tran.copy())
+      const pos0_new = Utils.apply_quaternion(quat.copy(), pos0.copy()).add(tran.copy())
+      const pos1_new = Utils.apply_quaternion(quat.copy(), pos1.copy()).add(tran.copy())
 
       const id : number = bone_atr[a]
 

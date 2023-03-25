@@ -1,5 +1,5 @@
 import { Vec3 } from "../lib/TSM.js";
-import { Ray, Util } from "./Utils.js";
+import { Ray, Utils } from "./Utils.js";
 
 export class RaycastRenderer
 {
@@ -44,7 +44,7 @@ export class RaycastRenderer
         this.ray_positions.push(end.z)
 
         // add ray colors
-        let color_id : Vec3 = Util.get_color(color)
+        let color_id : Vec3 = Utils.get_color(color)
         this.ray_colors.push(color_id.x)
         this.ray_colors.push(color_id.y)
         this.ray_colors.push(color_id.z)

@@ -1,4 +1,4 @@
-import { Vec3 } from "../lib/TSM.js";
+import { Vec3, Vec4 } from "../lib/TSM.js";
 export class Attribute {
     constructor(attr) {
         this.values = attr.values;
@@ -32,13 +32,25 @@ export class Bone {
         this.initialPosition = bone.initialPosition.copy();
         this.initialEndpoint = bone.initialEndpoint.copy();
         this.initialTransformation = bone.initialTransformation.copy();
+        this.trans = bone.initialTransformation.copy();
         this.length = Vec3.distance(this.initialPosition.copy(), this.initialEndpoint.copy());
     }
     // this should update the bone's current position, endpoint, and rotation
-    update_bone(_new_pos, _new_end, _new_rot) {
-        this.position = _new_pos.copy();
-        this.endpoint = _new_end.copy();
-        this.rotation = _new_rot.copy();
+    apply_rotation(q) {
+        const q4 = new Vec4(q.xyzw);
+        const new_rot = this.rotation.copy().multiply(q.copy());
+        const tran = new Vec3([this.trans.at(12), this.trans.at(13), this.trans.at(14)]);
+        // TODO fix this
+        const new_pos = this.position.copy().multiplyByQuat(q.copy());
+        const new_end = this.endpoint.copy().multiplyByQuat(q.copy());
+        // apply rotation and translation
+        // const pos0_new = Utils.apply_quaternion(q4.copy(), this.initialPosition.copy()).add(tran.copy())
+        // const pos1_new = Utils.apply_quaternion(q4.copy(), this.initialEndpoint.copy()).add(tran.copy())
+        // update translation matrix
+        //this.trans.setIdentity().translate(pos0_new)
+        this.position = new_pos.copy();
+        this.endpoint = new_end.copy();
+        this.rotation = new_rot.copy();
     }
 }
 export class Mesh {

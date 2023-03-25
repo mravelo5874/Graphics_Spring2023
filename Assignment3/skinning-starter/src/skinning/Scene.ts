@@ -1,6 +1,6 @@
 import { Mat4, Quat, Vec3, Vec4 } from "../lib/TSM.js";
 import { AttributeLoader, MeshGeometryLoader, BoneLoader, MeshLoader } from "./AnimationFileLoader.js";
-import { Util } from "./Utils.js"
+import { Utils } from "./Utils.js"
 
 export class Attribute {
   values: Float32Array;
@@ -53,6 +53,8 @@ export class Bone
   public offset: number; // used when parsing the Collada file---you probably don't need to touch these
   public initialTransformation: Mat4;
 
+  public trans : Mat4 // current Translation matrix
+
   public length : number; // length of bone
 
   constructor(bone: BoneLoader) 
@@ -66,15 +68,32 @@ export class Bone
     this.initialPosition = bone.initialPosition.copy();
     this.initialEndpoint = bone.initialEndpoint.copy();
     this.initialTransformation = bone.initialTransformation.copy();
+    this.trans = bone.initialTransformation.copy();
     this.length = Vec3.distance(this.initialPosition.copy(), this.initialEndpoint.copy())
   }
 
   // this should update the bone's current position, endpoint, and rotation
-  public update_bone(_new_pos : Vec3, _new_end : Vec3, _new_rot : Quat) : void
+  public apply_rotation(q : Quat) : void
   {
-    this.position = _new_pos.copy()
-    this.endpoint = _new_end.copy()
-    this.rotation = _new_rot.copy()
+    const q4 : Vec4 = new Vec4(q.xyzw)
+    const new_rot : Quat = this.rotation.copy().multiply(q.copy())
+    const tran : Vec3 = new Vec3([this.trans.at(12), this.trans.at(13), this.trans.at(14)])
+    
+
+    // TODO fix this
+    const new_pos : Vec3 = this.position.copy().multiplyByQuat(q.copy())
+    const new_end : Vec3 = this.endpoint.copy().multiplyByQuat(q.copy())
+
+    // apply rotation and translation
+    // const pos0_new = Utils.apply_quaternion(q4.copy(), this.initialPosition.copy()).add(tran.copy())
+    // const pos1_new = Utils.apply_quaternion(q4.copy(), this.initialEndpoint.copy()).add(tran.copy())
+
+    // update translation matrix
+    //this.trans.setIdentity().translate(pos0_new)
+
+    this.position = new_pos.copy()
+    this.endpoint = new_end.copy()
+    this.rotation = new_rot.copy()
   }
 }
 

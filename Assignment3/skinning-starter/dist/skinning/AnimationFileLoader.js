@@ -3,8 +3,10 @@ import { Vec3 } from "../lib/tsm/Vec3.js";
 import { Mat4, Vec4 } from "../lib/TSM.js";
 import { Quat } from "../lib/tsm/Quat.js";
 import { Mesh } from "../skinning/Scene.js";
-import { Cylinder, Hex, Util } from "./Utils.js";
+import { Utils } from "./Utils.js";
 import { RaycastRenderer } from "./RaycastRenderer.js";
+import { Hex } from "./Hex.js";
+import { Cylinder } from "./Cylinder.js";
 export class AttributeLoader {
     constructor(values, count, itemSize) {
         this.values = values;
@@ -280,8 +282,8 @@ class CLoader {
         // apply rotation and translation
         const quat = new Vec4([bone_rot[q], bone_rot[q + 1], bone_rot[q + 2], bone_rot[q + 3]]);
         const tran = new Vec3([bone_tra[t], bone_tra[t + 1], bone_tra[t + 2]]);
-        const pos0_new = Util.apply_quaternion(quat.copy(), pos0.copy()).add(tran.copy());
-        const pos1_new = Util.apply_quaternion(quat.copy(), pos1.copy()).add(tran.copy());
+        const pos0_new = Utils.apply_quaternion(quat.copy(), pos0.copy()).add(tran.copy());
+        const pos1_new = Utils.apply_quaternion(quat.copy(), pos1.copy()).add(tran.copy());
         return new Cylinder(id, pos0_new, pos1_new, quat, tran);
     }
     get_cylinders() {
@@ -307,8 +309,8 @@ class CLoader {
             // apply rotation and translation
             const quat = new Vec4([bone_rot[q], bone_rot[q + 1], bone_rot[q + 2], bone_rot[q + 3]]);
             const tran = new Vec3([bone_tra[t], bone_tra[t + 1], bone_tra[t + 2]]);
-            const pos0_new = Util.apply_quaternion(quat.copy(), pos0.copy()).add(tran.copy());
-            const pos1_new = Util.apply_quaternion(quat.copy(), pos1.copy()).add(tran.copy());
+            const pos0_new = Utils.apply_quaternion(quat.copy(), pos0.copy()).add(tran.copy());
+            const pos1_new = Utils.apply_quaternion(quat.copy(), pos1.copy()).add(tran.copy());
             const id = bone_atr[a];
             b += 6;
             q += 4;

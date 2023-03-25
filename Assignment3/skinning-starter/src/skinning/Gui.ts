@@ -1,11 +1,9 @@
 import { Camera } from "../lib/webglutils/Camera.js";
-import { CanvasAnimation } from "../lib/webglutils/CanvasAnimation.js";
 import { SkinningAnimation } from "./App.js";
 import { Mat4, Vec3, Vec4, Vec2, Mat2, Quat } from "../lib/TSM.js";
-import { Mesh, Bone } from "./Scene.js";
-import { RenderPass } from "../lib/webglutils/RenderPass.js";
-import { Cylinder, Hex, Ray, Util } from "./Utils.js"
+import { Ray, Utils } from "./Utils.js"
 import { BoneRotator } from "./BoneRotator.js";
+import { Cylinder } from "./Cylinder.js";
 
 /**
  * Might be useful for designing any animation GUI
@@ -210,7 +208,7 @@ export class GUI implements IGUI {
               // roate bone based on dx
               let cam_dir : Vec3 = this.camera.forward()
               const cam_ray : Ray = new Ray(this.camera.pos(), cam_dir)
-              BoneRotator.rotate_bone(this.animation.getScene(), this.bone_id, dx, cam_ray)
+              BoneRotator.rotate_bone(this.animation.getScene(), this.bone_id, dx, cam_ray.get_direction())
             }
             else
             {
@@ -273,7 +271,7 @@ export class GUI implements IGUI {
       // set bone highlight
       if (id >= 0)
       {
-        this.animation.getScene().hex.set_color(Util.get_color('cyan'))
+        this.animation.getScene().hex.set_color(Utils.get_color('cyan'))
         this.animation.getScene().hex.set(cyls[id].get_start(), cyls[id].get_end(), id)
         this.bone_id = id
       }
@@ -336,7 +334,7 @@ export class GUI implements IGUI {
     this.prevX = 0;
     this.prevY = 0;
     
-    this.animation.getScene().hex.set_color(Util.get_color('cyan'))
+    this.animation.getScene().hex.set_color(Utils.get_color('cyan'))
   }
 
   /**

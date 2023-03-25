@@ -1,4 +1,4 @@
-import { Util } from "./Utils.js";
+import { Utils } from "./Utils.js";
 export class RaycastRenderer {
     constructor() {
         this.ray_index_count = 0;
@@ -29,7 +29,7 @@ export class RaycastRenderer {
         this.ray_positions.push(end.y);
         this.ray_positions.push(end.z);
         // add ray colors
-        let color_id = Util.get_color(color);
+        let color_id = Utils.get_color(color);
         this.ray_colors.push(color_id.x);
         this.ray_colors.push(color_id.y);
         this.ray_colors.push(color_id.z);
