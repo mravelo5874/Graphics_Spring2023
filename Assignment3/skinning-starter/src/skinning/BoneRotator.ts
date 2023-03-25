@@ -7,9 +7,8 @@ export class BoneRotator
 {
     private static rotate_scale : number = 0.02
 
-    public static rotate_bone(scene : CLoader, id : number, dx : number, camera_ray : Ray)
+    public static rotate_bone(scene : CLoader, id : number, dx : number, axis: Vec3)
     {
-        const axis : Vec3 = camera_ray.get_direction().normalize()
         // get bone
         const bone : Bone = scene.meshes[0].bones[id]
         // rotate bone using dx
@@ -20,9 +19,11 @@ export class BoneRotator
         const new_pos : Vec3 = bone.position.copy().multiplyByQuat(q.copy())
         const new_end : Vec3 = bone.endpoint.copy().multiplyByQuat(q.copy())
         // update bone and hex
-        bone.update_bone(bone.position.copy(), new_end.copy(), new_rot.copy())
+        const pos_v4 : Vec4 = new Vec4([new_pos.x, new_pos.y, new_pos.z, 1.0])
+        const end_v4 : Vec4 = new Vec4([new_end.x, new_end.y, new_end.z, 1.0])
+        bone.update_bone(pos_v4, end_v4, new_rot.copy())
         scene.hex.set_color(Util.get_color('green'))
-        scene.hex.rotate(q)
+        scene.hex.rotate(pos_v4, q)
 
         // recurssively update children
         this.update_children(bone, axis.copy(), rads, scene)
@@ -41,8 +42,10 @@ export class BoneRotator
             const new_rot : Quat = child_bone.rotation.copy().multiply(q.copy())
             const new_pos : Vec3 = child_bone.position.copy().multiplyByQuat(q.copy())
             const new_end : Vec3 = child_bone.endpoint.copy().multiplyByQuat(q.copy())
-            // update bone
-            child_bone.update_bone(new_pos.copy(), new_end.copy(), new_rot.copy())
+            // update bone and hex
+            const pos_v4 : Vec4 = new Vec4([new_pos.x, new_pos.y, new_pos.z, 1.0])
+            const end_v4 : Vec4 = new Vec4([new_end.x, new_end.y, new_end.z, 1.0])
+            child_bone.update_bone(pos_v4, end_v4, new_rot.copy())
             // recurse to child bones
             this.update_children(child_bone, axis.copy(), rads, scene)
         });
