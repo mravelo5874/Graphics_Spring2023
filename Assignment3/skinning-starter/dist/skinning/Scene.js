@@ -35,7 +35,7 @@ export class Bone {
         this.length = Vec3.distance(this.initialPosition.copy(), this.initialEndpoint.copy());
     }
     // this should update the bone's current position, endpoint, and rotation
-    apply_rotation(q) {
+    apply_rotation(offset, q) {
         // update rotation
         const new_rot = this.rotation.copy().multiply(q.copy());
         this.rotation = new_rot.copy();
@@ -47,8 +47,8 @@ export class Bone {
         // const end_new : Vec3 = Utils.apply_quaternion(quat.copy(), end0.copy()).add(this.position.copy())
         // this.position = pos_new.copy()
         // this.endpoint = end_new.copy()
-        let new_pos = this.position.copy().multiplyByQuat(q.copy());
-        let new_end = this.endpoint.copy().multiplyByQuat(q.copy());
+        let new_pos = this.position.copy().add(offset.copy()).multiplyByQuat(q.copy()).subtract(offset.copy());
+        let new_end = this.endpoint.copy().add(offset.copy()).multiplyByQuat(q.copy()).subtract(offset.copy());
         // new_pos = new_pos.copy().subtract(offset.copy())
         // new_end = new_end.copy().subtract(offset.copy())
         this.position = new_pos.copy();

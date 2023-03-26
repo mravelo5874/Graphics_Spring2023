@@ -77,15 +77,15 @@ export class GUI implements IGUI {
     this.registerEventListeners(canvas);
   }
 
-  public getNumKeyFrames(): number {
-    // TODO
+  public getNumKeyFrames(): number 
+  {
     // Used in the status bar in the GUI
     return 0;
   }
   public getTime(): number { return this.time; }
   
-  public getMaxTime(): number { 
-    // TODO
+  public getMaxTime(): number 
+  { 
     // The animation should stop after the last keyframe
     return 0;
   }
@@ -206,9 +206,8 @@ export class GUI implements IGUI {
             if (this.bone_id > -1)
             {
               // roate bone based on dx
-              let cam_dir : Vec3 = this.camera.forward()
-              const cam_ray : Ray = new Ray(this.camera.pos(), cam_dir)
-              BoneRotator.rotate_bone(this.animation.getScene(), this.bone_id, dx, cam_ray.get_direction())
+              const cam_dir : Vec3 = this.camera.forward()
+              BoneRotator.rotate_bone(this.animation.getScene(), this.bone_id, dx, cam_dir)
             }
             else
             {
@@ -250,7 +249,7 @@ export class GUI implements IGUI {
       if (!this.animation.getScene().is_loaded) return
 
       // get all cylinders cooresponding to bones
-      const cyls : Cylinder[] = this.animation.getScene().get_cylinders()
+      const cyls : Cylinder[] = this.animation.getScene().create_cylinders()
 
       // convert mouse x y position to world ray
       this.mouse_ray = this.screen_to_world_ray(x, y)

@@ -460,27 +460,27 @@ export class Mat3 {
     switch (biggestIndex) {
       case 0:
         dest.w = biggestVal;
-        dest.x = (m12 - m21) * mult;
-        dest.y = (m20 - m02) * mult;
-        dest.z = (m01 - m10) * mult;
+        dest.x = (m21 - m12) * mult;
+        dest.y = (m02 - m20) * mult;
+        dest.z = (m10 - m01) * mult;
         break;
 
       case 1:
-        dest.w = (m12 - m21) * mult;
+        dest.w = (m21 - m12) * mult;
         dest.x = biggestVal;
         dest.y = (m01 + m10) * mult;
         dest.z = (m20 + m02) * mult;
         break;
 
       case 2:
-        dest.w = (m20 - m02) * mult;
+        dest.w = (m02 - m20) * mult;
         dest.x = (m01 + m10) * mult;
         dest.y = biggestVal;
         dest.z = (m12 + m21) * mult;
         break;
 
       case 3:
-        dest.w = (m01 - m10) * mult;
+        dest.w = (m10 - m01) * mult;
         dest.x = (m20 + m02) * mult;
         dest.y = (m12 + m21) * mult;
         dest.z = biggestVal;

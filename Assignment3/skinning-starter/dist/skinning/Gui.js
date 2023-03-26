@@ -32,13 +32,11 @@ export class GUI {
         this.registerEventListeners(canvas);
     }
     getNumKeyFrames() {
-        // TODO
         // Used in the status bar in the GUI
         return 0;
     }
     getTime() { return this.time; }
     getMaxTime() {
-        // TODO
         // The animation should stop after the last keyframe
         return 0;
     }
@@ -124,9 +122,8 @@ export class GUI {
                             // rotate current bone
                             if (this.bone_id > -1) {
                                 // roate bone based on dx
-                                let cam_dir = this.camera.forward();
-                                const cam_ray = new Ray(this.camera.pos(), cam_dir);
-                                BoneRotator.rotate_bone(this.animation.getScene(), this.bone_id, dx, cam_ray.get_direction());
+                                const cam_dir = this.camera.forward();
+                                BoneRotator.rotate_bone(this.animation.getScene(), this.bone_id, dx, cam_dir);
                             }
                             else {
                                 let rotAxis = Vec3.cross(this.camera.forward(), mouseDir);

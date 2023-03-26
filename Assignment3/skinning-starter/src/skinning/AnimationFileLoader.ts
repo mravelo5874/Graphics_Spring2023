@@ -337,7 +337,7 @@ class CLoader
     });
   }
 
-  public get_cylinder(id : number) : Cylinder
+  public create_cylinder(id : number) : Cylinder
   {
     const bone_pos = this.meshes[0].getBonePositions()
     const bone_rot = this.meshes[0].getBoneRotations()
@@ -360,7 +360,7 @@ class CLoader
     return new Cylinder(id, pos0_new, pos1_new, quat, tran)
   }
 
-  public get_cylinders() : Cylinder[]
+  public create_cylinders() : Cylinder[]
   {
     const cylinders = new Array<Cylinder>
 

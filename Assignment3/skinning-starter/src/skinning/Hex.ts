@@ -57,19 +57,18 @@ export class Hex
         this.update = true
     }
 
-    public rotate(quat : Quat)
+    public rotate(offset : Vec3, quat : Quat)
     {
         let i : number = 0
         while (i < this.hex_positions.length)
         {
-            // TODO fix this :<
             // get pos
             const x : number = this.hex_positions[i]
             const y : number = this.hex_positions[i+1]
             const z : number = this.hex_positions[i+2]
             const pos : Vec3 = new Vec3([x, y, z])
             // rotate pos
-            const rot_pos : Vec3 = pos.copy().multiplyByQuat(quat)
+            const rot_pos : Vec3 = pos.copy().add(offset.copy()).multiplyByQuat(quat).subtract(offset.copy())
             // re-assign pos
             this.hex_positions[i]   = rot_pos.x
             this.hex_positions[i+1] = rot_pos.y

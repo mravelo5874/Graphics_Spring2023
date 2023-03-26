@@ -53,6 +53,15 @@ export class Bone
   public offset: number; // used when parsing the Collada file---you probably don't need to touch these
   public initialTransformation: Mat4;
 
+  // Each joint needs to keep track of an affine transformation 
+  // describing the rotation of that joint with respect to the 
+  // parent's transformation. 
+  // TODO
+  public Ti : Mat4;
+  // The matrix Di mapping from the root joint's local 
+  // coordinates, to world coordinates, is
+  public Di : Mat4;
+
   public length : number; // length of bone
 
   constructor(bone: BoneLoader) 
@@ -70,7 +79,7 @@ export class Bone
   }
 
   // this should update the bone's current position, endpoint, and rotation
-  public apply_rotation(q : Quat) : void
+  public apply_rotation(offset : Vec3, q : Quat) : void
   {
     // update rotation
     const new_rot : Quat = this.rotation.copy().multiply(q.copy())
@@ -88,8 +97,8 @@ export class Bone
     // this.position = pos_new.copy()
     // this.endpoint = end_new.copy()
     
-    let new_pos = this.position.copy().multiplyByQuat(q.copy());
-    let new_end = this.endpoint.copy().multiplyByQuat(q.copy());
+    let new_pos = this.position.copy().add(offset.copy()).multiplyByQuat(q.copy()).subtract(offset.copy());
+    let new_end = this.endpoint.copy().add(offset.copy()).multiplyByQuat(q.copy()).subtract(offset.copy());
 
     // new_pos = new_pos.copy().subtract(offset.copy())
     // new_end = new_end.copy().subtract(offset.copy())

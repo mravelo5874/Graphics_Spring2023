@@ -34,17 +34,16 @@ export class Hex {
         }
         this.update = true;
     }
-    rotate(quat) {
+    rotate(offset, quat) {
         let i = 0;
         while (i < this.hex_positions.length) {
-            // TODO fix this :<
             // get pos
             const x = this.hex_positions[i];
             const y = this.hex_positions[i + 1];
             const z = this.hex_positions[i + 2];
             const pos = new Vec3([x, y, z]);
             // rotate pos
-            const rot_pos = pos.copy().multiplyByQuat(quat);
+            const rot_pos = pos.copy().add(offset.copy()).multiplyByQuat(quat).subtract(offset.copy());
             // re-assign pos
             this.hex_positions[i] = rot_pos.x;
             this.hex_positions[i + 1] = rot_pos.y;
