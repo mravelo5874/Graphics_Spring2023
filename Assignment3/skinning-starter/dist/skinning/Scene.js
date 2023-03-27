@@ -35,15 +35,16 @@ export class Bone {
         this.initialTransformation = bone.initialTransformation.copy();
         this.length = Vec3.distance(this.initialPosition.copy(), this.initialEndpoint.copy());
         this.id = bone.id;
-        // console.log('[BONE] id: ' + this.id + 
-        // '\nparent: ' + this.parent +
-        // '\nchildren: ' + this.children +
-        // '\ninit_pos: ' + Utils.vec3_toFixed(this.initialPosition) + 
-        // '\ninit_end: ' + Utils.vec3_toFixed(this.initialEndpoint) + 
-        // '\npos: ' + Utils.vec3_toFixed(this.position) + 
-        // '\nend: ' + Utils.vec3_toFixed(this.endpoint) + 
-        // '\nrot: ' + Utils.quat_toFixed(this.rotation) + 
-        // '\ninit_trans: ' + Utils.mat4_toFixed(this.initialTransformation))
+        this.Ti;
+        console.log('[BONE] id: ' + this.id +
+            '\nparent: ' + this.parent +
+            '\nchildren: ' + this.children +
+            '\ninit_pos: ' + Utils.vec3_toFixed(this.initialPosition) +
+            '\ninit_end: ' + Utils.vec3_toFixed(this.initialEndpoint) +
+            '\npos: ' + Utils.vec3_toFixed(this.position) +
+            '\nend: ' + Utils.vec3_toFixed(this.endpoint) +
+            '\nrot: ' + Utils.quat_toFixed(this.rotation) +
+            '\ninit_trans: ' + Utils.mat4_toFixed(this.initialTransformation));
     }
     // this should update the bone's current position, endpoint, and rotation
     apply_rotation(offset, q) {

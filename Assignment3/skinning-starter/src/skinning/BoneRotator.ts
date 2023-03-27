@@ -14,27 +14,32 @@ export class BoneRotator
         // rotate bone using dx
         const rads : number = -dx * this.rotate_scale
         const q : Quat = (Utils.create_quaternion_from_axis_and_angle(axis, rads))
-        // update bone and hex
+        // update bone values
         const offset : Vec3 = bone.position.copy()
         bone.apply_rotation(offset.copy(), q.copy())
+        bone.update_Ti(offset.copy(), axis.copy(), rads)
+        // update Di matrix
+        if (bone.parent < 0) bone.update_Di_Ui()
+        else bone.update_Di_Ui(scene.meshes[0].bones[bone.parent].Di.copy())
+        // update hex values
         scene.hex.set_color(Utils.get_color('green'))
         scene.hex.rotate(offset.copy(), q.copy())
-
         // recurssively update children
-        this.update_children(bone, offset.copy(), q.copy(), scene)
+        this.update_children(bone, offset.copy(), q.copy(), axis.copy(), rads, scene)
     }
 
-    private static update_children(b : Bone, offset : Vec3, q : Quat, scene : CLoader)
+    private static update_children(b : Bone, offset : Vec3, q : Quat, axis : Vec3, rads : number, scene : CLoader)
     {
         const children : number[] = b.children
         children.forEach(i => 
         {
             // get child bone
             const child_bone : Bone = scene.meshes[0].bones[i]
-            // update bone
+            // update bone values
             child_bone.apply_rotation(offset.copy(), q.copy())
+            child_bone.update_Ti(offset.copy(), axis.copy(), rads)
             // recurse to child bones
-            this.update_children(child_bone, offset.copy(), q.copy(), scene)
+            this.update_children(child_bone, offset.copy(), q.copy(), axis.copy(), rads, scene)
         });
     }
 }

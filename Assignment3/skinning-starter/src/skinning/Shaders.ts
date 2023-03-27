@@ -69,7 +69,9 @@ export const sceneVSText = `
     uniform vec3 jTrans[64];
     uniform vec4 jRots[64];
 
-    void main () {
+    // TODO : linear-blend skinning!
+    void main () 
+    {
         vec3 trans = vertPosition;
         vec4 worldPosition = mWorld * vec4(trans, 1.0);
         gl_Position = mProj * mView * worldPosition;
