@@ -64,13 +64,57 @@ export const sceneVSText = `
     uniform mat4 mView;
     uniform mat4 mProj;
 
+    uniform mat4 D_mats[64];
+    uniform mat4 U_mats[64];
+
     uniform vec3 jTrans[64];
     uniform vec4 jRots[64];
 
     // TODO : linear-blend skinning!
+    vec3 linear_blend_skinning()
+    {
+        vec3 sum = vec3(0.0, 0.0, 0.0);
+        for (int i = 0; i < 4; i++)
+        {
+            // get matrix
+            int index = int(skinIndices[i]);
+            mat4 Di = D_mats[index];
+            mat4 Ui = U_mats[index];
+            mat4 T = Di * Ui;
+
+            // get correct position
+            vec4 v = vec4(0.0, 0.0, 0.0, 1.0);
+            if (i == 0)
+            {
+                v = vec4(v0);
+            }
+            else if (i == 1)
+            {
+                v = vec4(v1);
+            }
+            else if (i == 2)
+            {
+                v = vec4(v2);
+            }
+            else if (i == 3)
+            {
+                v = vec4(v3);
+            }
+
+            // calculate sum
+            float w = skinWeights[i];
+            vec4 c = T * v;
+            c *= w;
+            sum.x += c.x;
+            sum.y += c.y;
+            sum.z += c.z;
+        }
+        return sum;
+    }
+
     void main () 
     {
-        vec3 trans = vertPosition;
+        vec3 trans = linear_blend_skinning();
         vec4 worldPosition = mWorld * vec4(trans, 1.0);
         gl_Position = mProj * mView * worldPosition;
         

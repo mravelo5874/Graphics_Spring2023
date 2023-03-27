@@ -1,7 +1,7 @@
 import { Vec3 } from "../lib/TSM.js";
 import { Utils } from "./Utils.js";
 // class used to convert bones into hex prisms
-class Hex {
+export class Hex {
     get_update() { return this.update; }
     got_update() { this.update = false; }
     constructor() {
@@ -212,5 +212,4 @@ class Hex {
 }
 Hex.radius = 0.1;
 Hex.pi_over_3 = Math.PI / 3;
-export { Hex };
 //# sourceMappingURL=Hex.js.map

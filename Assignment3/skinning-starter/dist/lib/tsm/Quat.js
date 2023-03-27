@@ -8,7 +8,7 @@ import { epsilon } from "./Constants.js";
  * This library uses the convention of the scalar element
  * as the last element.
  */
-class Quat {
+export class Quat {
     /**
      * Swizzle operators
      */
@@ -557,5 +557,4 @@ class Quat {
  * and the other elements are 0.
  */
 Quat.identity = new Quat().setIdentity();
-export { Quat };
 //# sourceMappingURL=Quat.js.map

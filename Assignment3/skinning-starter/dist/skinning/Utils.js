@@ -1,7 +1,7 @@
 import { Vec3, Mat4, Quat } from "../lib/TSM.js";
 import { Hex } from "./Hex.js";
 // http-server dist -c-1
-class Utils {
+export class Utils {
     static get_color(_name) {
         switch (_name) {
             case "white": return new Vec3([1.0, 1.0, 1.0]);
@@ -175,7 +175,6 @@ class Utils {
 }
 Utils.ortho_x_quat = new Quat([-0.7071068, 0, 0, 0.7071068]);
 Utils.ortho_y_quat = new Quat([0, 0.7071068, 0, 0.7071068]);
-export { Utils };
 export class Ray {
     get_origin() { return new Vec3(this.origin.xyz); }
     get_direction() { return new Vec3(this.direction.xyz).normalize(); }

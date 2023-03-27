@@ -1,6 +1,6 @@
 import { Vec3 } from "../lib/TSM.js";
 import { Utils } from "./Utils.js";
-class BoneRotator {
+export class BoneRotator {
     static rotate_bone(scene, id, dx, axis) {
         // get bone
         const bone = scene.meshes[0].bones[id];
@@ -19,8 +19,10 @@ class BoneRotator {
                 bone.calculate_Bji(scene.meshes[0].bones[bone.parent].initialPosition.copy());
         }
         // update Di matrix
-        //if (bone.parent < 0) bone.update_Di_Ui()
-        //else bone.update_Di_Ui(scene.meshes[0].bones[bone.parent].Di.copy())
+        if (bone.parent < 0)
+            bone.update_Di_Ui();
+        else
+            bone.update_Di_Ui(scene.meshes[0].bones[bone.parent].Di.copy());
         // update hex values
         scene.hex.set_color(Utils.get_color('green'));
         scene.hex.rotate(offset.copy(), q.copy());
@@ -43,13 +45,14 @@ class BoneRotator {
                     child_bone.calculate_Bji(scene.meshes[0].bones[child_bone.parent].initialPosition.copy());
             }
             // update Di matrix
-            //if (child_bone.parent < 0) child_bone.update_Di_Ui()
-            //else child_bone.update_Di_Ui(scene.meshes[0].bones[child_bone.parent].Di.copy())
+            if (child_bone.parent < 0)
+                child_bone.update_Di_Ui();
+            else
+                child_bone.update_Di_Ui(scene.meshes[0].bones[child_bone.parent].Di.copy());
             // recurse to child bones
             this.update_children(child_bone, offset.copy(), q.copy(), axis.copy(), rads, scene);
         });
     }
 }
 BoneRotator.rotate_scale = 0.02;
-export { BoneRotator };
 //# sourceMappingURL=BoneRotator.js.map

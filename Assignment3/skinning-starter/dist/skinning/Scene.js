@@ -37,7 +37,9 @@ export class Bone {
         this.id = bone.id;
         this.B_calc = false;
         this.Ti = Mat4.identity; // TODO: (does this work as intended?) this.initialTransformation
-        // this.update_Di_Ui()
+        this.Di = Mat4.identity;
+        this.Ui = Mat4.identity;
+        this.Bji = Mat4.identity;
         // console.log('[BONE] id: ' + this.id + 
         // '\nparent: ' + this.parent +
         // '\nchildren: ' + this.children +
@@ -59,9 +61,9 @@ export class Bone {
     // TODO (does this work as intended?)
     update_Ti(offset, axis, rads) {
         // update Ti mat
-        this.Ti = this.Ti.copy().translate(offset.copy().negate());
+        //this.Ti = this.Ti.copy().translate(offset.copy().negate())
         this.Ti = this.Ti.copy().rotate(rads, axis.copy());
-        this.Ti = this.Ti.copy().translate(offset.copy());
+        //this.Ti = this.Ti.copy().translate(offset.copy())
     }
     // TODO (does this work as intended?)
     update_Di_Ui(D_j) {
@@ -78,7 +80,11 @@ export class Bone {
     }
     // TODO (does this work as intended?)
     calculate_Bji(parent_joint_pos) {
+        // calculate Bji mat
         this.Bji = Mat4.identity.copy().translate(this.initialPosition.copy().subtract(parent_joint_pos.copy()));
+        // set Di Ui mats if root bone
+        if (this.parent < 0)
+            this.update_Di_Ui();
         this.B_calc = true;
     }
 }
@@ -125,6 +131,32 @@ export class Mesh {
             }
         });
         return trans;
+    }
+    get_D_mats() {
+        // create number array
+        let D_mats = new Array();
+        // for each bone
+        for (let i = 0; i < this.bones.length; i++) {
+            // add each D mat element in order
+            const bone_Di = this.bones[i].Di.copy().all();
+            for (let j = 0; j < 16; j++) {
+                D_mats.push(bone_Di[j]);
+            }
+        }
+        return new Float32Array(D_mats);
+    }
+    get_U_mats() {
+        // create number array
+        let U_mats = new Array();
+        // for each bone
+        for (let i = 0; i < this.bones.length; i++) {
+            // add each U mat element in order
+            const bone_Ui = this.bones[i].Ui.copy().inverse().all();
+            for (let j = 0; j < 16; j++) {
+                U_mats.push(bone_Ui[j]);
+            }
+        }
+        return new Float32Array(U_mats);
     }
 }
 //# sourceMappingURL=Scene.js.map

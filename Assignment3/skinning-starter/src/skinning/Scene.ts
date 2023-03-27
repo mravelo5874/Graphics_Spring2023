@@ -80,8 +80,9 @@ export class Bone
     this.B_calc = false
 
     this.Ti = Mat4.identity // TODO: (does this work as intended?) this.initialTransformation
-    // this.update_Di_Ui()
-
+    this.Di = Mat4.identity
+    this.Ui = Mat4.identity
+    this.Bji = Mat4.identity
 
     // console.log('[BONE] id: ' + this.id + 
     // '\nparent: ' + this.parent +
@@ -134,8 +135,10 @@ export class Bone
   // TODO (does this work as intended?)
   public calculate_Bji(parent_joint_pos : Vec3) : void
   {
+    // calculate Bji mat
     this.Bji = Mat4.identity.copy().translate(this.initialPosition.copy().subtract(parent_joint_pos.copy()))
-    
+    // set Di Ui mats if root bone
+    if (this.parent < 0) this.update_Di_Ui()
     this.B_calc = true
   }
 }
@@ -205,5 +208,39 @@ export class Mesh
       }
     });
     return trans;
+  }
+
+  public get_D_mats() : Float32Array
+  { 
+    // create number array
+    let D_mats : number[] = new Array<number>()
+    // for each bone
+    for (let i = 0; i < this.bones.length; i++)
+    {
+      // add each D mat element in order
+      const bone_Di : number[] = this.bones[i].Di.copy().all()
+      for (let j = 0; j < 16; j++)
+      {
+        D_mats.push(bone_Di[j])
+      }
+    }
+    return new Float32Array(D_mats)
+  }
+
+  public get_U_mats() : Float32Array
+  {
+    // create number array
+    let U_mats : number[] = new Array<number>()
+    // for each bone
+    for (let i = 0; i < this.bones.length; i++)
+    {
+      // add each U mat element in order
+      const bone_Ui : number[] = this.bones[i].Ui.copy().inverse().all()
+      for (let j = 0; j < 16; j++)
+      {
+        U_mats.push(bone_Ui[j])
+      }
+    }
+    return new Float32Array(U_mats)
   }
 }

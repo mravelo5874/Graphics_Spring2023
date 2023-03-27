@@ -109,6 +109,13 @@ export class SkinningAnimation extends CanvasAnimation {
         this.sceneRenderPass.addUniform("jRots", (gl, loc) => {
             gl.uniform4fv(loc, this.scene.meshes[0].getBoneRotations());
         });
+        // add D and U mats
+        this.sceneRenderPass.addUniform("D_mats", (gl, loc) => {
+            gl.uniformMatrix4fv(loc, false, this.scene.meshes[0].get_D_mats());
+        });
+        this.sceneRenderPass.addUniform("U_mats", (gl, loc) => {
+            gl.uniformMatrix4fv(loc, false, this.scene.meshes[0].get_U_mats());
+        });
         this.sceneRenderPass.setDrawData(this.ctx.TRIANGLES, this.scene.meshes[0].geometry.position.count, this.ctx.UNSIGNED_INT, 0);
         this.sceneRenderPass.setup();
     }
