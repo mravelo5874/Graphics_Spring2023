@@ -128,7 +128,7 @@ export class SkinningAnimation extends CanvasAnimation
     if (this.scene.meshes.length === 0) { return; }
     this.initModel();
     this.initSkeleton();
-    this.init_hex();
+    //this.init_hex();
     this.gui.reset();
   }
 
@@ -410,9 +410,9 @@ export class SkinningAnimation extends CanvasAnimation
     // init hex updates
     if (this.scene.hex.get_update())
     {
-      this.render_hex = true;
-      this.init_hex();
-      this.scene.hex.got_update();
+      // this.render_hex = true;
+      // this.init_hex();
+      // this.scene.hex.got_update();
       //console.log('init hex')
     }
       
@@ -474,9 +474,9 @@ export class SkinningAnimation extends CanvasAnimation
     // draw hex
     if (this.render_hex)
     {
-      gl.disable(gl.DEPTH_TEST);
-      this.hex_render_pass.draw();
-      gl.enable(gl.DEPTH_TEST); 
+      // gl.disable(gl.DEPTH_TEST);
+      // this.hex_render_pass.draw();
+      // gl.enable(gl.DEPTH_TEST); 
     }
 
     // draw rays

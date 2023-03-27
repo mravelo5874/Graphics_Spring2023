@@ -206,7 +206,7 @@ export class GUI implements IGUI {
             if (this.bone_id > -1)
             {
               // roate bone based on dx
-              const cam_dir : Vec3 = this.camera.forward()
+              const cam_dir : Vec3 = this.camera.forward().normalize()
               BoneRotator.rotate_bone(this.animation.getScene(), this.bone_id, dx, cam_dir)
             }
             else
@@ -259,7 +259,7 @@ export class GUI implements IGUI {
       let min_t = Number.MAX_VALUE    
       for (let i = 0; i < cyls.length; i++)
       {
-        let res : [boolean, number] = cyls[i].ray_interset(this.mouse_ray)
+        let res : [boolean, number] = Utils.ray_interset(this.mouse_ray, cyls[i].get_start(), cyls[i].get_end())
         if (res[0] && res[1] < min_t)
         {
           id = cyls[i].get_id()
@@ -270,14 +270,14 @@ export class GUI implements IGUI {
       // set bone highlight
       if (id >= 0)
       {
-        this.animation.getScene().hex.set_color(Utils.get_color('cyan'))
-        this.animation.getScene().hex.set(cyls[id].get_start(), cyls[id].get_end(), id)
+        //this.animation.getScene().hex.set_color(Utils.get_color('cyan'))
+        //this.animation.getScene().hex.set(cyls[id].get_start(), cyls[id].get_end(), id)
         this.bone_id = id
       }
       // no bone hightlight    
       else
       { 
-        this.animation.getScene().hex.del()
+        //this.animation.getScene().hex.del()
         this.bone_id = -1
       }
     }

@@ -1,4 +1,5 @@
-import { Vec3, Vec4 } from "../lib/TSM.js";
+import { Vec3 } from "../lib/TSM.js";
+import { Utils } from "./Utils.js";
 export class Attribute {
     constructor(attr) {
         this.values = attr.values;
@@ -33,26 +34,35 @@ export class Bone {
         this.initialEndpoint = bone.initialEndpoint.copy();
         this.initialTransformation = bone.initialTransformation.copy();
         this.length = Vec3.distance(this.initialPosition.copy(), this.initialEndpoint.copy());
+        this.id = bone.id;
+        this.Ti = bone.initialTransformation.copy();
+        console.log('[BONE] id: ' + this.id +
+            '\nparent: ' + this.parent +
+            '\nchildren: ' + this.children +
+            '\ninit_pos: ' + Utils.vec3_toFixed(this.initialPosition) +
+            '\ninit_end: ' + Utils.vec3_toFixed(this.initialEndpoint) +
+            '\npos: ' + Utils.vec3_toFixed(this.position) +
+            '\nend: ' + Utils.vec3_toFixed(this.endpoint) +
+            '\nrot: ' + Utils.quat_toFixed(this.rotation) +
+            '\ninit_trans: ' + Utils.mat4_toFixed(this.initialTransformation));
+        // convert world pos + end to local points
+        const local_pos = this.Ti.copy().inverse().multiplyPt3(this.position.copy());
+        const local_end = this.Ti.copy().inverse().multiplyPt3(this.endpoint.copy());
+        console.log('local pos: ' + Utils.vec3_toFixed(local_pos));
+        console.log('local end: ' + Utils.vec3_toFixed(local_end));
+        // back to world pos + end
+        const world_pos = this.Ti.copy().multiplyPt3(local_pos.copy());
+        const world_end = this.Ti.copy().multiplyPt3(local_end.copy());
+        console.log('world pos: ' + Utils.vec3_toFixed(world_pos));
+        console.log('world end: ' + Utils.vec3_toFixed(world_end));
     }
     // this should update the bone's current position, endpoint, and rotation
-    apply_rotation(offset, q) {
+    apply_rotation(offset, q, axis, rads) {
         // update rotation
-        const new_rot = this.rotation.copy().multiply(q.copy());
-        this.rotation = new_rot.copy();
-        // TODO fix this
-        const quat = new Vec4(q.xyzw);
-        // const pos0 : Vec3 = Vec3.zero.copy()
-        // const end0 : Vec3 = new Vec3([this.initialEndpoint.x - this.initialPosition.x, this.initialEndpoint.y - this.initialPosition.y, this.initialEndpoint.z - this.initialPosition.z])
-        // const pos_new : Vec3 = Utils.apply_quaternion(quat.copy(), pos0.copy()).add(this.position.copy())
-        // const end_new : Vec3 = Utils.apply_quaternion(quat.copy(), end0.copy()).add(this.position.copy())
-        // this.position = pos_new.copy()
-        // this.endpoint = end_new.copy()
-        let new_pos = this.position.copy().add(offset.copy()).multiplyByQuat(q.copy()).subtract(offset.copy());
-        let new_end = this.endpoint.copy().add(offset.copy()).multiplyByQuat(q.copy()).subtract(offset.copy());
-        // new_pos = new_pos.copy().subtract(offset.copy())
-        // new_end = new_end.copy().subtract(offset.copy())
-        this.position = new_pos.copy();
-        this.endpoint = new_end.copy();
+        this.rotation = q.copy().multiply(this.rotation.copy());
+        // update position
+        this.position = Utils.rotate_vec_using_quat(this.position.copy().subtract(offset.copy()), q.copy()).add(offset.copy());
+        this.endpoint = Utils.rotate_vec_using_quat(this.endpoint.copy().subtract(offset.copy()), q.copy()).add(offset.copy());
     }
 }
 export class Mesh {

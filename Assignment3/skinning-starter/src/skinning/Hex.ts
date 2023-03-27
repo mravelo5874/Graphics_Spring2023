@@ -11,13 +11,17 @@ export class Hex
     private start : Vec3;
     private end : Vec3;
     private id : number;
-    private deleted : boolean;
 
     private hex_indices : number[];
     private hex_positions : number[];
     private hex_colors : number[];
 
+    private hex_indices_array : Uint32Array;
+    private hex_positions_array : Float32Array;
+    private hex_colors_array : Float32Array;
+
     private update : boolean = false
+    private deleted : boolean = false
 
     public get_update() : boolean { return this.update }
     public got_update() : void { this.update = false }
@@ -27,12 +31,24 @@ export class Hex
         this.start = Vec3.zero.copy()
         this.end = Vec3.zero.copy()
         this.id = -1
-        this.deleted = false
         this.color = new Vec3([0.0, 1.0, 0.0]) // default color is green
 
         this.hex_indices = new Array<number>()
         this.hex_positions = new Array<number>()
         this.hex_colors = new Array<number>()
+
+        // set indices array (will not change) (should be 18 lines = 36 indices)
+        for (let i = 0; i < 36; i++) this.hex_indices.push(i)
+        this.hex_indices_array = new Uint32Array(this.hex_indices)
+
+        // add ray colors (should be 18 lines = 36 indices = 108 pos values = 108 color values)
+        for (let i = 0; i < 36; i++) 
+        {
+            this.hex_colors.push(this.color.x);
+            this.hex_colors.push(this.color.y);
+            this.hex_colors.push(this.color.z);
+        }
+        this.hex_colors_array = new Float32Array(this.hex_colors)
     }
 
     public set_color(_color : Vec3) : void 
@@ -54,6 +70,8 @@ export class Hex
                 this.hex_colors.push(this.color.z)
             }
         }
+
+        this.hex_colors_array = new Float32Array(this.hex_colors)
         this.update = true
     }
 
@@ -75,6 +93,7 @@ export class Hex
             this.hex_positions[i+2] = rot_pos.z
             i += 3
         }
+        this.hex_positions_array = new Float32Array(this.hex_positions)
         this.update = true
     }   
 
@@ -83,102 +102,54 @@ export class Hex
         // return if same id
         if (this.id == _id) 
             return
-        
         // set new values
         this.id = _id
         this.deleted = false
-        
-        // console.log('Hex.set()')
-        // console.log('this.start: ' + Util.Vec3_toFixed(this.start))
-        // console.log('_start: ' + Util.Vec3_toFixed(_start))
-        // console.log('this.end: ' + Util.Vec3_toFixed(this.end))
-        // console.log('_end: ' + Util.Vec3_toFixed(_end))
-        // console.log('\n')
-
+        // copy new start and end pos
         this.start = _start.copy()
         this.end = _end.copy()
-        this.hex_indices.splice(0, this.hex_indices.length)
-        this.hex_positions.splice(0, this.hex_positions.length)
-        this.hex_colors.splice(0, this.hex_colors.length)
+        // clear position arrays
+        this.hex_positions = []
+        this.hex_positions_array.slice(0, this.hex_positions_array.length)
+        // get new hex positions
         this.convert()
-
         this.update = true
     }
 
     public del() : void
     {
         // return already deleted
-        if (this.deleted) 
+        if (this.deleted)
             return
         // set new values
         this.id = -1
         this.deleted = true
-
-        // console.log('Hex.del()')
-        // console.log('this.start: ' + Util.Vec3_toFixed(this.start))
-        // console.log('_start: ' + Util.Vec3_toFixed(Vec3.zero.copy()))
-        // console.log('this.end: ' + Util.Vec3_toFixed(this.end))
-        // console.log('_end: ' + Util.Vec3_toFixed(Vec3.zero.copy()))
-        // console.log('\n')
-
-        this.start = Vec3.zero.copy()
-        this.end = Vec3.zero.copy()
-        this.hex_indices.splice(0, this.hex_indices.length)
-        this.hex_positions.splice(0, this.hex_positions.length)
-        this.hex_colors.splice(0, this.hex_colors.length)
         this.update = true
     }
 
     private convert() : void
     {
         const dir : Vec3 = this.end.copy().subtract(this.start.copy()).normalize()
-        const per : Vec3 = Utils.find_orthonormal_vectors(dir.copy())[0].normalize()
-        
-        // console.log('[HEX]' + 
-        // '\n\tstart: ' + Util.Vec3_toFixed(this.start) +
-        // '\n\tend: ' + Util.Vec3_toFixed(this.end) +
-        // '\n\tdir: ' + Util.Vec3_toFixed(dir) +
-        // '\n\tper: ' + Util.Vec3_toFixed(per) +
-        // '\n\tlen: ' + len.toFixed(3)
-        // )
+        const per : Vec3 = Utils.find_orthonormal_vectors(dir)[0].normalize()
+        const pi_over_3 : number = Hex.pi_over_3
     
         // calculate 6 hex points around start point
         const init_p : Vec3 = per.copy().scale(Hex.radius)
-        const a1 : Vec3 = Utils.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 0).add(this.start.copy())
-        const b1 : Vec3 = Utils.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 1).add(this.start.copy())
-        const c1 : Vec3 = Utils.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 2).add(this.start.copy())
-        const d1 : Vec3 = Utils.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 3).add(this.start.copy())
-        const e1 : Vec3 = Utils.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 4).add(this.start.copy())
-        const f1 : Vec3 = Utils.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 5).add(this.start.copy())
-
-        // console.log('a1: ' + Util.Vec3_toFixed(a1) +
-        // '\nb1: ' + Util.Vec3_toFixed(b1) +
-        // '\nc1: ' + Util.Vec3_toFixed(c1) +
-        // '\nd1: ' + Util.Vec3_toFixed(d1) +
-        // '\ne1: ' + Util.Vec3_toFixed(e1) +
-        // '\nf1: ' + Util.Vec3_toFixed(f1))
+        const a1 : Vec3 = Utils.rotate_point(init_p, dir, pi_over_3 * 0).add(this.start)
+        const b1 : Vec3 = Utils.rotate_point(init_p, dir, pi_over_3 * 1).add(this.start)
+        const c1 : Vec3 = Utils.rotate_point(init_p, dir, pi_over_3 * 2).add(this.start)
+        const d1 : Vec3 = Utils.rotate_point(init_p, dir, pi_over_3 * 3).add(this.start)
+        const e1 : Vec3 = Utils.rotate_point(init_p, dir, pi_over_3 * 4).add(this.start)
+        const f1 : Vec3 = Utils.rotate_point(init_p, dir, pi_over_3 * 5).add(this.start)
     
-        const a2 : Vec3 = Utils.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 0).add(this.end.copy())
-        const b2 : Vec3 = Utils.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 1).add(this.end.copy())
-        const c2 : Vec3 = Utils.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 2).add(this.end.copy())
-        const d2 : Vec3 = Utils.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 3).add(this.end.copy())
-        const e2 : Vec3 = Utils.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 4).add(this.end.copy())
-        const f2 : Vec3 = Utils.rotate_point(init_p, dir.copy(), Hex.pi_over_3 * 5).add(this.end.copy())
+        const a2 : Vec3 = Utils.rotate_point(init_p, dir, pi_over_3 * 0).add(this.end)
+        const b2 : Vec3 = Utils.rotate_point(init_p, dir, pi_over_3 * 1).add(this.end)
+        const c2 : Vec3 = Utils.rotate_point(init_p, dir, pi_over_3 * 2).add(this.end)
+        const d2 : Vec3 = Utils.rotate_point(init_p, dir, pi_over_3 * 3).add(this.end)
+        const e2 : Vec3 = Utils.rotate_point(init_p, dir, pi_over_3 * 4).add(this.end)
+        const f2 : Vec3 = Utils.rotate_point(init_p, dir, pi_over_3 * 5).add(this.end)
 
-        // console.log('a2: ' + Util.Vec3_toFixed(a2) +
-        // '\nb2: ' + Util.Vec3_toFixed(b2) +
-        // '\nc2: ' + Util.Vec3_toFixed(c2) +
-        // '\nd2: ' + Util.Vec3_toFixed(d2) +
-        // '\ne2: ' + Util.Vec3_toFixed(e2) +
-        // '\nf2: ' + Util.Vec3_toFixed(f2))
-
-        // [ create line segments and store ]
-
-        // add ray indices (should be 18 lines = 36 indices)
-        for (let i = 0; i < 36; i++) this.hex_indices.push(i)
-        
         // add ray positions (should be 18 lines = 36 indices = 108 pos values)
-
         // start hexagon cap
         for (let i = 0; i < 3; i++) this.hex_positions.push(a1.at(i))
         for (let i = 0; i < 3; i++) this.hex_positions.push(b1.at(i))
@@ -236,27 +207,25 @@ export class Hex
         for (let i = 0; i < 3; i++) this.hex_positions.push(f1.at(i))
         for (let i = 0; i < 3; i++) this.hex_positions.push(f2.at(i))
 
-        // add ray colors (should be 18 lines = 36 indices = 108 pos values = 108 color values
-        for (let i = 0; i < 36; i++)
-        {
-            this.hex_colors.push(this.color.x)
-            this.hex_colors.push(this.color.y)
-            this.hex_colors.push(this.color.z)
-        }
+        // set position array
+        this.hex_positions_array = new Float32Array(this.hex_positions)
     }
 
     public get_hex_indices(): Uint32Array 
     {
-        return new Uint32Array(this.hex_indices);
+        if (this.deleted) return new Uint32Array(0)
+        else return this.hex_indices_array
     }
 
     public get_hex_positions(): Float32Array 
     {
-        return new Float32Array(this.hex_positions);
+        if (this.deleted) return new Float32Array(0)
+        else return this.hex_positions_array
     }
 
     public get_hex_colors() : Float32Array
     {
-        return new Float32Array(this.hex_colors)
+        if (this.deleted) return new Float32Array(0)
+        else return this.hex_colors_array
     }
 }

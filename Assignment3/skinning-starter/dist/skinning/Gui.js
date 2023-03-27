@@ -122,7 +122,7 @@ export class GUI {
                             // rotate current bone
                             if (this.bone_id > -1) {
                                 // roate bone based on dx
-                                const cam_dir = this.camera.forward();
+                                const cam_dir = this.camera.forward().normalize();
                                 BoneRotator.rotate_bone(this.animation.getScene(), this.bone_id, dx, cam_dir);
                             }
                             else {
@@ -158,14 +158,14 @@ export class GUI {
             if (!this.animation.getScene().is_loaded)
                 return;
             // get all cylinders cooresponding to bones
-            const cyls = this.animation.getScene().get_cylinders();
+            const cyls = this.animation.getScene().create_cylinders();
             // convert mouse x y position to world ray
             this.mouse_ray = this.screen_to_world_ray(x, y);
             // check intersections - might need BVH !!!
             let id = -1;
             let min_t = Number.MAX_VALUE;
             for (let i = 0; i < cyls.length; i++) {
-                let res = cyls[i].ray_interset(this.mouse_ray);
+                let res = Utils.ray_interset(this.mouse_ray, cyls[i].get_start(), cyls[i].get_end());
                 if (res[0] && res[1] < min_t) {
                     id = cyls[i].get_id();
                     min_t = res[1];
@@ -173,13 +173,13 @@ export class GUI {
             }
             // set bone highlight
             if (id >= 0) {
-                this.animation.getScene().hex.set_color(Utils.get_color('cyan'));
-                this.animation.getScene().hex.set(cyls[id].get_start(), cyls[id].get_end(), id);
+                //this.animation.getScene().hex.set_color(Utils.get_color('cyan'))
+                //this.animation.getScene().hex.set(cyls[id].get_start(), cyls[id].get_end(), id)
                 this.bone_id = id;
             }
             // no bone hightlight    
             else {
-                this.animation.getScene().hex.del();
+                //this.animation.getScene().hex.del()
                 this.bone_id = -1;
             }
         }

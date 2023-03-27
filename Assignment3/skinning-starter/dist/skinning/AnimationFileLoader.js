@@ -83,7 +83,7 @@ export class MeshGeometryLoader {
     }
 }
 export class BoneLoader {
-    constructor(parentId, childrenIds, offset, wmat) {
+    constructor(parentId, childrenIds, offset, wmat, _id) {
         this.parent = parentId;
         this.children = childrenIds;
         this.position = wmat.multiplyPt3(new Vec3([0, 0, 0]));
@@ -93,6 +93,7 @@ export class BoneLoader {
         this.rotation = new Quat().setIdentity();
         this.offset = offset;
         this.initialTransformation = wmat.copy();
+        this.id = _id;
     }
 }
 export class MeshLoader {
@@ -115,6 +116,7 @@ export class MeshLoader {
         this.boneIndexAttribute = new Float32Array([]);
         let material = skinnedMesh.material;
         this.materialName = material.name;
+        let i = 0;
         skinnedMesh.skeleton.bones.forEach(bone => {
             var _a, _b, _c;
             if (bone.rotation.order !== "XYZ") {
@@ -147,7 +149,8 @@ export class MeshLoader {
             if (children.length > 0) {
                 yVal = skinnedMesh.skeleton.bones[children[0]].position.y;
             }
-            this.bones.push(new BoneLoader(parentId, children, yVal, tempMat));
+            this.bones.push(new BoneLoader(parentId, children, yVal, tempMat, i));
+            i++;
         });
         if (this.bones.length > 0) {
             this.initialize();
@@ -269,7 +272,7 @@ class CLoader {
             }
         });
     }
-    get_cylinder(id) {
+    create_cylinder(id) {
         const bone_pos = this.meshes[0].getBonePositions();
         const bone_rot = this.meshes[0].getBoneRotations();
         const bone_tra = this.meshes[0].getBoneTranslations();
@@ -282,11 +285,11 @@ class CLoader {
         // apply rotation and translation
         const quat = new Vec4([bone_rot[q], bone_rot[q + 1], bone_rot[q + 2], bone_rot[q + 3]]);
         const tran = new Vec3([bone_tra[t], bone_tra[t + 1], bone_tra[t + 2]]);
-        const pos0_new = Utils.apply_quaternion(quat.copy(), pos0.copy()).add(tran.copy());
-        const pos1_new = Utils.apply_quaternion(quat.copy(), pos1.copy()).add(tran.copy());
-        return new Cylinder(id, pos0_new, pos1_new, quat, tran);
+        const pos0_new = Utils.apply_quaternion(quat, pos0).add(tran);
+        const pos1_new = Utils.apply_quaternion(quat, pos1).add(tran);
+        return new Cylinder(id, pos0_new, pos1_new);
     }
-    get_cylinders() {
+    create_cylinders() {
         const cylinders = new Array;
         const num_bones = this.meshes[0].getBonePositions().length / 2;
         const bone_pos = this.meshes[0].getBonePositions();
@@ -309,14 +312,14 @@ class CLoader {
             // apply rotation and translation
             const quat = new Vec4([bone_rot[q], bone_rot[q + 1], bone_rot[q + 2], bone_rot[q + 3]]);
             const tran = new Vec3([bone_tra[t], bone_tra[t + 1], bone_tra[t + 2]]);
-            const pos0_new = Utils.apply_quaternion(quat.copy(), pos0.copy()).add(tran.copy());
-            const pos1_new = Utils.apply_quaternion(quat.copy(), pos1.copy()).add(tran.copy());
+            const pos0_new = Utils.apply_quaternion(quat, pos0).add(tran);
+            const pos1_new = Utils.apply_quaternion(quat, pos1).add(tran);
             const id = bone_atr[a];
             b += 6;
             q += 4;
             t += 3;
             a += 2;
-            cylinders.push(new Cylinder(id, pos0_new, pos1_new, quat, tran));
+            cylinders.push(new Cylinder(id, pos0_new, pos1_new));
         }
         return cylinders;
     }
