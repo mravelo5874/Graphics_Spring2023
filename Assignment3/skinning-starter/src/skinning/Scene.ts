@@ -25,7 +25,8 @@ export class MeshGeometry {
   v2: Attribute;
   v3: Attribute;
 
-  constructor(mesh: MeshGeometryLoader) {
+  constructor(mesh: MeshGeometryLoader) 
+  {
     this.position = new Attribute(mesh.position);
     this.normal = new Attribute(mesh.normal);
     if (mesh.uv) { this.uv = new Attribute(mesh.uv); }
@@ -53,14 +54,6 @@ export class Bone
   public offset: number; // used when parsing the Collada file---you probably don't need to touch these
   public initialTransformation: Mat4;
 
-  // Each joint needs to keep track of an affine transformation 
-  // describing the rotation of that joint with respect to the 
-  // parent's transformation. 
-  public Ti : Mat4;
-  // The matrix Di mapping from the root joint's local 
-  // coordinates, to world coordinates, is
-  public Di : Mat4;
-
   public length : number; // length of bone
   public id : number;
 
@@ -78,39 +71,24 @@ export class Bone
     this.length = Vec3.distance(this.initialPosition.copy(), this.initialEndpoint.copy())
     this.id = bone.id
 
-    this.Ti = bone.initialTransformation.copy();
-
-    console.log('[BONE] id: ' + this.id + 
-    '\nparent: ' + this.parent +
-    '\nchildren: ' + this.children +
-    '\ninit_pos: ' + Utils.vec3_toFixed(this.initialPosition) + 
-    '\ninit_end: ' + Utils.vec3_toFixed(this.initialEndpoint) + 
-    '\npos: ' + Utils.vec3_toFixed(this.position) + 
-    '\nend: ' + Utils.vec3_toFixed(this.endpoint) + 
-    '\nrot: ' + Utils.quat_toFixed(this.rotation) + 
-    '\ninit_trans: ' + Utils.mat4_toFixed(this.initialTransformation))
-
-    // convert world pos + end to local points
-    const local_pos : Vec3 = this.Ti.copy().inverse().multiplyPt3(this.position.copy())
-    const local_end : Vec3 = this.Ti.copy().inverse().multiplyPt3(this.endpoint.copy())
-    console.log('local pos: ' + Utils.vec3_toFixed(local_pos))
-    console.log('local end: ' + Utils.vec3_toFixed(local_end))
-
-    // back to world pos + end
-    const world_pos : Vec3 = this.Ti.copy().multiplyPt3(local_pos.copy())
-    const world_end : Vec3 = this.Ti.copy().multiplyPt3(local_end.copy())
-    console.log('world pos: ' + Utils.vec3_toFixed(world_pos))
-    console.log('world end: ' + Utils.vec3_toFixed(world_end))
+    // console.log('[BONE] id: ' + this.id + 
+    // '\nparent: ' + this.parent +
+    // '\nchildren: ' + this.children +
+    // '\ninit_pos: ' + Utils.vec3_toFixed(this.initialPosition) + 
+    // '\ninit_end: ' + Utils.vec3_toFixed(this.initialEndpoint) + 
+    // '\npos: ' + Utils.vec3_toFixed(this.position) + 
+    // '\nend: ' + Utils.vec3_toFixed(this.endpoint) + 
+    // '\nrot: ' + Utils.quat_toFixed(this.rotation) + 
+    // '\ninit_trans: ' + Utils.mat4_toFixed(this.initialTransformation))
   }
 
   // this should update the bone's current position, endpoint, and rotation
-  public apply_rotation(offset : Vec3, q : Quat, axis : Vec3, rads : number) : void
+  public apply_rotation(offset : Vec3, q : Quat) : void
   {
     // update rotation
     this.rotation = q.copy().multiply(this.rotation.copy())
 
     // update position
-    
     this.position = Utils.rotate_vec_using_quat(this.position.copy().subtract(offset.copy()), q.copy()).add(offset.copy())
     this.endpoint = Utils.rotate_vec_using_quat(this.endpoint.copy().subtract(offset.copy()), q.copy()).add(offset.copy())
   }
@@ -128,6 +106,7 @@ export class Mesh
   private boneIndices: number[];
   private bonePositions: Float32Array;
   private boneIndexAttribute: Float32Array;
+
 
   constructor(mesh: MeshLoader) 
   {

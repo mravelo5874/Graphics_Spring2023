@@ -35,29 +35,18 @@ export class Bone {
         this.initialTransformation = bone.initialTransformation.copy();
         this.length = Vec3.distance(this.initialPosition.copy(), this.initialEndpoint.copy());
         this.id = bone.id;
-        this.Ti = bone.initialTransformation.copy();
-        console.log('[BONE] id: ' + this.id +
-            '\nparent: ' + this.parent +
-            '\nchildren: ' + this.children +
-            '\ninit_pos: ' + Utils.vec3_toFixed(this.initialPosition) +
-            '\ninit_end: ' + Utils.vec3_toFixed(this.initialEndpoint) +
-            '\npos: ' + Utils.vec3_toFixed(this.position) +
-            '\nend: ' + Utils.vec3_toFixed(this.endpoint) +
-            '\nrot: ' + Utils.quat_toFixed(this.rotation) +
-            '\ninit_trans: ' + Utils.mat4_toFixed(this.initialTransformation));
-        // convert world pos + end to local points
-        const local_pos = this.Ti.copy().inverse().multiplyPt3(this.position.copy());
-        const local_end = this.Ti.copy().inverse().multiplyPt3(this.endpoint.copy());
-        console.log('local pos: ' + Utils.vec3_toFixed(local_pos));
-        console.log('local end: ' + Utils.vec3_toFixed(local_end));
-        // back to world pos + end
-        const world_pos = this.Ti.copy().multiplyPt3(local_pos.copy());
-        const world_end = this.Ti.copy().multiplyPt3(local_end.copy());
-        console.log('world pos: ' + Utils.vec3_toFixed(world_pos));
-        console.log('world end: ' + Utils.vec3_toFixed(world_end));
+        // console.log('[BONE] id: ' + this.id + 
+        // '\nparent: ' + this.parent +
+        // '\nchildren: ' + this.children +
+        // '\ninit_pos: ' + Utils.vec3_toFixed(this.initialPosition) + 
+        // '\ninit_end: ' + Utils.vec3_toFixed(this.initialEndpoint) + 
+        // '\npos: ' + Utils.vec3_toFixed(this.position) + 
+        // '\nend: ' + Utils.vec3_toFixed(this.endpoint) + 
+        // '\nrot: ' + Utils.quat_toFixed(this.rotation) + 
+        // '\ninit_trans: ' + Utils.mat4_toFixed(this.initialTransformation))
     }
     // this should update the bone's current position, endpoint, and rotation
-    apply_rotation(offset, q, axis, rads) {
+    apply_rotation(offset, q) {
         // update rotation
         this.rotation = q.copy().multiply(this.rotation.copy());
         // update position

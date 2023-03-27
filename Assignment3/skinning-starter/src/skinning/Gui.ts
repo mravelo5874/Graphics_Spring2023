@@ -270,14 +270,14 @@ export class GUI implements IGUI {
       // set bone highlight
       if (id >= 0)
       {
-        //this.animation.getScene().hex.set_color(Utils.get_color('cyan'))
-        //this.animation.getScene().hex.set(cyls[id].get_start(), cyls[id].get_end(), id)
+        this.animation.getScene().hex.set_color(Utils.get_color('cyan'))
+        this.animation.getScene().hex.set(cyls[id].get_start(), cyls[id].get_end(), id)
         this.bone_id = id
       }
       // no bone hightlight    
       else
       { 
-        //this.animation.getScene().hex.del()
+        this.animation.getScene().hex.del()
         this.bone_id = -1
       }
     }

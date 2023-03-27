@@ -14,6 +14,9 @@ export class Hex {
         this.hex_indices = new Array();
         this.hex_positions = new Array();
         this.hex_colors = new Array();
+        this.hex_indices_array = new Uint32Array(0);
+        this.hex_positions_array = new Float32Array(0);
+        this.hex_colors_array = new Float32Array(0);
         // set indices array (will not change) (should be 18 lines = 36 indices)
         for (let i = 0; i < 36; i++)
             this.hex_indices.push(i);
@@ -28,14 +31,14 @@ export class Hex {
     }
     set_color(_color) {
         // return if already this color
-        if (this.color == _color)
+        if (this.color.equals(_color))
             return;
         // set color
         this.color = _color;
         // update current colors
         if (this.hex_colors.length > 0) {
             // remove colors
-            this.hex_colors.splice(0, this.hex_colors.length);
+            this.hex_colors = [];
             // add ray colors (should be 18 lines = 36 indices = 108 pos values = 108 color values
             for (let i = 0; i < 36; i++) {
                 this.hex_colors.push(this.color.x);
@@ -45,6 +48,7 @@ export class Hex {
         }
         this.hex_colors_array = new Float32Array(this.hex_colors);
         this.update = true;
+        console.log('set hex color!');
     }
     rotate(offset, quat) {
         let i = 0;
@@ -55,7 +59,7 @@ export class Hex {
             const z = this.hex_positions[i + 2];
             const pos = new Vec3([x, y, z]);
             // rotate pos
-            const rot_pos = pos.copy().add(offset.copy()).multiplyByQuat(quat).subtract(offset.copy());
+            const rot_pos = Utils.rotate_vec_using_quat(pos.copy().subtract(offset.copy()), quat.copy()).add(offset.copy());
             // re-assign pos
             this.hex_positions[i] = rot_pos.x;
             this.hex_positions[i + 1] = rot_pos.y;
@@ -64,6 +68,7 @@ export class Hex {
         }
         this.hex_positions_array = new Float32Array(this.hex_positions);
         this.update = true;
+        console.log('set hex rotate!');
     }
     set(_start, _end, _id) {
         // return if same id
@@ -77,10 +82,11 @@ export class Hex {
         this.end = _end.copy();
         // clear position arrays
         this.hex_positions = [];
-        this.hex_positions_array.slice(0, this.hex_positions_array.length);
+        this.hex_positions_array = new Float32Array(0);
         // get new hex positions
         this.convert();
         this.update = true;
+        console.log('set hex!');
     }
     del() {
         // return already deleted
@@ -90,6 +96,7 @@ export class Hex {
         this.id = -1;
         this.deleted = true;
         this.update = true;
+        console.log('del hex!');
     }
     convert() {
         const dir = this.end.copy().subtract(this.start.copy()).normalize();
@@ -187,20 +194,24 @@ export class Hex {
             this.hex_positions.push(f2.at(i));
         // set position array
         this.hex_positions_array = new Float32Array(this.hex_positions);
+        console.log('converted hex!');
     }
     get_hex_indices() {
+        console.log('getting hex indices!');
         if (this.deleted)
             return new Uint32Array(0);
         else
             return this.hex_indices_array;
     }
     get_hex_positions() {
+        console.log('getting hex pos!');
         if (this.deleted)
             return new Float32Array(0);
         else
             return this.hex_positions_array;
     }
     get_hex_colors() {
+        console.log('getting hex colors!');
         if (this.deleted)
             return new Float32Array(0);
         else
