@@ -6,7 +6,7 @@ import { epsilon } from "./Constants.js";
 /**
  * A 3x3 Matrix of numbers.
  */
-export class Mat3 {
+class Mat3 {
     /**
      * Computes the matrix product m1 * m2 and puts the result
      * in dest. If dest is not provided then a new Mat3 is created
@@ -493,4 +493,5 @@ export class Mat3 {
  * and the off diagonals are 0s
  */
 Mat3.identity = new Mat3().setIdentity();
+export { Mat3 };
 //# sourceMappingURL=Mat3.js.map

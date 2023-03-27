@@ -3,7 +3,7 @@ import { epsilon } from "./Constants.js";
 /**
  * A 2x2 Matrix of numbers.
  */
-export class Mat2 {
+class Mat2 {
     /**
      * Computes the matrix product m1 * m2 and puts the result
      * in result.
@@ -250,4 +250,5 @@ export class Mat2 {
  * and the off diagonals are 0s
  */
 Mat2.identity = new Mat2().setIdentity();
+export { Mat2 };
 //# sourceMappingURL=Mat2.js.map

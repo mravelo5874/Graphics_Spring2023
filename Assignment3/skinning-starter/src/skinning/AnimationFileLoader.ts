@@ -117,9 +117,9 @@ export class BoneLoader
   public offset: number;
   public initialTransformation: Mat4;
   public id : number;
-  public parent_joint_pos : Vec3;
 
-  constructor(parentId: number, childrenIds: number[], offset: number, wmat: Mat4, _id : number, _parent_joint_pos : Vec3) {
+  constructor(parentId: number, childrenIds: number[], offset: number, wmat: Mat4, _id : number) 
+  {
     this.parent = parentId;
     this.children = childrenIds;
     this.position = wmat.multiplyPt3(new Vec3([0, 0, 0]));
@@ -130,7 +130,6 @@ export class BoneLoader
     this.offset = offset;
     this.initialTransformation = wmat.copy();
     this.id = _id;
-    this.parent_joint_pos = _parent_joint_pos.copy()
   }
 
 }
@@ -203,15 +202,7 @@ export class MeshLoader
       if (children.length > 0) {
         yVal = skinnedMesh.skeleton.bones[children[0]].position.y;
       }
-      if (parentId < 0)
-      { 
-        this.bones.push(new BoneLoader(parentId, children, yVal, tempMat, i, Vec3.zero.copy()));
-      }
-      else
-      {
-        this.bones.push(new BoneLoader(parentId, children, yVal, tempMat, i, this.bones[parentId].initialPosition));
-      }
-        
+      this.bones.push(new BoneLoader(parentId, children, yVal, tempMat, i));    
       i++;
     });
 

@@ -23,6 +23,11 @@ export class MeshGeometry {
     }
 }
 export class Bone {
+    // importants matrices
+    // public Ti : Mat4;
+    // public Di : Mat4;
+    // public Ui : Mat4;
+    // public Bji : Mat4;
     constructor(bone) {
         this.parent = bone.parent;
         this.children = Array.from(bone.children);
@@ -35,24 +40,54 @@ export class Bone {
         this.initialTransformation = bone.initialTransformation.copy();
         this.length = Vec3.distance(this.initialPosition.copy(), this.initialEndpoint.copy());
         this.id = bone.id;
-        this.Ti;
-        console.log('[BONE] id: ' + this.id +
-            '\nparent: ' + this.parent +
-            '\nchildren: ' + this.children +
-            '\ninit_pos: ' + Utils.vec3_toFixed(this.initialPosition) +
-            '\ninit_end: ' + Utils.vec3_toFixed(this.initialEndpoint) +
-            '\npos: ' + Utils.vec3_toFixed(this.position) +
-            '\nend: ' + Utils.vec3_toFixed(this.endpoint) +
-            '\nrot: ' + Utils.quat_toFixed(this.rotation) +
-            '\ninit_trans: ' + Utils.mat4_toFixed(this.initialTransformation));
+        this.B_calc = false;
+        // this.Ti = Mat4.identity // TODO: (does this work as intended?) this.initialTransformation
+        // this.update_Di_Ui()
+        // this.Ui = Mat4.identity
+        // console.log('[BONE] id: ' + this.id + 
+        // '\nparent: ' + this.parent +
+        // '\nchildren: ' + this.children +
+        // '\ninit_pos: ' + Utils.vec3_toFixed(this.initialPosition) + 
+        // '\ninit_end: ' + Utils.vec3_toFixed(this.initialEndpoint) + 
+        // '\npos: ' + Utils.vec3_toFixed(this.position) + 
+        // '\nend: ' + Utils.vec3_toFixed(this.endpoint) + 
+        // '\nrot: ' + Utils.quat_toFixed(this.rotation) + 
+        // '\ninit_trans: ' + Utils.mat4_toFixed(this.initialTransformation))
     }
-    // this should update the bone's current position, endpoint, and rotation
+    // updates the rotation and position / endpoint
     apply_rotation(offset, q) {
         // update rotation
         this.rotation = q.copy().multiply(this.rotation.copy());
         // update position
         this.position = Utils.rotate_vec_using_quat(this.position.copy().subtract(offset.copy()), q.copy()).add(offset.copy());
         this.endpoint = Utils.rotate_vec_using_quat(this.endpoint.copy().subtract(offset.copy()), q.copy()).add(offset.copy());
+    }
+    // TODO (does this work as intended?)
+    update_Ti(offset, axis, rads) {
+        // update Ti mat
+        // this.Ti.translate(offset.copy())
+        // this.Ti.rotate(rads, axis.copy())
+        // this.Ti.translate(offset)
+    }
+    // TODO (does this work as intended?)
+    update_Di_Ui(D_j) {
+        // update Di mat:
+        // depends on if this joint is a root
+        // if (this.parent < 0)
+        // {
+        //   this.Di = Mat4.identity.translate(this.position.copy()).multiply(this.Ti.copy())
+        //   this.Ui = Mat4.identity.translate(this.position.copy())
+        // }
+        // else if (D_j)
+        // {
+        //   this.Di = D_j.copy().multiply(this.Bji.copy().multiply(this.Ti.copy()))
+        //   this.Ui = D_j.copy().multiply(this.Bji.copy())
+        // }
+    }
+    // TODO (does this work as intended?)
+    calculate_Bji(parent_joint_pos) {
+        // this.Bji = Mat4.identity.copy().translate(this.initialPosition.copy().subtract(parent_joint_pos.copy()))
+        // this.B_calc = true
     }
 }
 export class Mesh {

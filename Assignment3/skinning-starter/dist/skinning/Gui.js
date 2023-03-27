@@ -11,7 +11,7 @@ export var Mode;
  * Handles Mouse and Button events along with
  * the the camera.
  */
-export class GUI {
+class GUI {
     /**
      *
      * @param canvas required to get the width and height of the canvas
@@ -368,4 +368,5 @@ GUI.rotationSpeed = 0.05;
 GUI.zoomSpeed = 0.1;
 GUI.rollSpeed = 0.1;
 GUI.panSpeed = 0.1;
+export { GUI };
 //# sourceMappingURL=Gui.js.map

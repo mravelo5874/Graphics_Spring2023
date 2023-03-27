@@ -3,7 +3,7 @@ import { epsilon } from "./Constants.js";
 /**
  * A 2x1 Vector of numbers.
  */
-export class Vec2 {
+class Vec2 {
     /**
      * Swizzle Operators
      */
@@ -346,4 +346,5 @@ export class Vec2 {
 Vec2.zero = new Vec2([0, 0]);
 /** All elements are 1. */
 Vec2.one = new Vec2([1, 1]);
+export { Vec2 };
 //# sourceMappingURL=Vec2.js.map

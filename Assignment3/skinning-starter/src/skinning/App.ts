@@ -298,6 +298,9 @@ export class SkinningAnimation extends CanvasAnimation
 
   public init_hex() : void
   {
+    // reset render pass
+    this.hex_render_pass = new RenderPass(this.extVAO, this.ctx, hex_vertex_shader, hex_fragment_shader)
+
     // index buffer ray is ray indices
     this.hex_render_pass.setIndexBufferData(this.scene.hex.get_hex_indices());
 
