@@ -17,9 +17,13 @@ export class BoneRotator
         // update bone values
         const offset : Vec3 = bone.position.copy()
         bone.apply_rotation(offset.copy(), q.copy())
-        //bone.update_Ti(offset.copy(), axis.copy(), rads)
+        bone.update_Ti(offset.copy(), axis.copy(), rads)
         // calculate Bji matrix if not done already
-        //if (!bone.B_calc) bone.calculate_Bji(scene.meshes[0].bones[bone.parent].initialPosition.copy())
+        if (!bone.B_calc) 
+        {
+            if (bone.parent < 0) bone.calculate_Bji(Vec3.zero.copy())
+            else bone.calculate_Bji(scene.meshes[0].bones[bone.parent].initialPosition.copy())
+        }
         // update Di matrix
         //if (bone.parent < 0) bone.update_Di_Ui()
         //else bone.update_Di_Ui(scene.meshes[0].bones[bone.parent].Di.copy())
@@ -39,9 +43,13 @@ export class BoneRotator
             const child_bone : Bone = scene.meshes[0].bones[i]
             // update bone values
             child_bone.apply_rotation(offset.copy(), q.copy())
-            //child_bone.update_Ti(offset.copy(), axis.copy(), rads)
+            child_bone.update_Ti(offset.copy(), axis.copy(), rads)
             // calculate Bji matrix if not done already
-            //if (!child_bone.B_calc) child_bone.calculate_Bji(scene.meshes[0].bones[child_bone.parent].initialPosition.copy())
+            if (!child_bone.B_calc) 
+            {
+                if (child_bone.parent < 0) child_bone.calculate_Bji(Vec3.zero.copy())
+                else child_bone.calculate_Bji(scene.meshes[0].bones[child_bone.parent].initialPosition.copy())
+            }
             // update Di matrix
             //if (child_bone.parent < 0) child_bone.update_Di_Ui()
             //else child_bone.update_Di_Ui(scene.meshes[0].bones[child_bone.parent].Di.copy())

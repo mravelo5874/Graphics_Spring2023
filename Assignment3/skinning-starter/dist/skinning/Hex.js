@@ -48,7 +48,6 @@ class Hex {
         }
         this.hex_colors_array = new Float32Array(this.hex_colors);
         this.update = true;
-        console.log('set hex color!');
     }
     rotate(offset, quat) {
         let i = 0;
@@ -68,7 +67,6 @@ class Hex {
         }
         this.hex_positions_array = new Float32Array(this.hex_positions);
         this.update = true;
-        console.log('set hex rotate!');
     }
     set(_start, _end, _id) {
         // return if same id
@@ -86,7 +84,6 @@ class Hex {
         // get new hex positions
         this.convert();
         this.update = true;
-        console.log('set hex!');
     }
     del() {
         // return already deleted
@@ -96,7 +93,6 @@ class Hex {
         this.id = -1;
         this.deleted = true;
         this.update = true;
-        console.log('del hex!');
     }
     convert() {
         const dir = this.end.copy().subtract(this.start.copy()).normalize();
@@ -194,24 +190,20 @@ class Hex {
             this.hex_positions.push(f2.at(i));
         // set position array
         this.hex_positions_array = new Float32Array(this.hex_positions);
-        console.log('converted hex!');
     }
     get_hex_indices() {
-        console.log('getting hex indices!');
         if (this.deleted)
             return new Uint32Array(0);
         else
             return this.hex_indices_array;
     }
     get_hex_positions() {
-        console.log('getting hex pos!');
         if (this.deleted)
             return new Float32Array(0);
         else
             return this.hex_positions_array;
     }
     get_hex_colors() {
-        console.log('getting hex colors!');
         if (this.deleted)
             return new Float32Array(0);
         else

@@ -239,7 +239,7 @@ export class SkinningAnimation extends CanvasAnimation {
             this.render_hex = true;
             this.init_hex();
             this.scene.hex.got_update();
-            console.log('init hex');
+            //console.log('init hex')
         }
         // init rays update
         if (this.prev_ray_length < this.scene.rr.get_rays().length) {

@@ -77,11 +77,9 @@ export class Hex
 
         this.hex_colors_array = new Float32Array(this.hex_colors)
         this.update = true
-
-        console.log('set hex color!')
     }
 
-    public rotate(offset : Vec3, quat : Quat)
+    public rotate(offset : Vec3, quat : Quat) : void
     {
         let i : number = 0
         while (i < this.hex_positions.length)
@@ -101,8 +99,6 @@ export class Hex
         }
         this.hex_positions_array = new Float32Array(this.hex_positions)
         this.update = true
-
-        console.log('set hex rotate!')
     }   
 
     public set(_start : Vec3, _end : Vec3, _id : number) : void 
@@ -122,8 +118,6 @@ export class Hex
         // get new hex positions
         this.convert()
         this.update = true
-
-        console.log('set hex!')
     }
 
     public del() : void
@@ -135,8 +129,6 @@ export class Hex
         this.id = -1
         this.deleted = true
         this.update = true
-
-        console.log('del hex!')
     }
 
     private convert() : void
@@ -221,30 +213,22 @@ export class Hex
 
         // set position array
         this.hex_positions_array = new Float32Array(this.hex_positions)
-
-        console.log('converted hex!')
     }
 
     public get_hex_indices(): Uint32Array 
     {
-        console.log('getting hex indices!')
-
         if (this.deleted) return new Uint32Array(0)
         else return this.hex_indices_array
     }
 
     public get_hex_positions(): Float32Array 
     {
-        console.log('getting hex pos!')
-
         if (this.deleted) return new Float32Array(0)
         else return this.hex_positions_array
     }
 
     public get_hex_colors() : Float32Array
     {
-        console.log('getting hex colors!')
-
         if (this.deleted) return new Float32Array(0)
         else return this.hex_colors_array
     }
