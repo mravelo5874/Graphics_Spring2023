@@ -50,7 +50,7 @@ export class BoneManipulator {
             // update bone values
             child_bone.apply_rotation(offset.copy(), q.copy());
             // update T mat
-            child_bone.update_Ti(axis.copy(), rads);
+            child_bone.update_Ti(axis.copy(), 0);
             // update D and U matrix
             child_bone.update_Di_Ui(scene);
             // recurse to child bones
