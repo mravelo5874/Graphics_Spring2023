@@ -8,7 +8,7 @@ import { Utils } from "./Utils.js";
 import { RaycastRenderer } from "./RaycastRenderer.js";
 import { Hex } from "./Hex.js";
 import { Cylinder } from "./Cylinder.js";
-import { BoneRotator } from "./BoneRotator.js";
+import { BoneManipulator } from "./BoneManipulator.js";
 
 export class AttributeLoader {
   values: Float32Array;

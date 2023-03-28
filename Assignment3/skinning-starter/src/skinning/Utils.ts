@@ -58,7 +58,7 @@ export class Utils
     }
 
     // checks if the ray intersects this cyliner and returns t value at intersection
-    public static ray_interset(ray : Ray, start : Vec3, end : Vec3) : [boolean, number]
+    public static ray_interset(ray : Ray, start : Vec3, end : Vec3, radius : number) : [boolean, number]
     {
         const cyl_pos : Vec3 = start.copy()  // r1
         const cyl_dir : Vec3 = end.copy().subtract(start.copy()).normalize() // e1
@@ -96,7 +96,7 @@ export class Utils
         */
     
         // return if dist > radius
-        if (dist > Hex.radius) return [false, Number.MIN_VALUE]
+        if (dist > radius) return [false, Number.MIN_VALUE]
 
         // return if dist(mid_point -> p1) > length / 2
         const mid_point : Vec3 = Utils.mid_point(start, end)

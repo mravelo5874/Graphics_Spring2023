@@ -1,7 +1,7 @@
 import { Camera } from "../lib/webglutils/Camera.js";
 import { Vec3, Vec4 } from "../lib/TSM.js";
 import { Ray, Utils } from "./Utils.js";
-import { BoneRotator } from "./BoneRotator.js";
+import { BoneManipulator } from "./BoneManipulator.js";
 export var Mode;
 (function (Mode) {
     Mode[Mode["playback"] = 0] = "playback";
@@ -124,7 +124,7 @@ export class GUI {
                             if (this.bone_id > -1) {
                                 // roate bone based on dx
                                 const cam_dir = this.camera.forward().normalize();
-                                BoneRotator.rotate_bone(this.animation.getScene(), this.bone_id, dx, cam_dir);
+                                BoneManipulator.rotate_bone(this.animation.getScene(), this.bone_id, dx, cam_dir);
                             }
                             else {
                                 let rotAxis = Vec3.cross(this.camera.forward(), mouseDir);
@@ -170,7 +170,7 @@ export class GUI {
             let id = -1;
             let min_t = Number.MAX_VALUE;
             for (let i = 0; i < cyls.length; i++) {
-                let res = Utils.ray_interset(this.mouse_ray, cyls[i].get_start(), cyls[i].get_end());
+                let res = Utils.ray_interset(this.mouse_ray, cyls[i].get_start(), cyls[i].get_end(), this.animation.getScene().hex.get_radius());
                 if (res[0] && res[1] < min_t) {
                     id = cyls[i].get_id();
                     min_t = res[1];
@@ -297,14 +297,26 @@ export class GUI {
                 this.animation.reset();
                 break;
             }
-            case "ArrowLeft": {
-                this.camera.roll(GUI.rollSpeed, false);
-                break;
-            }
-            case "ArrowRight": {
-                this.camera.roll(GUI.rollSpeed, true);
-                break;
-            }
+            case "ArrowLeft":
+                {
+                    if (this.bone_id > -1) {
+                        BoneManipulator.roll_bone(this.animation.getScene(), this.bone_id, GUI.rollSpeed, true);
+                    }
+                    else {
+                        this.camera.roll(GUI.rollSpeed, false);
+                    }
+                    break;
+                }
+            case "ArrowRight":
+                {
+                    if (this.bone_id > -1) {
+                        BoneManipulator.roll_bone(this.animation.getScene(), this.bone_id, GUI.rollSpeed, false);
+                    }
+                    else {
+                        this.camera.roll(GUI.rollSpeed, true);
+                    }
+                    break;
+                }
             case "ArrowUp": {
                 this.camera.offset(this.camera.up(), GUI.zoomSpeed, true);
                 break;
@@ -355,10 +367,23 @@ export class GUI {
                     console.log('total rays: ' + this.animation.getScene().rr.get_rays().length);
                     break;
                 }
-            default: {
-                console.log("Key : '", key.code, "' was pressed.");
-                break;
-            }
+            case "KeyZ":
+                {
+                    console.log('decreasing hex radius');
+                    this.animation.getScene().hex.update_radius(-0.025);
+                    break;
+                }
+            case "KeyX":
+                {
+                    console.log('increasing hex radius');
+                    this.animation.getScene().hex.update_radius(0.025);
+                    break;
+                }
+            default:
+                {
+                    console.log("Key : '", key.code, "' was pressed.");
+                    break;
+                }
         }
     }
     /**

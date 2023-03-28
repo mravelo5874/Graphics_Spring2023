@@ -58,7 +58,7 @@ export class Bone {
     }
     // TODO (does this work as intended?)
     recurse_init_bone(parent_world_pos, parent_Di_mat, scene) {
-        console.log('init bone: ' + this.id);
+        //console.log('init bone: ' + this.id)
         // init Ti as identity
         this.Ti = Mat4.identity.copy();
         // create Bji mat (maps from parent coords -> this join coords in rest pose)
@@ -66,16 +66,19 @@ export class Bone {
         // different inits if root joint
         if (this.is_root()) {
             this.Di = Mat4.identity.copy().translate(this.position.copy()).multiply(this.Ti.copy());
-            this.Ui = Mat4.identity.copy().translate(this.position.copy()).multiply(Mat4.identity.copy());
+            //this.Ui = Mat4.identity.copy().translate(this.position.copy()).multiply(Mat4.identity.copy())
         }
         else {
             this.Di = parent_Di_mat.copy().multiply(this.Bji.copy().multiply(this.Ti.copy()));
-            this.Ui = parent_Di_mat.copy().multiply(this.Bji.copy().multiply(Mat4.identity.copy()));
+            //this.Ui = parent_Di_mat.copy().multiply(this.Bji.copy().multiply(Mat4.identity.copy()))
         }
         // recurse to all children
         for (let i = 0; i < this.children.length; i++) {
             scene.meshes[0].bones[this.children[i]].recurse_init_bone(this.position.copy(), this.Di.copy(), scene);
         }
+    }
+    get_axis() {
+        return this.endpoint.copy().subtract(this.position.copy()).normalize();
     }
     // updates the rotation and position / endpoint
     apply_rotation(offset, q) {
@@ -86,10 +89,8 @@ export class Bone {
         this.endpoint = Utils.rotate_vec_using_quat(this.endpoint.copy().subtract(offset.copy()), q.copy()).add(offset.copy());
     }
     // TODO (does this work as intended?)
-    update_Ti(offset, axis, rads) {
-        //this.Ti = this.Ti.copy().translate(offset.copy().negate())
+    update_Ti(axis, rads) {
         this.Ti = this.Ti.copy().rotate(rads, axis.copy());
-        //this.Ti = this.Ti.copy().translate(offset.copy())
     }
     // TODO (does this work as intended?)
     update_Di_Ui(scene) {
@@ -97,12 +98,12 @@ export class Bone {
         // depends on if this joint is a root
         if (this.is_root()) {
             this.Di = Mat4.identity.copy().translate(this.position.copy()).multiply(this.Ti.copy());
-            this.Ui = Mat4.identity.copy().translate(this.position.copy());
+            //this.Ui = Mat4.identity.copy().translate(this.position.copy())
         }
         else {
             const parent_Di_mat = scene.meshes[0].bones[this.parent].Di.copy();
             this.Di = parent_Di_mat.copy().multiply(this.Bji.copy().multiply(this.Ti.copy()));
-            this.Ui = parent_Di_mat.copy().multiply(this.Bji.copy());
+            //this.Ui = parent_Di_mat.copy().multiply(this.Bji.copy())
         }
     }
 }
@@ -169,19 +170,6 @@ export class Mesh {
             }
         }
         return new Float32Array(D_mats);
-    }
-    get_U_mats() {
-        // create number array
-        let U_mats = new Array();
-        // for each bone
-        for (let i = 0; i < this.bones.length; i++) {
-            // add each U mat element in order
-            const bone_Ui = this.bones[i].Ui.copy().inverse().all();
-            for (let j = 0; j < 16; j++) {
-                U_mats.push(bone_Ui[j]);
-            }
-        }
-        return new Float32Array(U_mats);
     }
 }
 //# sourceMappingURL=Scene.js.map

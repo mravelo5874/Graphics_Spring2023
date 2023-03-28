@@ -200,10 +200,6 @@ export class SkinningAnimation extends CanvasAnimation
       (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
         gl.uniformMatrix4fv(loc, false, this.scene.meshes[0].get_D_mats());
     });
-    this.sceneRenderPass.addUniform("U_mats",
-      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
-        gl.uniformMatrix4fv(loc, false, this.scene.meshes[0].get_U_mats());
-    });
 
     this.sceneRenderPass.setDrawData(this.ctx.TRIANGLES, this.scene.meshes[0].geometry.position.count, this.ctx.UNSIGNED_INT, 0);
     this.sceneRenderPass.setup();
@@ -424,7 +420,7 @@ export class SkinningAnimation extends CanvasAnimation
       this.render_hex = true;
       this.init_hex();
       this.scene.hex.got_update();
-      //console.log('init hex')
+      console.log('init hex')
     }
       
     // init rays update

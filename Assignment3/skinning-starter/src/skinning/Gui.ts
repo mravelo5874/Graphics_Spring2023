@@ -2,7 +2,7 @@ import { Camera } from "../lib/webglutils/Camera.js";
 import { SkinningAnimation } from "./App.js";
 import { Mat4, Vec3, Vec4, Vec2, Mat2, Quat } from "../lib/TSM.js";
 import { Ray, Utils } from "./Utils.js"
-import { BoneRotator } from "./BoneRotator.js";
+import { BoneManipulator } from "./BoneManipulator.js";
 import { Cylinder } from "./Cylinder.js";
 
 /**
@@ -208,7 +208,7 @@ export class GUI implements IGUI {
             {
               // roate bone based on dx
               const cam_dir : Vec3 = this.camera.forward().normalize()
-              BoneRotator.rotate_bone(this.animation.getScene(), this.bone_id, dx, cam_dir)
+              BoneManipulator.rotate_bone(this.animation.getScene(), this.bone_id, dx, cam_dir)
             }
             else
             {
@@ -266,7 +266,7 @@ export class GUI implements IGUI {
       let min_t = Number.MAX_VALUE    
       for (let i = 0; i < cyls.length; i++)
       {
-        let res : [boolean, number] = Utils.ray_interset(this.mouse_ray, cyls[i].get_start(), cyls[i].get_end())
+        let res : [boolean, number] = Utils.ray_interset(this.mouse_ray, cyls[i].get_start(), cyls[i].get_end(), this.animation.getScene().hex.get_radius())
         if (res[0] && res[1] < min_t)
         {
           id = cyls[i].get_id()
@@ -408,12 +408,28 @@ export class GUI implements IGUI {
         this.animation.reset();
         break;
       }
-      case "ArrowLeft": {
-        this.camera.roll(GUI.rollSpeed, false);
+      case "ArrowLeft": 
+      {
+        if (this.bone_id > -1)
+        {
+          BoneManipulator.roll_bone(this.animation.getScene(), this.bone_id, GUI.rollSpeed, true)
+        }
+        else
+        {
+          this.camera.roll(GUI.rollSpeed, false);
+        }
         break;
       }
-      case "ArrowRight": {
-        this.camera.roll(GUI.rollSpeed, true);
+      case "ArrowRight": 
+      {
+        if (this.bone_id > -1)
+        {
+          BoneManipulator.roll_bone(this.animation.getScene(), this.bone_id, GUI.rollSpeed, false)
+        }
+        else
+        {
+          this.camera.roll(GUI.rollSpeed, true);
+        }
         break;
       }
       case "ArrowUp": {
@@ -441,35 +457,48 @@ export class GUI implements IGUI {
         break;
       }
       case "KeyB":
-        {
-          // custom button to shoot a ray from the 
-          // camera and draw it to the screen.
-          let cam_dir : Vec3 = this.camera.forward()
-          const cam_ray : Ray = new Ray(this.camera.pos(), cam_dir)
-          this.animation.getScene().rr.add_ray(cam_ray, "cyan")
-          
-          console.log('new camera raycast: ' + cam_ray.print())
-          console.log('total rays: ' + this.animation.getScene().rr.get_rays().length)
-          break;
-        }
+      {
+        // custom button to shoot a ray from the 
+        // camera and draw it to the screen.
+        let cam_dir : Vec3 = this.camera.forward()
+        const cam_ray : Ray = new Ray(this.camera.pos(), cam_dir)
+        this.animation.getScene().rr.add_ray(cam_ray, "cyan")
+        
+        console.log('new camera raycast: ' + cam_ray.print())
+        console.log('total rays: ' + this.animation.getScene().rr.get_rays().length)
+        break;
+      }
       case "KeyV":
-        {
-          // return if mouse_ray has not been created
-          if (!this.mouse_ray) return
-          
-          // custom button to shoot a ray from the 
-          // mouse and draw it to the screen.
-          // convert mouse x y position to world ray
-          this.animation.getScene().rr.add_ray(this.mouse_ray, "pink")
-          
-          // const cyls : Cylinder[] = this.animation.getScene().get_cylinders()
-          // let res : [boolean, number] = cyls[0].ray_interset(this.mouse_ray, this.animation.getScene())
+      {
+        // return if mouse_ray has not been created
+        if (!this.mouse_ray) return
+        
+        // custom button to shoot a ray from the 
+        // mouse and draw it to the screen.
+        // convert mouse x y position to world ray
+        this.animation.getScene().rr.add_ray(this.mouse_ray, "pink")
+        
+        // const cyls : Cylinder[] = this.animation.getScene().get_cylinders()
+        // let res : [boolean, number] = cyls[0].ray_interset(this.mouse_ray, this.animation.getScene())
 
-          console.log('new mouse raycast: ' + this.mouse_ray.print())
-          console.log('total rays: ' + this.animation.getScene().rr.get_rays().length)
-          break;
-        }
-      default: {
+        console.log('new mouse raycast: ' + this.mouse_ray.print())
+        console.log('total rays: ' + this.animation.getScene().rr.get_rays().length)
+        break;
+      }
+      case "KeyZ":
+      {
+        console.log('decreasing hex radius');
+        this.animation.getScene().hex.update_radius(-0.025);
+        break;
+      }
+      case "KeyX":
+      {
+        console.log('increasing hex radius');
+        this.animation.getScene().hex.update_radius(0.025);
+        break;
+      }
+      default: 
+      {
         console.log("Key : '", key.code, "' was pressed.");
         break;
       }

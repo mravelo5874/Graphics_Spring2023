@@ -4,6 +4,7 @@ import { Utils } from "./Utils.js";
 export class Hex {
     get_update() { return this.update; }
     got_update() { this.update = false; }
+    get_radius() { return this.radius; }
     constructor() {
         this.update = false;
         this.deleted = false;
@@ -11,6 +12,7 @@ export class Hex {
         this.end = Vec3.zero.copy();
         this.id = -1;
         this.color = new Vec3([0.0, 1.0, 0.0]); // default color is green
+        this.radius = Hex.default_radius;
         this.hex_indices = new Array();
         this.hex_positions = new Array();
         this.hex_colors = new Array();
@@ -28,6 +30,18 @@ export class Hex {
             this.hex_colors.push(this.color.z);
         }
         this.hex_colors_array = new Float32Array(this.hex_colors);
+    }
+    update_radius(delta) {
+        this.radius += delta;
+        if (this.radius < 0.025)
+            this.radius = 0.025;
+        else if (this.radius > 0.5)
+            this.radius = 0.5;
+        // get new hex positions
+        this.hex_positions = [];
+        this.hex_positions_array = new Float32Array(0);
+        this.convert();
+        this.update = true;
     }
     set_color(_color) {
         // return if already this color
@@ -99,7 +113,7 @@ export class Hex {
         const per = Utils.find_orthonormal_vectors(dir)[0].normalize();
         const pi_over_3 = Hex.pi_over_3;
         // calculate 6 hex points around start point
-        const init_p = per.copy().scale(Hex.radius);
+        const init_p = per.copy().scale(this.radius);
         const a1 = Utils.rotate_point(init_p, dir, pi_over_3 * 0).add(this.start);
         const b1 = Utils.rotate_point(init_p, dir, pi_over_3 * 1).add(this.start);
         const c1 = Utils.rotate_point(init_p, dir, pi_over_3 * 2).add(this.start);
@@ -210,6 +224,6 @@ export class Hex {
             return this.hex_colors_array;
     }
 }
-Hex.radius = 0.1;
+Hex.default_radius = 0.1;
 Hex.pi_over_3 = Math.PI / 3;
 //# sourceMappingURL=Hex.js.map

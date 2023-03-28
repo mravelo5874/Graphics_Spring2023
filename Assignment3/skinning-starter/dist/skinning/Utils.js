@@ -1,5 +1,4 @@
 import { Vec3, Mat4, Quat } from "../lib/TSM.js";
-import { Hex } from "./Hex.js";
 // http-server dist -c-1
 export class Utils {
     static get_color(_name) {
@@ -40,7 +39,7 @@ export class Utils {
             '|' + mat.at(3).toFixed(digits) + '|' + mat.at(7).toFixed(digits) + '|' + mat.at(11).toFixed(digits) + '|' + mat.at(15).toFixed(digits) + '|\n';
     }
     // checks if the ray intersects this cyliner and returns t value at intersection
-    static ray_interset(ray, start, end) {
+    static ray_interset(ray, start, end, radius) {
         const cyl_pos = start.copy(); // r1
         const cyl_dir = end.copy().subtract(start.copy()).normalize(); // e1
         const ray_pos = ray.get_origin(); // r2
@@ -72,7 +71,7 @@ export class Utils {
         '\tp2: ' + Util.Vec3_toFixed(p2) + '\n')
         */
         // return if dist > radius
-        if (dist > Hex.radius)
+        if (dist > radius)
             return [false, Number.MIN_VALUE];
         // return if dist(mid_point -> p1) > length / 2
         const mid_point = Utils.mid_point(start, end);

@@ -4,13 +4,14 @@ import { Utils } from "./Utils.js"
 // class used to convert bones into hex prisms
 export class Hex
 {
-    public static radius : number = 0.1
+    public static default_radius : number = 0.1
     public static pi_over_3 : number = Math.PI / 3
 
     private color : Vec3;
     private start : Vec3;
     private end : Vec3;
     private id : number;
+    private radius : number;
 
     private hex_indices : number[];
     private hex_positions : number[];
@@ -25,6 +26,7 @@ export class Hex
 
     public get_update() : boolean { return this.update }
     public got_update() : void { this.update = false }
+    public get_radius() : number { return this.radius }
 
     constructor()
     {
@@ -32,6 +34,7 @@ export class Hex
         this.end = Vec3.zero.copy()
         this.id = -1
         this.color = new Vec3([0.0, 1.0, 0.0]) // default color is green
+        this.radius = Hex.default_radius
 
         this.hex_indices = new Array<number>()
         this.hex_positions = new Array<number>()
@@ -53,6 +56,19 @@ export class Hex
             this.hex_colors.push(this.color.z);
         }
         this.hex_colors_array = new Float32Array(this.hex_colors)
+    }
+
+    public update_radius(delta : number) : void
+    {
+        this.radius += delta
+        if (this.radius < 0.025) this.radius = 0.025;
+        else if (this.radius > 0.5) this.radius = 0.5;
+
+        // get new hex positions
+        this.hex_positions = []
+        this.hex_positions_array = new Float32Array(0)
+        this.convert()
+        this.update = true
     }
 
     public set_color(_color : Vec3) : void 
@@ -138,7 +154,7 @@ export class Hex
         const pi_over_3 : number = Hex.pi_over_3
     
         // calculate 6 hex points around start point
-        const init_p : Vec3 = per.copy().scale(Hex.radius)
+        const init_p : Vec3 = per.copy().scale(this.radius)
         const a1 : Vec3 = Utils.rotate_point(init_p, dir, pi_over_3 * 0).add(this.start)
         const b1 : Vec3 = Utils.rotate_point(init_p, dir, pi_over_3 * 1).add(this.start)
         const c1 : Vec3 = Utils.rotate_point(init_p, dir, pi_over_3 * 2).add(this.start)
