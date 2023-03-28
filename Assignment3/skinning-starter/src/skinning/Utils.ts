@@ -1,5 +1,6 @@
 import { Vec3, Vec4, Mat4, Quat, Vec2 } from "../lib/TSM.js";
 import { Hex } from "./Hex.js";
+import { Attribute } from "./Scene.js";
 
 // http-server dist -c-1
 
@@ -22,7 +23,16 @@ export class Utils
         return new Vec3([0.0, 0.0, 0.0])
     }
 
-    // used to print a Vec3 with rounded float values
+    public static attribute_toFixed(attr : Attribute, items : number, digits : number = 3)
+    {
+        let str : string = ''
+        for (let i = 0; i < items; i++)
+        {
+            str += attr.values[i].toFixed(digits) + ', '
+        }
+        return str
+    }
+
     public static vec3_toFixed(vec : Vec3, digits : number = 3)
     {
         return vec.x.toFixed(digits) + ', ' + vec.y.toFixed(digits) + ', ' + vec.z.toFixed(digits)

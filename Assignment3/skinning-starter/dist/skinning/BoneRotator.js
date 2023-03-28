@@ -1,4 +1,3 @@
-import { Vec3 } from "../lib/TSM.js";
 import { Utils } from "./Utils.js";
 export class BoneRotator {
     static rotate_bone(scene, id, dx, axis) {
@@ -10,19 +9,10 @@ export class BoneRotator {
         // update bone values
         const offset = bone.position.copy();
         bone.apply_rotation(offset.copy(), q.copy());
+        // update T mat
         bone.update_Ti(offset.copy(), axis.copy(), rads);
-        // calculate Bji matrix if not done already
-        if (!bone.B_calc) {
-            if (bone.parent < 0)
-                bone.calculate_Bji(Vec3.zero.copy());
-            else
-                bone.calculate_Bji(scene.meshes[0].bones[bone.parent].initialPosition.copy());
-        }
-        // update Di matrix
-        if (bone.parent < 0)
-            bone.update_Di_Ui();
-        else
-            bone.update_Di_Ui(scene.meshes[0].bones[bone.parent].Di.copy());
+        // update D and U matrix
+        bone.update_Di_Ui(scene);
         // update hex values
         scene.hex.set_color(Utils.get_color('green'));
         scene.hex.rotate(offset.copy(), q.copy());
@@ -36,19 +26,10 @@ export class BoneRotator {
             const child_bone = scene.meshes[0].bones[i];
             // update bone values
             child_bone.apply_rotation(offset.copy(), q.copy());
+            // update T mat
             child_bone.update_Ti(offset.copy(), axis.copy(), rads);
-            // calculate Bji matrix if not done already
-            if (!child_bone.B_calc) {
-                if (child_bone.parent < 0)
-                    child_bone.calculate_Bji(Vec3.zero.copy());
-                else
-                    child_bone.calculate_Bji(scene.meshes[0].bones[child_bone.parent].initialPosition.copy());
-            }
-            // update Di matrix
-            if (child_bone.parent < 0)
-                child_bone.update_Di_Ui();
-            else
-                child_bone.update_Di_Ui(scene.meshes[0].bones[child_bone.parent].Di.copy());
+            // update D and U matrix
+            child_bone.update_Di_Ui(scene);
             // recurse to child bones
             this.update_children(child_bone, offset.copy(), q.copy(), axis.copy(), rads, scene);
         });

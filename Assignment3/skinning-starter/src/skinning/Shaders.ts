@@ -81,8 +81,8 @@ export const sceneVSText = `
             // get matrix
             int index = int(skinIndices[i]);
             mat4 Di = D_mats[index];
-            mat4 Ui = U_mats[index];
-            mat4 T = Di * Ui;
+            //mat4 Ui = U_mats[index];
+            //mat4 T = Di * Ui;
 
             // get correct position
             vec4 v = vec4(0.0, 0.0, 0.0, 1.0);
@@ -105,7 +105,7 @@ export const sceneVSText = `
 
             // calculate sum
             float w = skinWeights[i];
-            vec4 c = T * v;
+            vec4 c = Di * v;
             c *= w;
             sum.x += c.x;
             sum.y += c.y;
@@ -114,9 +114,60 @@ export const sceneVSText = `
         return sum;
     }
 
+    vec3 calc_pos()
+    {
+        vec3 sum = vec3(0.0, 0.0, 0.0);
+        for (int i = 0; i < 4; i++)
+        {
+            int index = int(skinIndices[i]);
+
+            // get correct position
+            vec4 v = vec4(0.0, 0.0, 0.0, 1.0);
+            if (i == 0)
+            {
+                v = vec4(v0);
+            }
+            else if (i == 1)
+            {
+                v = vec4(v1);
+            }
+            else if (i == 2)
+            {
+                v = vec4(v2);
+            }
+            else if (i == 3)
+            {
+                v = vec4(v3);
+            }
+            
+            // get trans and rot
+            vec3 trans = jTrans[index];
+            vec4 rot = jRots[index];
+
+            // rotate pos
+            vec4 rot_conj = vec4(rot.x * -1.0, rot.y * -1.0, rot.z * -1.0, rot.w);
+            vec4 res = rot * v * rot_conj;
+
+            // translate pos
+            res.x + trans.x;
+            res.y + trans.y;
+            res.z + trans.z;
+
+            // apply weight
+            float w = skinWeights[i];
+            res *= w;
+
+            // calculate sum
+            sum.x += res.x;
+            sum.y += res.y;
+            sum.z += res.z;
+        }
+        return sum;
+    } 
+
     void main () 
     {
-        vec3 trans = linear_blend_skinning();
+        vec3 trans = calc_pos(); // linear_blend_skinning(); //
         vec4 worldPosition = mWorld * vec4(trans, 1.0);
         gl_Position = mProj * mView * worldPosition;
         

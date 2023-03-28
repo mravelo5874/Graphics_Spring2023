@@ -195,6 +195,8 @@ class CLoader {
             this.findSkinnedMeshes();
             this.skinnedMeshes.forEach(m => {
                 this.meshes.push(new Mesh(new MeshLoader(m)));
+                this.meshes[0].init_bones(this);
+                this.is_loaded = true;
             });
             // getting the images
             let lib = collada.library;
@@ -239,7 +241,6 @@ class CLoader {
             console.error("Loading collada file failed");
             console.error(event);
         });
-        this.is_loaded = true;
     }
     findSkinnedMeshes(element) {
         if (this.scene == null) {

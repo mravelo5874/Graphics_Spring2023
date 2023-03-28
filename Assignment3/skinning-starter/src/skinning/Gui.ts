@@ -55,6 +55,7 @@ export class GUI implements IGUI {
 
   private mouse_ray : Ray;
   private bone_id : number = -1;
+  private init_rot : boolean = false;
 
 
   /**
@@ -248,6 +249,12 @@ export class GUI implements IGUI {
       // make sure scene is finished loading
       if (!this.animation.getScene().is_loaded) return
 
+      // initial rot
+      if (!this.init_rot)
+      {
+        this.init_rot = true
+      }
+
       // get all cylinders cooresponding to bones
       const cyls : Cylinder[] = this.animation.getScene().create_cylinders()
 
@@ -343,30 +350,37 @@ export class GUI implements IGUI {
   public onKeydown(key: KeyboardEvent): void {
     switch (key.code) {
       case "Digit1": {
+        this.init_rot = false;
         this.animation.setScene("/static/assets/skinning/split_cube.dae");
         break;
       }
       case "Digit2": {
+        this.init_rot = false;
         this.animation.setScene("/static/assets/skinning/long_cubes.dae");
         break;
       }
       case "Digit3": {
+        this.init_rot = false;
         this.animation.setScene("/static/assets/skinning/simple_art.dae");
         break;
       }      
       case "Digit4": {
+        this.init_rot = false;
         this.animation.setScene("/static/assets/skinning/mapped_cube.dae");
         break;
       }
       case "Digit5": {
+        this.init_rot = false;
         this.animation.setScene("/static/assets/skinning/robot.dae");
         break;
       }
       case "Digit6": {
+        this.init_rot = false;
         this.animation.setScene("/static/assets/skinning/head.dae");
         break;
       }
       case "Digit7": {
+        this.init_rot = false;
         this.animation.setScene("/static/assets/skinning/wolf.dae");
         break;
       }

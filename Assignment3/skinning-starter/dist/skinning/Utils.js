@@ -16,7 +16,13 @@ export class Utils {
         // return white as default
         return new Vec3([0.0, 0.0, 0.0]);
     }
-    // used to print a Vec3 with rounded float values
+    static attribute_toFixed(attr, items, digits = 3) {
+        let str = '';
+        for (let i = 0; i < items; i++) {
+            str += attr.values[i].toFixed(digits) + ', ';
+        }
+        return str;
+    }
     static vec3_toFixed(vec, digits = 3) {
         return vec.x.toFixed(digits) + ', ' + vec.y.toFixed(digits) + ', ' + vec.z.toFixed(digits);
     }

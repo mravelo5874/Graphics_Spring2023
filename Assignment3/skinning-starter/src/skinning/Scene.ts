@@ -1,5 +1,5 @@
 import { Mat4, Quat, Vec3, Vec4 } from "../lib/TSM.js";
-import { AttributeLoader, MeshGeometryLoader, BoneLoader, MeshLoader } from "./AnimationFileLoader.js";
+import { AttributeLoader, MeshGeometryLoader, BoneLoader, MeshLoader, CLoader } from "./AnimationFileLoader.js";
 import { Utils } from "./Utils.js"
 
 export class Attribute {
@@ -36,6 +36,14 @@ export class MeshGeometry {
     this.v1 = new Attribute(mesh.v1);
     this.v2 = new Attribute(mesh.v2);
     this.v3 = new Attribute(mesh.v3);
+
+    // console.log('v0[' + this.v0.count + ']: ' + Utils.attribute_toFixed(this.v0, this.v0.count) + 
+    // ', v1[' + this.v1.count + ']: ' + Utils.attribute_toFixed(this.v1, this.v1.count) + 
+    // ', v2[' + this.v2.count + ']: ' + Utils.attribute_toFixed(this.v2, this.v2.count) + 
+    // ', v3[' + this.v3.count + ']: ' + Utils.attribute_toFixed(this.v3, this.v3.count))
+
+    // console.log('skin_index[' + this.skinIndex.count + ']: ' + Utils.attribute_toFixed(this.skinIndex, this.skinIndex.count))
+    // console.log('skin_weight[' + this.skinWeight.count + ']: ' + Utils.attribute_toFixed(this.skinWeight, this.skinWeight.count))
   }
 }
 
@@ -56,13 +64,14 @@ export class Bone
 
   public length : number; // length of bone
   public id : number;
-  public B_calc : boolean; // has the Bji mat been calculated yet?
 
   // importants matrices
   public Ti : Mat4;
   public Di : Mat4;
   public Ui : Mat4;
   public Bji : Mat4;
+
+  public is_root() : boolean { return this.parent < 0; }
 
   constructor(bone: BoneLoader) 
   {
@@ -77,12 +86,11 @@ export class Bone
     this.initialTransformation = bone.initialTransformation.copy();
     this.length = Vec3.distance(this.initialPosition.copy(), this.initialEndpoint.copy())
     this.id = bone.id
-    this.B_calc = false
 
-    this.Ti = Mat4.identity // TODO: (does this work as intended?) this.initialTransformation
-    this.Di = Mat4.identity
-    this.Ui = Mat4.identity
-    this.Bji = Mat4.identity
+    // this.Ti = Mat4.identity
+    // this.Di = Mat4.identity
+    // this.Ui = Mat4.identity
+    // this.Bji = Mat4.identity
 
     // console.log('[BONE] id: ' + this.id + 
     // '\nparent: ' + this.parent +
@@ -95,51 +103,67 @@ export class Bone
     // '\ninit_trans: ' + Utils.mat4_toFixed(this.initialTransformation))
   }
 
+  // TODO (does this work as intended?)
+  public recurse_init_bone(parent_world_pos : Vec3, parent_Di_mat : Mat4, scene : CLoader) : void
+  {
+    console.log('init bone: ' + this.id)
+    // init Ti as identity
+    this.Ti = Mat4.identity.copy()
+    // create Bji mat (maps from parent coords -> this join coords in rest pose)
+    this.Bji = Mat4.identity.copy().translate(this.position.copy().subtract(parent_world_pos.copy()))
+    // different inits if root joint
+    if (this.is_root())
+    {
+      this.Di = Mat4.identity.copy().translate(this.position.copy()).multiply(this.Ti.copy())
+      this.Ui = Mat4.identity.copy().translate(this.position.copy()).multiply(Mat4.identity.copy())
+    }
+    else
+    {
+      this.Di = parent_Di_mat.copy().multiply(this.Bji.copy().multiply(this.Ti.copy()))
+      this.Ui = parent_Di_mat.copy().multiply(this.Bji.copy().multiply(Mat4.identity.copy()))
+    }
+    // recurse to all children
+    for (let i = 0; i < this.children.length; i++)
+    {
+      scene.meshes[0].bones[this.children[i]].recurse_init_bone(this.position.copy(), this.Di.copy(), scene)
+    }
+  }
+
   // updates the rotation and position / endpoint
   public apply_rotation(offset : Vec3, q : Quat) : void
   {
     // update rotation
     this.rotation = q.copy().multiply(this.rotation.copy())
-
-    // update position
+    // update position + endpoint
     this.position = Utils.rotate_vec_using_quat(this.position.copy().subtract(offset.copy()), q.copy()).add(offset.copy())
     this.endpoint = Utils.rotate_vec_using_quat(this.endpoint.copy().subtract(offset.copy()), q.copy()).add(offset.copy())
   }
 
+
   // TODO (does this work as intended?)
   public update_Ti(offset : Vec3, axis : Vec3, rads : number) : void
   {
-    // update Ti mat
-    this.Ti = this.Ti.copy().translate(offset.copy().negate())
+    //this.Ti = this.Ti.copy().translate(offset.copy().negate())
     this.Ti = this.Ti.copy().rotate(rads, axis.copy())
-    this.Ti = this.Ti.copy().translate(offset.copy())
+    //this.Ti = this.Ti.copy().translate(offset.copy())
   }
 
   // TODO (does this work as intended?)
-  public update_Di_Ui(D_j? : Mat4) : void
+  public update_Di_Ui(scene : CLoader) : void
   {
     // update Di mat:
     // depends on if this joint is a root
-    if (this.parent < 0)
+    if (this.is_root())
     {
       this.Di = Mat4.identity.copy().translate(this.position.copy()).multiply(this.Ti.copy())
       this.Ui = Mat4.identity.copy().translate(this.position.copy())
     }
-    else if (D_j)
+    else
     {
-      this.Di = D_j.copy().multiply(this.Bji.copy().multiply(this.Ti.copy()))
-      this.Ui = D_j.copy().multiply(this.Bji.copy())
+      const parent_Di_mat : Mat4 = scene.meshes[0].bones[this.parent].Di.copy()
+      this.Di = parent_Di_mat.copy().multiply(this.Bji.copy().multiply(this.Ti.copy()))
+      this.Ui = parent_Di_mat.copy().multiply(this.Bji.copy())
     }
-  }
-
-  // TODO (does this work as intended?)
-  public calculate_Bji(parent_joint_pos : Vec3) : void
-  {
-    // calculate Bji mat
-    this.Bji = Mat4.identity.copy().translate(this.initialPosition.copy().subtract(parent_joint_pos.copy()))
-    // set Di Ui mats if root bone
-    if (this.parent < 0) this.update_Di_Ui()
-    this.B_calc = true
   }
 }
 
@@ -171,6 +195,17 @@ export class Mesh
     this.boneIndices = Array.from(mesh.boneIndices);
     this.bonePositions = new Float32Array(mesh.bonePositions);
     this.boneIndexAttribute = new Float32Array(mesh.boneIndexAttribute);
+  }
+
+  public init_bones(scene : CLoader) : void
+  {
+    for (let i = 0; i < this.bones.length; i++)
+    {
+      if (this.bones[i].is_root())
+      {
+        this.bones[i].recurse_init_bone(Vec3.zero.copy(), Mat4.identity.copy(), scene)
+      }
+    }
   }
 
   public getBoneIndices(): Uint32Array 

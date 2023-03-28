@@ -22,6 +22,7 @@ export class GUI {
         this.hoverX = 0;
         this.hoverY = 0;
         this.bone_id = -1;
+        this.init_rot = false;
         this.height = canvas.height;
         this.viewPortHeight = this.height - 200;
         this.width = canvas.width;
@@ -157,6 +158,10 @@ export class GUI {
             // make sure scene is finished loading
             if (!this.animation.getScene().is_loaded)
                 return;
+            // initial rot
+            if (!this.init_rot) {
+                this.init_rot = true;
+            }
             // get all cylinders cooresponding to bones
             const cyls = this.animation.getScene().create_cylinders();
             // convert mouse x y position to world ray
@@ -238,30 +243,37 @@ export class GUI {
     onKeydown(key) {
         switch (key.code) {
             case "Digit1": {
+                this.init_rot = false;
                 this.animation.setScene("/static/assets/skinning/split_cube.dae");
                 break;
             }
             case "Digit2": {
+                this.init_rot = false;
                 this.animation.setScene("/static/assets/skinning/long_cubes.dae");
                 break;
             }
             case "Digit3": {
+                this.init_rot = false;
                 this.animation.setScene("/static/assets/skinning/simple_art.dae");
                 break;
             }
             case "Digit4": {
+                this.init_rot = false;
                 this.animation.setScene("/static/assets/skinning/mapped_cube.dae");
                 break;
             }
             case "Digit5": {
+                this.init_rot = false;
                 this.animation.setScene("/static/assets/skinning/robot.dae");
                 break;
             }
             case "Digit6": {
+                this.init_rot = false;
                 this.animation.setScene("/static/assets/skinning/head.dae");
                 break;
             }
             case "Digit7": {
+                this.init_rot = false;
                 this.animation.setScene("/static/assets/skinning/wolf.dae");
                 break;
             }

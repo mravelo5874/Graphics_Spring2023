@@ -3,11 +3,12 @@ import { Object3D, Scene, MeshLambertMaterial, SkinnedMesh, BufferGeometry} from
 import { Vec3 } from "../lib/tsm/Vec3.js";
 import { Mat4, Vec4 } from "../lib/TSM.js";
 import { Quat } from "../lib/tsm/Quat.js";
-import { Mesh } from "../skinning/Scene.js";
+import { Bone, Mesh } from "../skinning/Scene.js";
 import { Utils } from "./Utils.js";
 import { RaycastRenderer } from "./RaycastRenderer.js";
 import { Hex } from "./Hex.js";
 import { Cylinder } from "./Cylinder.js";
+import { BoneRotator } from "./BoneRotator.js";
 
 export class AttributeLoader {
   values: Float32Array;
@@ -252,7 +253,7 @@ class CLoader
     this.skinnedMeshes = [];
     this.meshes = [];
     this.rr = new RaycastRenderer();
-    this.hex = new Hex()
+    this.hex = new Hex();
   }
 
   public load(callback: Function): void {
@@ -264,6 +265,8 @@ class CLoader
       this.findSkinnedMeshes();
       this.skinnedMeshes.forEach(m => {
         this.meshes.push(new Mesh(new MeshLoader(m)));
+        this.meshes[0].init_bones(this)
+        this.is_loaded = true;
       });
       
 
@@ -313,8 +316,6 @@ class CLoader
       console.error("Loading collada file failed");
         console.error(event);
     });
-
-    this.is_loaded = true
   }
 
   private findSkinnedMeshes(element?: Object3D): void {
