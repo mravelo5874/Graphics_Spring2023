@@ -115,12 +115,10 @@ export class Bone
     if (this.is_root())
     {
       this.Di = Mat4.identity.copy().translate(this.position.copy()).multiply(this.Ti.copy())
-      //this.Ui = Mat4.identity.copy().translate(this.position.copy()).multiply(Mat4.identity.copy())
     }
     else
     {
       this.Di = parent_Di_mat.copy().multiply(this.Bji.copy().multiply(this.Ti.copy()))
-      //this.Ui = parent_Di_mat.copy().multiply(this.Bji.copy().multiply(Mat4.identity.copy()))
     }
     // recurse to all children
     for (let i = 0; i < this.children.length; i++)
@@ -158,13 +156,11 @@ export class Bone
     if (this.is_root())
     {
       this.Di = Mat4.identity.copy().translate(this.position.copy()).multiply(this.Ti.copy())
-      //this.Ui = Mat4.identity.copy().translate(this.position.copy())
     }
     else
     {
       const parent_Di_mat : Mat4 = scene.meshes[0].bones[this.parent].Di.copy()
       this.Di = parent_Di_mat.copy().multiply(this.Bji.copy().multiply(this.Ti.copy()))
-      //this.Ui = parent_Di_mat.copy().multiply(this.Bji.copy())
     }
   }
 }
