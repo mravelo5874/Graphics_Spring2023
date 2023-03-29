@@ -361,22 +361,20 @@ export class GUI {
                     // mouse and draw it to the screen.
                     // convert mouse x y position to world ray
                     this.animation.getScene().rr.add_ray(this.mouse_ray, "pink");
-                    // const cyls : Cylinder[] = this.animation.getScene().get_cylinders()
-                    // let res : [boolean, number] = cyls[0].ray_interset(this.mouse_ray, this.animation.getScene())
                     console.log('new mouse raycast: ' + this.mouse_ray.print());
                     console.log('total rays: ' + this.animation.getScene().rr.get_rays().length);
                     break;
                 }
             case "KeyZ":
                 {
-                    console.log('decreasing hex radius');
                     this.animation.getScene().hex.update_radius(-0.025);
+                    console.log('decreaced hex radius: ' + this.animation.getScene().hex.get_radius().toFixed(3));
                     break;
                 }
             case "KeyX":
                 {
-                    console.log('increasing hex radius');
                     this.animation.getScene().hex.update_radius(0.025);
+                    console.log('increased hex radius: ' + this.animation.getScene().hex.get_radius().toFixed(3));
                     break;
                 }
             default:

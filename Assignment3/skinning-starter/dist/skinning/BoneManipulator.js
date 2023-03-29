@@ -1,3 +1,4 @@
+import { Quat, Vec3 } from "../lib/TSM.js";
 import { Utils } from "./Utils.js";
 export class BoneManipulator {
     static rotate_bone(scene, id, dx, axis) {
@@ -5,12 +6,12 @@ export class BoneManipulator {
         const bone = scene.meshes[0].bones[id];
         // rotate bone using dx
         const rads = -dx * this.rotate_scale;
-        const q = (Utils.create_quaternion_from_axis_and_angle(axis, rads));
+        const q = Quat.fromAxisAngle(axis.copy(), rads); //(Utils.create_quaternion_from_axis_and_angle(axis, rads))
         // update bone values
         const offset = bone.position.copy();
         bone.apply_rotation(offset.copy(), q.copy());
         // update T mat
-        bone.update_Ti(axis.copy(), rads);
+        bone.update_Ti_Bji(axis.copy(), rads, Vec3.zero.copy());
         // update D and U matrix
         bone.update_Di_Ui(scene);
         // update hex values
@@ -33,7 +34,7 @@ export class BoneManipulator {
         const offset = bone.position.copy();
         bone.apply_rotation(offset.copy(), q.copy());
         // update T mat
-        bone.update_Ti(axis.copy(), rads);
+        bone.update_Ti_Bji(axis.copy(), rads, Vec3.zero.copy());
         // update D and U matrix
         bone.update_Di_Ui(scene);
         // update hex values
@@ -50,7 +51,7 @@ export class BoneManipulator {
             // update bone values
             child_bone.apply_rotation(offset.copy(), q.copy());
             // update T mat
-            child_bone.update_Ti(axis.copy(), 0);
+            child_bone.update_Ti_Bji(axis.copy(), 0.0, b.position.copy());
             // update D and U matrix
             child_bone.update_Di_Ui(scene);
             // recurse to child bones

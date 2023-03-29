@@ -87,8 +87,9 @@ export class Bone {
         this.endpoint = Utils.rotate_vec_using_quat(this.endpoint.copy().subtract(offset.copy()), q.copy()).add(offset.copy());
     }
     // TODO (does this work as intended?)
-    update_Ti(axis, rads) {
+    update_Ti_Bji(axis, rads, parent_world_pos) {
         this.Ti = this.Ti.copy().rotate(rads, axis.copy());
+        //this.Bji = Mat4.identity.copy().translate(this.position.copy().subtract(parent_world_pos.copy()))
     }
     // TODO (does this work as intended?)
     update_Di_Ui(scene) {
