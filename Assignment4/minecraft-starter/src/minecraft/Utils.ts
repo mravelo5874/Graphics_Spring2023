@@ -29,4 +29,10 @@ export class Utils
         const z_center: number = z_coord * this.CHUNK_SIZE
         return new Vec2([x_center, z_center])
     }
+
+    // returns a 64x64 patch of terrain heights
+    public static get_chunk_heights(chunk_coords: Vec2): void
+    {
+        // TODO
+    }
 }

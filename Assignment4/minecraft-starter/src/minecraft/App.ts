@@ -275,8 +275,17 @@ export class MinecraftAnimation extends CanvasAnimation
   }  
   
   
-  public jump() {
-      //TODO: If the player is not already in the lair, launch them upwards at 10 units/sec.
+  public jump() 
+  {
+    // if the player is not already in the lair, launch them upwards at 10 units/sec.
+
+    // for now just move pos down
+    this.player_pos
+  }
+
+  public down() 
+  {
+
   }
 }
 

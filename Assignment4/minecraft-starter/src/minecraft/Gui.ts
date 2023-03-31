@@ -41,6 +41,8 @@ export class GUI implements IGUI {
   private Wdown: boolean;
   private Sdown: boolean;
   private Ddown: boolean;
+  private go_up: boolean;
+  private go_down: boolean;
 
   /**
    *
@@ -150,7 +152,11 @@ export class GUI implements IGUI {
         answer.add(this.camera.forward());
       if(this.Ddown)
         answer.add(this.camera.right());
-      answer.y = 0;
+      if (this.go_up)
+        answer.add(this.camera.up());
+      if (this.go_down)
+        answer.add(this.camera.up().negate());
+      //answer.y = 0;
       answer.normalize();
       return answer;
   }
@@ -182,8 +188,12 @@ export class GUI implements IGUI {
         break;
       }
       case "Space": {
-        this.animation.jump();
+        //this.animation.jump();
+        this.go_up = true;
         break;
+      }
+      case "ControlLeft": {
+        this.go_down = true;
       }
       default: {
         console.log("Key : '", key.code, "' was pressed.");
@@ -208,6 +218,14 @@ export class GUI implements IGUI {
       }
       case "KeyD": {
         this.Ddown = false;
+        break;
+      }
+      case "Space": {
+        this.go_up = false;
+        break;
+      }
+      case "ControlLeft": {
+        this.go_down = false;
         break;
       }
     }

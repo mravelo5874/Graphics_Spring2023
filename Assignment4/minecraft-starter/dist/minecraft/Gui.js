@@ -84,7 +84,11 @@ class GUI {
             answer.add(this.camera.forward());
         if (this.Ddown)
             answer.add(this.camera.right());
-        answer.y = 0;
+        if (this.go_up)
+            answer.add(this.camera.up());
+        if (this.go_down)
+            answer.add(this.camera.up().negate());
+        //answer.y = 0;
         answer.normalize();
         return answer;
     }
@@ -115,8 +119,12 @@ class GUI {
                 break;
             }
             case "Space": {
-                this.animation.jump();
+                //this.animation.jump();
+                this.go_up = true;
                 break;
+            }
+            case "ControlLeft": {
+                this.go_down = true;
             }
             default: {
                 console.log("Key : '", key.code, "' was pressed.");
@@ -140,6 +148,14 @@ class GUI {
             }
             case "KeyD": {
                 this.Ddown = false;
+                break;
+            }
+            case "Space": {
+                this.go_up = false;
+                break;
+            }
+            case "ControlLeft": {
+                this.go_down = false;
                 break;
             }
         }
