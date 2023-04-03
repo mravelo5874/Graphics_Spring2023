@@ -201,8 +201,8 @@ export class MinecraftAnimation extends CanvasAnimation
     // and loading of new chunks when necessary.
     const move_dir: Vec3 = this.gui.walkDir()
 
-    // move player in direction
-    this.player.move(move_dir)
+    // apply physics to player rigid body
+    this.player.update(move_dir, this.current_chunk, this.get_delta_time())
     
     // set player's current chunk
     const curr_chunk: Vec2 = Utils.pos_to_chunck(this.player.get_pos())
@@ -280,17 +280,6 @@ export class MinecraftAnimation extends CanvasAnimation
 
 
   public getGUI(): GUI { return this.gui; }  
-  
-  
-  public jump() 
-  {
-    // if the player is not already in the lair, launch them upwards at 10 units/sec.
-  }
-
-  public down() 
-  {
-
-  }
 }
 
 export function initializeCanvas(): void {

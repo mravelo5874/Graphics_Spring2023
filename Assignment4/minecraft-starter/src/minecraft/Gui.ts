@@ -152,18 +152,23 @@ export class GUI implements IGUI {
   {
       let answer = new Vec3;
       if(this.Wdown)
-        answer.add(this.camera.forward().negate());
+        answer.add(this.camera.forward().negate()); 
       if(this.Adown)
         answer.add(this.camera.right().negate());
       if(this.Sdown)
         answer.add(this.camera.forward());
       if(this.Ddown)
         answer.add(this.camera.right());
-      if (this.go_up)
-        answer.add(Vec3.up.copy());
-      if (this.go_down)
-        answer.add(Vec3.up.copy().negate());
-      //answer.y = 0;
+      answer.y = 0;
+
+      if (this.animation.player.get_creative_mode())
+      {
+        if (this.go_up)
+          answer.add(Vec3.up.copy());
+        if (this.go_down)
+          answer.add(Vec3.up.copy().negate());
+      }
+    
       answer.normalize();
       return answer;
   }
@@ -201,6 +206,7 @@ export class GUI implements IGUI {
       }
       case "ShiftLeft": {
         this.go_down = true;
+        break;
       }
       default: {
         console.log("Key : '", key.code, "' was pressed.");

@@ -89,11 +89,13 @@ class GUI {
             answer.add(this.camera.forward());
         if (this.Ddown)
             answer.add(this.camera.right());
-        if (this.go_up)
-            answer.add(Vec3.up.copy());
-        if (this.go_down)
-            answer.add(Vec3.up.copy().negate());
-        //answer.y = 0;
+        answer.y = 0;
+        if (this.animation.player.get_creative_mode()) {
+            if (this.go_up)
+                answer.add(Vec3.up.copy());
+            if (this.go_down)
+                answer.add(Vec3.up.copy().negate());
+        }
         answer.normalize();
         return answer;
     }
@@ -130,6 +132,7 @@ class GUI {
             }
             case "ShiftLeft": {
                 this.go_down = true;
+                break;
             }
             default: {
                 console.log("Key : '", key.code, "' was pressed.");

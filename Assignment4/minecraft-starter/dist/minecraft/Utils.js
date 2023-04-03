@@ -1,5 +1,5 @@
 var _a;
-import { Vec2 } from "../lib/TSM.js";
+import { Vec3, Vec2 } from "../lib/TSM.js";
 class print {
     static v3(v, d = this.DIGITS) { return v.x.toFixed(d) + ', ' + v.y.toFixed(d) + ', ' + v.z.toFixed(d); }
     static v2(v, d = this.DIGITS) { return v.x.toFixed(d) + ', ' + v.y.toFixed(d); }
@@ -28,5 +28,6 @@ _a = Utils;
 Utils.CHUNK_SIZE = 64;
 Utils.HALF_CHUNK_SIZE = _a.CHUNK_SIZE / 2;
 Utils.NUM_ADJ_CHUNKS = 8;
+Utils.GRAVITY = new Vec3([0.0, -9.8, 0.0]);
 export { Utils };
 //# sourceMappingURL=Utils.js.map

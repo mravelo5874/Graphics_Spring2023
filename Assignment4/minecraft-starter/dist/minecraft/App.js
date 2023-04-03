@@ -100,8 +100,8 @@ export class MinecraftAnimation extends CanvasAnimation {
         // and reject attempts to walk into a cube. Handle gravity, jumping, 
         // and loading of new chunks when necessary.
         const move_dir = this.gui.walkDir();
-        // move player in direction
-        this.player.move(move_dir);
+        // apply physics to player rigid body
+        this.player.update(move_dir, this.current_chunk, this.get_delta_time());
         // set player's current chunk
         const curr_chunk = Utils.pos_to_chunck(this.player.get_pos());
         if (!curr_chunk.equals(this.player.get_chunk())) {
@@ -162,11 +162,6 @@ export class MinecraftAnimation extends CanvasAnimation {
         return num_cubes_sum;
     }
     getGUI() { return this.gui; }
-    jump() {
-        // if the player is not already in the lair, launch them upwards at 10 units/sec.
-    }
-    down() {
-    }
 }
 export function initializeCanvas() {
     const canvas = document.getElementById("glCanvas");

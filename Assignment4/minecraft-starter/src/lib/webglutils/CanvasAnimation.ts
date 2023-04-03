@@ -114,7 +114,14 @@ export class WebGLUtilities {
  */
 export abstract class CanvasAnimation {
   protected c: HTMLCanvasElement;
-  protected ctx: WebGL2RenderingContext;  
+  protected ctx: WebGL2RenderingContext;
+
+  private start_time: number;
+  private prev_time: number;
+  private curr_delta_time: number;
+
+  public get_delta_time(): number { return this.curr_delta_time }
+  public get_elapsed_time(): number { return Date.now() - this.start_time }
 
   constructor(canvas: HTMLCanvasElement,
     debugMode : boolean = false,
@@ -124,7 +131,12 @@ export abstract class CanvasAnimation {
     ) {
     // Create webgl rendering context
     this.c = canvas;
-    this.ctx = WebGLUtilities.requestWebGLContext(this.c);    
+    this.ctx = WebGLUtilities.requestWebGLContext(this.c);
+
+    // set current time
+    this.start_time = Date.now()
+    this.prev_time = Date.now()
+    this.curr_delta_time = 0
     
     if (debugMode) {
       this.ctx = Debugger.makeDebugContext(this.ctx, glErrorCallback, glCallback);
@@ -144,10 +156,15 @@ export abstract class CanvasAnimation {
   /**
    * Draws and then requests a draw for the next frame.
    */
-  public drawLoop(): void {
+  public drawLoop(): void 
+  {
+      // calculate current delta time
+      const curr_time: number = Date.now()
+      this.curr_delta_time = (curr_time - this.prev_time) / 1000.0
+      this.prev_time = curr_time
+
       this.draw();
       window.requestAnimationFrame(() => this.drawLoop());
-
   }
 
   /**

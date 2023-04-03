@@ -13,6 +13,7 @@ export class Utils
     public static CHUNK_SIZE: number = 64
     public static HALF_CHUNK_SIZE: number = this.CHUNK_SIZE / 2
     public static NUM_ADJ_CHUNKS: number = 8
+    public static GRAVITY: Vec3 = new Vec3([0.0, -9.8, 0.0])
 
     // returns what chunk the player is in based of their position
     public static pos_to_chunck(pos: Vec3): Vec2
