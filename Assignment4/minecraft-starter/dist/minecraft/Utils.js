@@ -8,7 +8,7 @@ print.DIGITS = 3;
 export { print };
 class Utils {
     // returns what chunk the player is in based of their position
-    static get_chunck(pos) {
+    static pos_to_chunck(pos) {
         const x_chunk = Math.floor((pos.x + this.HALF_CHUNK_SIZE) / this.CHUNK_SIZE);
         const z_chunk = Math.floor((pos.z + this.HALF_CHUNK_SIZE) / this.CHUNK_SIZE);
         return new Vec2([x_chunk, z_chunk]);
@@ -18,6 +18,10 @@ class Utils {
         const x_center = x_coord * this.CHUNK_SIZE;
         const z_center = z_coord * this.CHUNK_SIZE;
         return new Vec2([x_center, z_center]);
+    }
+    // returns a 64x64 patch of terrain heights
+    static get_chunk_heights(chunk_coords) {
+        // TODO
     }
 }
 _a = Utils;

@@ -17,6 +17,7 @@ import { Chunk } from "./Chunk.js";
 
 // custom imports
 import { Utils, print } from "./Utils.js";
+import { Player } from "./Player.js";
 
 export class MinecraftAnimation extends CanvasAnimation 
 {
@@ -37,9 +38,7 @@ export class MinecraftAnimation extends CanvasAnimation
   
   // Player's head position in world coordinate.
   // Player should extend two units down from this location, and 0.4 units radially.
-  private player_pos: Vec3;
-  private player_chunk: Vec2;
-  
+  public player: Player;
   
   constructor(canvas: HTMLCanvasElement) 
   {
@@ -51,14 +50,18 @@ export class MinecraftAnimation extends CanvasAnimation
     let gl = this.ctx;
         
     this.gui = new GUI(this.canvas2d, this);
-    this.player_pos = this.gui.getCamera().pos();
-    this.player_chunk = Utils.get_chunck(this.player_pos)
-    console.log('init pos: {' + print.v3(this.player_pos) + '}')
-    console.log('init chunk: {' + print.v2(this.player_chunk, 0) + '}')
+
+    // create player
+    const player_pos: Vec3 = this.gui.getCamera().pos();
+    this.player = new Player(player_pos)
+
+    
+    console.log('init pos: {' + print.v3(this.player.get_pos()) + '}')
+    console.log('init chunk: {' + print.v2(this.player.get_chunk()) + '}')
     
     // Generate initial landscape
     this.current_chunk = new Chunk(0.0, 0.0, 64);
-    this.adj_chunks = this.generate_adj_chunks(this.player_chunk)
+    this.adj_chunks = this.generate_adj_chunks(this.player.get_chunk())
     
     this.blankCubeRenderPass = new RenderPass(gl, blankCubeVSText, blankCubeFSText);
     this.cubeGeometry = new Cube();
@@ -115,11 +118,11 @@ export class MinecraftAnimation extends CanvasAnimation
   /**
    * Setup the simulation. This can be called again to reset the program.
    */
-  public reset(): void {    
+  public reset(): void 
+  {    
       this.gui.reset();
-      
-      this.player_pos = this.gui.getCamera().pos();
-      
+      const player_pos: Vec3 = this.gui.getCamera().pos();
+      this.player = new Player(player_pos)
   }
   
   
@@ -191,26 +194,32 @@ export class MinecraftAnimation extends CanvasAnimation
    * Draws a single frame
    *
    */
-  public draw(): void {
-    //TODO: Logic for a rudimentary walking simulator. Check for collisions and reject attempts to walk into a cube. Handle gravity, jumping, and loading of new chunks when necessary.
-    this.player_pos.add(this.gui.walkDir());
+  public draw(): void 
+  {
+    // Logic for a rudimentary walking simulator. Check for collisions 
+    // and reject attempts to walk into a cube. Handle gravity, jumping, 
+    // and loading of new chunks when necessary.
+    const move_dir: Vec3 = this.gui.walkDir()
 
+    // move player in direction
+    this.player.move(move_dir)
+    
     // set player's current chunk
-    const curr_chunk: Vec2 = Utils.get_chunck(this.player_pos)
-    if (!curr_chunk.equals(this.player_chunk))
+    const curr_chunk: Vec2 = Utils.pos_to_chunck(this.player.get_pos())
+    if (!curr_chunk.equals(this.player.get_chunk()))
     {
-      this.player_chunk = curr_chunk.copy()
-      console.log('pos: {' + print.v3(this.player_pos) + '}')
-      console.log('chunk: {' + print.v2(this.player_chunk, 0) + '}')
+      this.player.set_chunk(curr_chunk.copy())
+      console.log('pos: {' + print.v3(this.player.get_pos()) + '}')
+      console.log('chunk: {' + print.v2(this.player.get_chunk(), 0) + '}')
 
       // render new 3x3 chunks around player
-      const new_chunk_center: Vec2 = Utils.get_chunk_center(this.player_chunk.x, this.player_chunk.y)
+      const new_chunk_center: Vec2 = Utils.get_chunk_center(this.player.get_chunk().x, this.player.get_chunk().y)
       this.current_chunk = new Chunk(new_chunk_center.x, new_chunk_center.y, 64);
-      this.adj_chunks = this.generate_adj_chunks(this.player_chunk)
+      this.adj_chunks = this.generate_adj_chunks(this.player.get_chunk())
     }
 
     // set the player's current position
-    this.gui.getCamera().setPos(this.player_pos);
+    this.gui.getCamera().setPos(this.player.get_pos());
     
     // Drawing
     const gl: WebGLRenderingContext = this.ctx;
@@ -270,17 +279,12 @@ export class MinecraftAnimation extends CanvasAnimation
   }
 
 
-  public getGUI(): GUI {
-    return this.gui;
-  }  
+  public getGUI(): GUI { return this.gui; }  
   
   
   public jump() 
   {
     // if the player is not already in the lair, launch them upwards at 10 units/sec.
-
-    // for now just move pos down
-    this.player_pos
   }
 
   public down() 

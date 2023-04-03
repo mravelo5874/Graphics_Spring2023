@@ -15,7 +15,7 @@ export class Utils
     public static NUM_ADJ_CHUNKS: number = 8
 
     // returns what chunk the player is in based of their position
-    public static get_chunck(pos: Vec3): Vec2
+    public static pos_to_chunck(pos: Vec3): Vec2
     {   
         const x_chunk: number = Math.floor((pos.x + this.HALF_CHUNK_SIZE) / this.CHUNK_SIZE)
         const z_chunk: number = Math.floor((pos.z + this.HALF_CHUNK_SIZE) / this.CHUNK_SIZE)

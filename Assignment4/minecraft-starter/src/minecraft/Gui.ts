@@ -136,8 +136,15 @@ export class GUI implements IGUI {
     this.prevY = mouse.screenY;
     if(this.dragging)
     {
-        this.camera.rotate(new Vec3([0, 1, 0]), -GUI.rotationSpeed*dx);
-        this.camera.rotate(this.camera.right(), -GUI.rotationSpeed*dy);
+      const mov: number = GUI.rotationSpeed*this.animation.player.get_sense()
+      const y_mov: number = mov*dy
+      const x_move: number = mov*dx
+
+      this.camera.pitch(y_mov, y_mov > 0)
+      this.camera.rotate(Vec3.up, -x_move)
+
+        //this.camera.rotate(new Vec3([0, 1, 0]), -GUI.rotationSpeed*dx*this.animation.player.get_sense());
+        //this.camera.rotate(this.camera.right(), -GUI.rotationSpeed*dy*this.animation.player.get_sense());
     }
   }
   
@@ -153,9 +160,9 @@ export class GUI implements IGUI {
       if(this.Ddown)
         answer.add(this.camera.right());
       if (this.go_up)
-        answer.add(this.camera.up());
+        answer.add(Vec3.up.copy());
       if (this.go_down)
-        answer.add(this.camera.up().negate());
+        answer.add(Vec3.up.copy().negate());
       //answer.y = 0;
       answer.normalize();
       return answer;
@@ -192,7 +199,7 @@ export class GUI implements IGUI {
         this.go_up = true;
         break;
       }
-      case "ControlLeft": {
+      case "ShiftLeft": {
         this.go_down = true;
       }
       default: {
@@ -224,7 +231,7 @@ export class GUI implements IGUI {
         this.go_up = false;
         break;
       }
-      case "ControlLeft": {
+      case "ShiftLeft": {
         this.go_down = false;
         break;
       }
