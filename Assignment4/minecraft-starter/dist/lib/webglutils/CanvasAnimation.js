@@ -88,7 +88,7 @@ export class CanvasAnimation {
     drawLoop() {
         // calculate current delta time
         const curr_time = Date.now();
-        this.curr_delta_time = (curr_time - this.prev_time) / 1000.0;
+        this.curr_delta_time = (curr_time - this.prev_time);
         this.prev_time = curr_time;
         this.draw();
         window.requestAnimationFrame(() => this.drawLoop());

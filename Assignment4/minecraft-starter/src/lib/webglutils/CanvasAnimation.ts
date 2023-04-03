@@ -160,7 +160,7 @@ export abstract class CanvasAnimation {
   {
       // calculate current delta time
       const curr_time: number = Date.now()
-      this.curr_delta_time = (curr_time - this.prev_time) / 1000.0
+      this.curr_delta_time = (curr_time - this.prev_time)
       this.prev_time = curr_time
 
       this.draw();

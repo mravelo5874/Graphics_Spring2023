@@ -1,19 +1,21 @@
 import { Utils, print } from "./Utils.js";
 import { Vec3, Vec2 } from "../lib/TSM.js";
 import { Chunk } from "./Chunk.js";
+import { CubeCollider, CylinderCollider } from "./Colliders.js";
 
 export class Player
 {
     private pos: Vec3;
     private vel: Vec3;
     private acc: Vec3;
-    private max_acc: number = 25.0;
+    private max_acc: number = 0.00001;
 
     private chunk: Vec2;
-    private speed: number = 10.0;
+    private speed: number = 0.005;
     private sense: number = 0.25;
+    private collider: CylinderCollider;
 
-    private create_mode: boolean;
+    private creative_mode: boolean;
 
     // pos access
     public get_pos(): Vec3 { return this.pos.copy() }
@@ -22,12 +24,13 @@ export class Player
     public set_chunk(_chunk: Vec2): void { this.chunk = _chunk.copy() }
     // settings access
     public get_sense(): number { return this.sense }
-    public get_creative_mode(): boolean { return this.create_mode }
+    public get_creative_mode(): boolean { return this.creative_mode }
+    public toggle_creative_mode(): void { this.creative_mode = !this.creative_mode; this.acc = Vec3.zero.copy(); this.vel.y = 0 }
 
     constructor(_pos: Vec3)
     {
         // TODO: remove creative mode default
-        this.create_mode = false
+        this.creative_mode = true
 
         // set pos vel acc
         this.pos = _pos.copy()
@@ -36,23 +39,23 @@ export class Player
 
         // player info
         this.chunk = Utils.pos_to_chunck(this.pos)
+        this.collider = new CylinderCollider(this.pos.copy(), this.pos.copy().subtract(new Vec3([0,Utils.PLAYER_HEIGHT,0])), Utils.PLAYER_RADIUS)
     }
 
     public update(dir: Vec3, _chunk: Chunk, delta_time: number): void
     {   
-        // console.log('delta_time: ' + delta_time)
-        // console.log('dir: ' + print.v3(dir))
+        //console.log('delta_time: ' + delta_time)
+        //console.log('dir: ' + print.v3(dir))
 
         // apply physics
         // w/ some help from: https://catlikecoding.com/unity/tutorials/movement/sliding-a-sphere/
         
-        // get acceleration from move dir
-        this.acc = dir.copy().scale(delta_time * delta_time)
+
         // apply gravity
-        if (!this.create_mode) { this.acc.add(Utils.GRAVITY.copy()) }
+        if (!this.creative_mode) { this.acc = Utils.GRAVITY.copy() }
 
         // calculate velocity
-		const des_vel: Vec3 = this.acc.scale(this.speed)
+		const des_vel: Vec3 = dir.copy().add(this.acc.copy().scale(delta_time)).scale(this.speed)
         const max_delta_speed: number = this.max_acc * delta_time
         // x vel
         if (this.vel.x < des_vel.x) { this.vel.x = Math.min(this.vel.x + max_delta_speed, des_vel.x) }
@@ -68,10 +71,25 @@ export class Player
 		const disp: Vec3 = this.vel.copy().scale(delta_time)
         this.pos.add(disp.copy())
 
+        // console.log('pos: {' + print.v3(this.pos.copy()) + '}')
+
+        /*
+        this.collider.start = this.pos.copy()
+        this.collider.end = this.pos.copy().subtract(new Vec3([0,Utils.PLAYER_HEIGHT,0]))
+
         // detect collisions with chunk blocks
-        
+        const cubes: CubeCollider[] = _chunk.get_cube_colliders()
+        for (let i = 0; i < cubes.length; i++)
+        {
+            const res = Utils.cube_cyl_intersection(cubes[i], this.collider)
+            if (res[0])
+            {
+                console.log('collision')
+            }
+        }
 
         // return if player in creative mode
         if (this.create_mode) { return }
+        */
     }
 }

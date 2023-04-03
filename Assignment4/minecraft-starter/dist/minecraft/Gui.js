@@ -80,6 +80,7 @@ class GUI {
         }
     }
     walkDir() {
+        // move player in xz direction
         let answer = new Vec3;
         if (this.Wdown)
             answer.add(this.camera.forward().negate());
@@ -90,6 +91,7 @@ class GUI {
         if (this.Ddown)
             answer.add(this.camera.right());
         answer.y = 0;
+        // if in creative mode, can float up or down
         if (this.animation.player.get_creative_mode()) {
             if (this.go_up)
                 answer.add(Vec3.up.copy());
@@ -132,6 +134,11 @@ class GUI {
             }
             case "ShiftLeft": {
                 this.go_down = true;
+                break;
+            }
+            case "KeyC": {
+                // toggle player creative mode
+                this.animation.player.toggle_creative_mode();
                 break;
             }
             default: {

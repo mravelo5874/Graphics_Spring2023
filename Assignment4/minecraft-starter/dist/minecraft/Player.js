@@ -1,5 +1,6 @@
-import { Utils } from "./Utils.js";
+import { Utils, print } from "./Utils.js";
 import { Vec3 } from "../lib/TSM.js";
+import { CylinderCollider } from "./Colliders.js";
 export class Player {
     // pos access
     get_pos() { return this.pos.copy(); }
@@ -8,32 +9,33 @@ export class Player {
     set_chunk(_chunk) { this.chunk = _chunk.copy(); }
     // settings access
     get_sense() { return this.sense; }
-    get_creative_mode() { return this.create_mode; }
+    get_creative_mode() { return this.creative_mode; }
+    toggle_creative_mode() { this.creative_mode = !this.creative_mode; this.acc = Vec3.zero.copy(); this.vel.y = 0; }
     constructor(_pos) {
-        this.max_acc = 25.0;
-        this.speed = 10.0;
+        this.max_acc = 0.00001;
+        this.speed = 0.005;
         this.sense = 0.25;
         // TODO: remove creative mode default
-        this.create_mode = false;
+        this.creative_mode = true;
         // set pos vel acc
         this.pos = _pos.copy();
         this.vel = Vec3.zero.copy();
         this.acc = Vec3.zero.copy();
         // player info
         this.chunk = Utils.pos_to_chunck(this.pos);
+        this.collider = new CylinderCollider(this.pos.copy(), this.pos.copy().subtract(new Vec3([0, Utils.PLAYER_HEIGHT, 0])), Utils.PLAYER_RADIUS);
     }
     update(dir, _chunk, delta_time) {
-        // console.log('delta_time: ' + delta_time)
-        // console.log('dir: ' + print.v3(dir))
+        //console.log('delta_time: ' + delta_time)
+        //console.log('dir: ' + print.v3(dir))
         // apply physics
         // w/ some help from: https://catlikecoding.com/unity/tutorials/movement/sliding-a-sphere/
-        // get acceleration from move dir
-        this.acc = dir.copy().scale(delta_time * delta_time);
         // apply gravity
-        if (!this.create_mode) {
-            this.acc.add(Utils.GRAVITY.copy());
+        if (!this.creative_mode) {
+            this.acc = Utils.GRAVITY.copy();
         }
-        const des_vel = this.acc.scale(this.speed);
+        // calculate velocity
+        const des_vel = dir.copy().add(this.acc.copy().scale(delta_time)).scale(this.speed);
         const max_delta_speed = this.max_acc * delta_time;
         // x vel
         if (this.vel.x < des_vel.x) {
@@ -59,10 +61,25 @@ export class Player {
         // calc displacement
         const disp = this.vel.copy().scale(delta_time);
         this.pos.add(disp.copy());
-        // return if player in creative mode
-        if (this.create_mode) {
-            return;
+        console.log('pos: {' + print.v3(this.pos.copy()) + '}');
+        /*
+        this.collider.start = this.pos.copy()
+        this.collider.end = this.pos.copy().subtract(new Vec3([0,Utils.PLAYER_HEIGHT,0]))
+
+        // detect collisions with chunk blocks
+        const cubes: CubeCollider[] = _chunk.get_cube_colliders()
+        for (let i = 0; i < cubes.length; i++)
+        {
+            const res = Utils.cube_cyl_intersection(cubes[i], this.collider)
+            if (res[0])
+            {
+                console.log('collision')
+            }
         }
+
+        // return if player in creative mode
+        if (this.create_mode) { return }
+        */
     }
 }
 //# sourceMappingURL=Player.js.map

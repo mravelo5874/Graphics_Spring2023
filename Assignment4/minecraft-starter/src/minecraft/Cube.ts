@@ -1,6 +1,7 @@
 import { Mat3, Mat4, Vec3, Vec4 } from "../lib/TSM.js";
 
-export class Cube {
+export class Cube 
+{
   public center: Vec3;
   public scalar: GLfloat;
 

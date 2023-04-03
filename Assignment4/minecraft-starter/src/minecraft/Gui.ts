@@ -150,27 +150,29 @@ export class GUI implements IGUI {
   
   public walkDir(): Vec3
   {
-      let answer = new Vec3;
-      if(this.Wdown)
-        answer.add(this.camera.forward().negate()); 
-      if(this.Adown)
-        answer.add(this.camera.right().negate());
-      if(this.Sdown)
-        answer.add(this.camera.forward());
-      if(this.Ddown)
-        answer.add(this.camera.right());
-      answer.y = 0;
+    // move player in xz direction
+    let answer = new Vec3;
+    if(this.Wdown)
+      answer.add(this.camera.forward().negate()); 
+    if(this.Adown)
+      answer.add(this.camera.right().negate());
+    if(this.Sdown)
+      answer.add(this.camera.forward());
+    if(this.Ddown)
+      answer.add(this.camera.right());
+    answer.y = 0;
 
-      if (this.animation.player.get_creative_mode())
-      {
-        if (this.go_up)
-          answer.add(Vec3.up.copy());
-        if (this.go_down)
-          answer.add(Vec3.up.copy().negate());
-      }
-    
-      answer.normalize();
-      return answer;
+    // if in creative mode, can float up or down
+    if (this.animation.player.get_creative_mode())
+    {
+      if (this.go_up)
+        answer.add(Vec3.up.copy());
+      if (this.go_down)
+        answer.add(Vec3.up.copy().negate());
+    }
+  
+    answer.normalize();
+    return answer;
   }
   
   /**
@@ -206,6 +208,11 @@ export class GUI implements IGUI {
       }
       case "ShiftLeft": {
         this.go_down = true;
+        break;
+      }
+      case "KeyC": {
+        // toggle player creative mode
+        this.animation.player.toggle_creative_mode()
         break;
       }
       default: {

@@ -55,7 +55,6 @@ export class MinecraftAnimation extends CanvasAnimation
     const player_pos: Vec3 = this.gui.getCamera().pos();
     this.player = new Player(player_pos)
 
-    
     console.log('init pos: {' + print.v3(this.player.get_pos()) + '}')
     console.log('init chunk: {' + print.v2(this.player.get_chunk()) + '}')
     
