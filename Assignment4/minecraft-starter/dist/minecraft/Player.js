@@ -12,12 +12,12 @@ export class Player {
     get_creative_mode() { return this.creative_mode; }
     toggle_creative_mode() { this.creative_mode = !this.creative_mode; this.acc = Vec3.zero.copy(); this.vel.y = 0; }
     constructor(_pos) {
-        this.max_acc = 0.00001;
-        this.speed = 0.005;
-        this.sense = 0.25;
-        this.jump_vel = 0.005;
-        // TODO: remove creative mode default
-        this.creative_mode = true;
+        this.max_acc = 0.00001; // default = 0.00001    
+        this.speed = 0.005; // default = 0.005
+        this.sense = 0.25; // default = 0.25
+        this.jump_vel = 0.005; // default = 0.005
+        // init in normal model
+        this.creative_mode = false;
         // set pos vel acc
         this.pos = _pos.copy();
         this.vel = Vec3.zero.copy();
@@ -27,8 +27,6 @@ export class Player {
         this.collider = new CylinderCollider(this.pos.copy(), this.pos.copy().subtract(new Vec3([0, Utils.PLAYER_HEIGHT, 0])), Utils.PLAYER_RADIUS);
     }
     update(dir, _chunk, delta_time) {
-        //console.log('delta_time: ' + delta_time)
-        //console.log('dir: ' + print.v3(dir))
         // apply physics
         // w/ some help from: https://catlikecoding.com/unity/tutorials/movement/sliding-a-sphere/
         // apply gravity
@@ -62,7 +60,7 @@ export class Player {
         // calc displacement
         const disp = this.vel.copy().scale(delta_time);
         this.pos.add(disp.copy());
-        // console.log('pos: {' + print.v3(this.pos.copy()) + '}')
+        // update collider
         this.collider.start = this.pos.copy();
         this.collider.end = this.pos.copy().subtract(new Vec3([0, Utils.PLAYER_HEIGHT, 0]));
         // return if player in creative mode
@@ -72,17 +70,57 @@ export class Player {
         // detect collisions with chunk blocks
         const cubes = _chunk.get_cube_colliders();
         for (let i = 0; i < cubes.length; i++) {
+            // check for vertical collision
             if (Utils.simple_vert_collision(cubes[i], this.collider)) {
+                // do not apply vertical offset if going up
+                if (this.vel.y > 0)
+                    break;
                 // apply offset
                 this.pos = new Vec3([this.pos.x, cubes[i].get_pos().y + (Utils.CUBE_LEN / 2) + this.collider.height, this.pos.z]);
                 this.vel.y = 0;
                 this.collider.start = this.pos.copy();
                 this.collider.end = this.pos.copy().subtract(new Vec3([0, Utils.PLAYER_HEIGHT, 0]));
             }
+            // check for horizontal collision
+            if (Utils.simple_horz_collision(cubes[i], this.collider)) {
+                // determine max offset between x and z
+                const x_offset_dist = Math.abs(this.pos.x - cubes[i].get_pos().x) / 256;
+                const z_offset_dist = Math.abs(this.pos.z - cubes[i].get_pos().z) / 256;
+                // apply offset(s)
+                let new_pos = this.pos.copy();
+                if (x_offset_dist > 0) {
+                    // which direction is the player moving?
+                    if (this.vel.x > 0) {
+                        new_pos.x -= x_offset_dist;
+                    }
+                    else if (this.vel.x < 0) {
+                        new_pos.x += x_offset_dist;
+                    }
+                    // set new pos and vel
+                    this.pos = new_pos.copy();
+                    this.vel.x = 0;
+                }
+                if (z_offset_dist > 0) {
+                    // which direction is the player moving?
+                    if (this.vel.z > 0) {
+                        new_pos.z -= z_offset_dist;
+                    }
+                    else if (this.vel.z < 0) {
+                        new_pos.z += z_offset_dist;
+                    }
+                    // set new pos and vel
+                    this.pos = new_pos.copy();
+                    this.vel.z = 0;
+                }
+                this.collider.start = this.pos.copy();
+                this.collider.end = this.pos.copy().subtract(new Vec3([0, Utils.PLAYER_HEIGHT, 0]));
+            }
         }
     }
     jump() {
-        this.vel.y += this.jump_vel;
+        // determine if player on ground before jumping
+        if (this.vel.y == 0)
+            this.vel.y += this.jump_vel;
     }
 }
 //# sourceMappingURL=Player.js.map
