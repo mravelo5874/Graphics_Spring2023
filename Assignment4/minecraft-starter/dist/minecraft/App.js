@@ -22,7 +22,7 @@ export class MinecraftAnimation extends CanvasAnimation {
         console.log('init pos: {' + print.v3(this.player.get_pos()) + '}');
         console.log('init chunk: {' + print.v2(this.player.get_chunk()) + '}');
         // Generate initial landscape
-        this.current_chunk = new Chunk(0.0, 0.0, 64);
+        this.current_chunk = new Chunk(0.0, 0.0, Utils.CHUNK_SIZE);
         this.adj_chunks = this.generate_adj_chunks(this.player.get_chunk());
         this.blankCubeRenderPass = new RenderPass(gl, blankCubeVSText, blankCubeFSText);
         this.cubeGeometry = new Cube();
@@ -110,7 +110,7 @@ export class MinecraftAnimation extends CanvasAnimation {
             console.log('chunk: {' + print.v2(this.player.get_chunk(), 0) + '}');
             // render new 3x3 chunks around player
             const new_chunk_center = Utils.get_chunk_center(this.player.get_chunk().x, this.player.get_chunk().y);
-            this.current_chunk = new Chunk(new_chunk_center.x, new_chunk_center.y, 64);
+            this.current_chunk = new Chunk(new_chunk_center.x, new_chunk_center.y, Utils.CHUNK_SIZE);
             this.adj_chunks = this.generate_adj_chunks(this.player.get_chunk());
         }
         // set the player's current position
@@ -131,8 +131,6 @@ export class MinecraftAnimation extends CanvasAnimation {
         const gl = this.ctx;
         gl.viewport(x, y, width, height);
         // Render multiple chunks around the player, using Perlin noise shaders
-        //this.blankCubeRenderPass.updateAttributeBuffer("aOffset", this.current_chunk.cubePositions());
-        //this.blankCubeRenderPass.drawInstanced(this.current_chunk.numCubes());
         this.blankCubeRenderPass.updateAttributeBuffer("aOffset", this.get_all_cube_pos());
         this.blankCubeRenderPass.drawInstanced(this.get_all_num_cubes());
     }

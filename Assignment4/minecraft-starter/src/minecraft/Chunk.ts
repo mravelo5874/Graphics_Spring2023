@@ -36,7 +36,7 @@ export class Chunk
       {
           for(let j=0; j<this.size; j++)
           {
-            const height = Math.floor(10.0 * rng.next())
+            const height = Math.floor(4.0 * rng.next())
             const idx = this.size * i + j
 
             const x: number = topleftx + j

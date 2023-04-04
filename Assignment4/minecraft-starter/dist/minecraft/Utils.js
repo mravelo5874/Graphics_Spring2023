@@ -29,9 +29,38 @@ class Utils {
         const z_center = z_coord * this.CHUNK_SIZE;
         return new Vec2([x_center, z_center]);
     }
+    // calculate the mid-point between two points
+    static mid_point(p1, p2) {
+        const x = (p1.x + p2.x) / 2.0;
+        const y = (p1.y + p2.y) / 2.0;
+        const z = (p1.z + p2.z) / 2.0;
+        return new Vec3([x, y, z]);
+    }
     // returns a 64x64 patch of terrain heights
     static get_chunk_heights(chunk_coords) {
         // TODO
+    }
+    // a simple means of vertical detection collison of a line with a cube, returns the y-offset to apply to the player
+    static simple_vert_collision(cube, cylinder) {
+        // first, determine if cylinder point is within cube zx area
+        const cube_cen = cube.get_pos();
+        const cyl_end = cylinder.end.copy();
+        const cube_min = new Vec3([cube_cen.x - 0.5, cube_cen.y, cube_cen.z - 0.5]);
+        const cube_max = new Vec3([cube_cen.x + 0.5, cube_cen.y, cube_cen.z + 0.5]);
+        // console.log('\n')
+        // console.log('cyl_cen: ' + print.v3(cyl_end))
+        // console.log('cube_min: ' + print.v3(cube_min))
+        // console.log('cube_max: ' + print.v3(cube_max))
+        if (cyl_end.x >= cube_min.x && cyl_end.z >= cube_min.z && cyl_end.x <= cube_max.x && cyl_end.z <= cube_max.z) {
+            // next, decide which way to offset based on cylinder's position and distance from center of cube
+            const cyl_mid = Utils.mid_point(cylinder.start.copy(), cylinder.end.copy());
+            const y_dist = Math.abs(cyl_mid.y - cube_cen.y);
+            if (cylinder.end.y <= cube_cen.y + (Utils.CUBE_LEN / 2)) {
+                return true;
+            }
+        }
+        // no offset
+        return false;
     }
     // returns the shortest distance between two lines, and the two points 
     // at which the two lines are closest on each respective line
@@ -57,17 +86,31 @@ class Utils {
         const dist = Vec3.distance(p1, p2);
         return [dist, p1, p2];
     }
-    // return the distance a point is from a line (start and end point)
+    // return the point, the t-value of a point projected onto a line, and the distance of the point to calculated projection p
     // with help from: https://math.stackexchange.com/questions/1905533/find-perpendicular-distance-from-point-to-line-in-3d
-    static point_line_dist(point, line) {
-        // TODO this
-        return -1;
+    static point_line_projection(point, line) {
+        // point = a
+        // start = b
+        // end = c
+        const dir_vec = line.get_start().subtract(line.get_end()).normalize();
+        const b2a_vec = point.copy().subtract(line.get_start());
+        const t = Vec3.dot(dir_vec, b2a_vec);
+        const p = line.get_end().add(dir_vec.copy().scale(t));
+        const dist = Vec3.distance(point, p);
+        return [p.copy(), t, dist];
+    }
+    // TODO does this work as intended?
+    static calc_int(proj_res, radius, cyl_mid, cyl_line) {
+        return proj_res[1] > 0 // is t positive?
+            && proj_res[2] < radius // is the distance less than the radius?
+            && Vec3.distance(proj_res[0], cyl_mid) < (cyl_line.get_len() / 2); // is the projected point within the cylinder?
     }
     static cube_cyl_intersection(cube, cylinder) {
         // TODO finish this
         const cube_cen = cube.get_pos();
         const cyl_line = new Line(cylinder.start.copy(), cylinder.end.copy());
         const cyl_rad = cylinder.radius;
+        const cyl_mid = this.mid_point(cylinder.start.copy(), cylinder.end.copy());
         let int_top = false;
         let int_bot = false;
         // get all 8 verticies of the cube
@@ -77,50 +120,71 @@ class Utils {
         const v2 = cube_cen.copy().add(new Vec3([0.5, 0.5, 0.5]));
         const v3 = cube_cen.copy().add(new Vec3([0.5, 0.5, -0.5]));
         /* bottom face verts */
-        const v4 = cube_cen.copy().add(new Vec3([-0.5, 0.5, -0.5]));
-        const v5 = cube_cen.copy().add(new Vec3([-0.5, 0.5, 0.5]));
-        const v6 = cube_cen.copy().add(new Vec3([0.5, 0.5, 0.5]));
-        const v7 = cube_cen.copy().add(new Vec3([0.5, 0.5, -0.5]));
-        // check top face
-        let min_top_dist = Number.MAX_VALUE;
-        min_top_dist = Math.min(this.point_line_dist(v0.copy(), cyl_line), min_top_dist);
-        min_top_dist = Math.min(this.point_line_dist(v1.copy(), cyl_line), min_top_dist);
-        min_top_dist = Math.min(this.point_line_dist(v2.copy(), cyl_line), min_top_dist);
-        min_top_dist = Math.min(this.point_line_dist(v3.copy(), cyl_line), min_top_dist);
-        if (min_top_dist <= cyl_rad) {
-            // player is intersecting with top cube face
+        const v4 = cube_cen.copy().add(new Vec3([-0.5, -0.5, -0.5]));
+        const v5 = cube_cen.copy().add(new Vec3([-0.5, -0.5, 0.5]));
+        const v6 = cube_cen.copy().add(new Vec3([0.5, -0.5, 0.5]));
+        const v7 = cube_cen.copy().add(new Vec3([0.5, -0.5, -0.5]));
+        console.log('top face:');
+        console.log('v0: ' + print.v3(v0));
+        console.log('v1: ' + print.v3(v1));
+        console.log('v2: ' + print.v3(v2));
+        console.log('v3: ' + print.v3(v3));
+        console.log('bot face:');
+        console.log('v4: ' + print.v3(v4));
+        console.log('v5: ' + print.v3(v5));
+        console.log('v6: ' + print.v3(v6));
+        console.log('v7: ' + print.v3(v7));
+        // get projection results
+        /* top face res */
+        const r0 = this.point_line_projection(v0.copy(), cyl_line);
+        const r1 = this.point_line_projection(v1.copy(), cyl_line);
+        const r2 = this.point_line_projection(v2.copy(), cyl_line);
+        const r3 = this.point_line_projection(v3.copy(), cyl_line);
+        /* bottom face res */
+        const r4 = this.point_line_projection(v4.copy(), cyl_line);
+        const r5 = this.point_line_projection(v5.copy(), cyl_line);
+        const r6 = this.point_line_projection(v6.copy(), cyl_line);
+        const r7 = this.point_line_projection(v7.copy(), cyl_line);
+        // calculate if player collider intersected with top face
+        if (this.calc_int(r0, cylinder.radius, cyl_mid.copy(), cyl_line) ||
+            this.calc_int(r1, cylinder.radius, cyl_mid.copy(), cyl_line) ||
+            this.calc_int(r2, cylinder.radius, cyl_mid.copy(), cyl_line) ||
+            this.calc_int(r3, cylinder.radius, cyl_mid.copy(), cyl_line)) {
+            // player has intersected with top cube face
             int_top = true;
         }
-        // check bottom face
-        let min_bot_dist = Number.MAX_VALUE;
-        min_bot_dist = Math.min(this.point_line_dist(v4.copy(), cyl_line), min_bot_dist);
-        min_bot_dist = Math.min(this.point_line_dist(v5.copy(), cyl_line), min_bot_dist);
-        min_bot_dist = Math.min(this.point_line_dist(v6.copy(), cyl_line), min_bot_dist);
-        min_bot_dist = Math.min(this.point_line_dist(v7.copy(), cyl_line), min_bot_dist);
-        if (min_bot_dist <= cyl_rad) {
-            // player is intersecting with bot cube face
+        // calculate if player collider intersected with bottom face
+        if (this.calc_int(r4, cylinder.radius, cyl_mid.copy(), cyl_line) ||
+            this.calc_int(r5, cylinder.radius, cyl_mid.copy(), cyl_line) ||
+            this.calc_int(r6, cylinder.radius, cyl_mid.copy(), cyl_line) ||
+            this.calc_int(r7, cylinder.radius, cyl_mid.copy(), cyl_line)) {
+            // player has intersected with bottom cube face
             int_bot = true;
         }
         // return if no intersection detected
         if (!int_top && !int_bot) {
             return [false, Vec3.zero];
         }
+        // store how much to offset player to correct their pos
+        let offset = Vec3.zero.copy();
         // if only intersecting top face
         if (int_top && !int_bot) {
             // determine if player end point height is greater than cube center
             if (cyl_line.get_end().y > cube_cen.y) {
-                // TODO move player up
+                // move player up
+                offset.add(new Vec3([0, Vec3.distance(r0[0], cyl_mid), 0]));
             }
         }
         // if only intersecting bottom face
-        if (!int_top && int_bot) {
+        else if (!int_top && int_bot) {
             // determine if player end point height is less than cube center
             if (cyl_line.get_end().y < cube_cen.y) {
-                // TODO ove player down
+                // move player down
+                offset.add(new Vec3([0, -Vec3.distance(r0[0], cyl_mid), 0]));
             }
         }
         // TODO move player xz
-        return [false, Vec3.zero];
+        return [true, offset.copy()];
     }
 }
 _a = Utils;

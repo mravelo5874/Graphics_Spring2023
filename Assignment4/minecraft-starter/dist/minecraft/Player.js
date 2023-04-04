@@ -1,4 +1,4 @@
-import { Utils, print } from "./Utils.js";
+import { Utils } from "./Utils.js";
 import { Vec3 } from "../lib/TSM.js";
 import { CylinderCollider } from "./Colliders.js";
 export class Player {
@@ -15,6 +15,7 @@ export class Player {
         this.max_acc = 0.00001;
         this.speed = 0.005;
         this.sense = 0.25;
+        this.jump_vel = 0.005;
         // TODO: remove creative mode default
         this.creative_mode = true;
         // set pos vel acc
@@ -61,25 +62,27 @@ export class Player {
         // calc displacement
         const disp = this.vel.copy().scale(delta_time);
         this.pos.add(disp.copy());
-        console.log('pos: {' + print.v3(this.pos.copy()) + '}');
-        /*
-        this.collider.start = this.pos.copy()
-        this.collider.end = this.pos.copy().subtract(new Vec3([0,Utils.PLAYER_HEIGHT,0]))
-
+        // console.log('pos: {' + print.v3(this.pos.copy()) + '}')
+        this.collider.start = this.pos.copy();
+        this.collider.end = this.pos.copy().subtract(new Vec3([0, Utils.PLAYER_HEIGHT, 0]));
+        // return if player in creative mode
+        if (this.creative_mode) {
+            return;
+        }
         // detect collisions with chunk blocks
-        const cubes: CubeCollider[] = _chunk.get_cube_colliders()
-        for (let i = 0; i < cubes.length; i++)
-        {
-            const res = Utils.cube_cyl_intersection(cubes[i], this.collider)
-            if (res[0])
-            {
-                console.log('collision')
+        const cubes = _chunk.get_cube_colliders();
+        for (let i = 0; i < cubes.length; i++) {
+            if (Utils.simple_vert_collision(cubes[i], this.collider)) {
+                // apply offset
+                this.pos = new Vec3([this.pos.x, cubes[i].get_pos().y + (Utils.CUBE_LEN / 2) + this.collider.height, this.pos.z]);
+                this.vel.y = 0;
+                this.collider.start = this.pos.copy();
+                this.collider.end = this.pos.copy().subtract(new Vec3([0, Utils.PLAYER_HEIGHT, 0]));
             }
         }
-
-        // return if player in creative mode
-        if (this.create_mode) { return }
-        */
+    }
+    jump() {
+        this.vel.y += this.jump_vel;
     }
 }
 //# sourceMappingURL=Player.js.map

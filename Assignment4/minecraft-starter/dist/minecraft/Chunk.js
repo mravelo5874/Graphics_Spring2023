@@ -20,7 +20,7 @@ export class Chunk {
         let rng = new Rand(seed);
         for (let i = 0; i < this.size; i++) {
             for (let j = 0; j < this.size; j++) {
-                const height = Math.floor(10.0 * rng.next());
+                const height = Math.floor(4.0 * rng.next());
                 const idx = this.size * i + j;
                 const x = topleftx + j;
                 const z = toplefty + i;

@@ -14,6 +14,7 @@ export class Player
     private speed: number = 0.005;
     private sense: number = 0.25;
     private collider: CylinderCollider;
+    private jump_vel: number = 0.005;
 
     private creative_mode: boolean;
 
@@ -50,7 +51,6 @@ export class Player
         // apply physics
         // w/ some help from: https://catlikecoding.com/unity/tutorials/movement/sliding-a-sphere/
         
-
         // apply gravity
         if (!this.creative_mode) { this.acc = Utils.GRAVITY.copy() }
 
@@ -73,23 +73,29 @@ export class Player
 
         // console.log('pos: {' + print.v3(this.pos.copy()) + '}')
 
-        /*
         this.collider.start = this.pos.copy()
         this.collider.end = this.pos.copy().subtract(new Vec3([0,Utils.PLAYER_HEIGHT,0]))
+
+        // return if player in creative mode
+        if (this.creative_mode) { return }
 
         // detect collisions with chunk blocks
         const cubes: CubeCollider[] = _chunk.get_cube_colliders()
         for (let i = 0; i < cubes.length; i++)
         {
-            const res = Utils.cube_cyl_intersection(cubes[i], this.collider)
-            if (res[0])
+            if (Utils.simple_vert_collision(cubes[i], this.collider))
             {
-                console.log('collision')
+                // apply offset
+                this.pos = new Vec3([this.pos.x, cubes[i].get_pos().y + (Utils.CUBE_LEN / 2) + this.collider.height, this.pos.z])
+                this.vel.y = 0
+                this.collider.start = this.pos.copy()
+                this.collider.end = this.pos.copy().subtract(new Vec3([0,Utils.PLAYER_HEIGHT,0])) 
             }
         }
+    }
 
-        // return if player in creative mode
-        if (this.create_mode) { return }
-        */
+    public jump(): void
+    {
+        this.vel.y += this.jump_vel
     }
 }

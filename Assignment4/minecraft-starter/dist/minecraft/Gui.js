@@ -24,7 +24,7 @@ class GUI {
      * Resets the state of the GUI
      */
     reset() {
-        this.camera = new Camera(new Vec3([0, 100, 0]), new Vec3([0, 100, -1]), new Vec3([0, 1, 0]), 45, this.width / this.height, 0.1, 1000.0);
+        this.camera = new Camera(new Vec3([0, 16, 0]), new Vec3([0, 16, -1]), new Vec3([0, 1, 0]), 45, this.width / this.height, 0.1, 1000.0);
     }
     /**
      * Sets the GUI's camera to the given camera
@@ -128,8 +128,13 @@ class GUI {
                 break;
             }
             case "Space": {
-                //this.animation.jump();
-                this.go_up = true;
+                // different depending if player in creative mode or not
+                if (this.animation.player.get_creative_mode()) {
+                    this.go_up = true;
+                }
+                else {
+                    this.animation.player.jump();
+                }
                 break;
             }
             case "ShiftLeft": {

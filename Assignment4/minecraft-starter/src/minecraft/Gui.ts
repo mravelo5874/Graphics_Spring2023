@@ -68,8 +68,8 @@ export class GUI implements IGUI {
    */
   public reset(): void {
     this.camera = new Camera(
-      new Vec3([0, 100, 0]),
-      new Vec3([0, 100, -1]),
+      new Vec3([0, 16, 0]),
+      new Vec3([0, 16, -1]),
       new Vec3([0, 1, 0]),
       45,
       this.width / this.height,
@@ -202,8 +202,16 @@ export class GUI implements IGUI {
         break;
       }
       case "Space": {
-        //this.animation.jump();
-        this.go_up = true;
+        // different depending if player in creative mode or not
+        if (this.animation.player.get_creative_mode())
+        {
+          this.go_up = true;
+        } 
+        else
+        {
+          this.animation.player.jump()
+        }  
+        
         break;
       }
       case "ShiftLeft": {
