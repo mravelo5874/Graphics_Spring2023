@@ -120,6 +120,12 @@ export abstract class CanvasAnimation {
   private prev_time: number;
   private curr_delta_time: number;
 
+  // used to calculate fps
+  private fps: number;
+  private prev_fps_time: number;
+  private frame_count: number = 0;
+  private fps_node: Text;
+
   public get_delta_time(): number { return this.curr_delta_time }
   public get_elapsed_time(): number { return Date.now() - this.start_time }
 
@@ -136,11 +142,21 @@ export abstract class CanvasAnimation {
     // set current time
     this.start_time = Date.now()
     this.prev_time = Date.now()
+    this.prev_fps_time = Date.now()
     this.curr_delta_time = 0
+    this.fps = 0
     
     if (debugMode) {
       this.ctx = Debugger.makeDebugContext(this.ctx, glErrorCallback, glCallback);
     }
+
+    // look up the elements we want to affect
+    const fps_element = document.querySelector("#fps");
+    // Create text nodes to save some time for the browser.
+    this.fps_node = document.createTextNode("");
+    // Add those text nodes where they need to go
+    fps_element?.appendChild(this.fps_node);
+    this.fps_node.nodeValue = this.fps.toFixed(0);  // no decimal place
   }
 
   /**
@@ -158,13 +174,26 @@ export abstract class CanvasAnimation {
    */
   public drawLoop(): void 
   {
-      // calculate current delta time
-      const curr_time: number = Date.now()
-      this.curr_delta_time = (curr_time - this.prev_time)
-      this.prev_time = curr_time
+    // calculate current delta time
+    const curr_time: number = Date.now()
+    this.curr_delta_time = (curr_time - this.prev_time)
+    this.prev_time = curr_time
 
-      this.draw();
-      window.requestAnimationFrame(() => this.drawLoop());
+    // draw to screen
+    this.draw();
+    this.frame_count++
+
+    // calculate fps
+    if (Date.now() - this.prev_fps_time >= 1000)
+    {
+      this.fps = this.frame_count
+      this.frame_count = 0
+      this.prev_fps_time = Date.now()
+      this.fps_node.nodeValue = this.fps.toFixed(0);
+    }
+
+    // request next frame to be drawn
+    window.requestAnimationFrame(() => this.drawLoop());
   }
 
   /**

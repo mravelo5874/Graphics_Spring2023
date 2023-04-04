@@ -10,10 +10,11 @@ export class Player
     private pos: Vec3;
     private vel: Vec3;
     private acc: Vec3;
-    private max_acc: number = 0.00001; // default = 0.00001    
+    private max_acc: number = 0.00002; // default = 0.00002    
     private speed: number = 0.005; // default = 0.005
+    private creative_speedup: number = 4; 
     private sense: number = 0.25; // default = 0.25
-    private jump_vel: number = 0.005; // default = 0.005
+    private jump_vel: number = 0.008; // default = 0.008
     private collider: CylinderCollider;
     private creative_mode: boolean;
 
@@ -51,7 +52,12 @@ export class Player
         if (!this.creative_mode) { this.acc = Utils.GRAVITY.copy() }
 
         // calculate velocity
-		const des_vel: Vec3 = dir.copy().add(this.acc.copy().scale(delta_time)).scale(this.speed)
+		let des_vel: Vec3 = dir.copy().add(this.acc.copy().scale(delta_time)).scale(this.speed)
+
+        // add creative mode speed-up
+        if (this.creative_mode) des_vel.scale(this.creative_speedup)
+        
+        // apply velocity to player
         const max_delta_speed: number = this.max_acc * delta_time
         // x vel
         if (this.vel.x < des_vel.x) { this.vel.x = Math.min(this.vel.x + max_delta_speed, des_vel.x) }

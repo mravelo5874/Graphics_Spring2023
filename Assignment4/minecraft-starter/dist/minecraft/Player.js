@@ -12,10 +12,11 @@ export class Player {
     get_creative_mode() { return this.creative_mode; }
     toggle_creative_mode() { this.creative_mode = !this.creative_mode; this.acc = Vec3.zero.copy(); this.vel.y = 0; }
     constructor(_pos) {
-        this.max_acc = 0.00001; // default = 0.00001    
+        this.max_acc = 0.00002; // default = 0.00002    
         this.speed = 0.005; // default = 0.005
+        this.creative_speedup = 4;
         this.sense = 0.25; // default = 0.25
-        this.jump_vel = 0.005; // default = 0.005
+        this.jump_vel = 0.008; // default = 0.008
         // init in normal model
         this.creative_mode = false;
         // set pos vel acc
@@ -34,7 +35,11 @@ export class Player {
             this.acc = Utils.GRAVITY.copy();
         }
         // calculate velocity
-        const des_vel = dir.copy().add(this.acc.copy().scale(delta_time)).scale(this.speed);
+        let des_vel = dir.copy().add(this.acc.copy().scale(delta_time)).scale(this.speed);
+        // add creative mode speed-up
+        if (this.creative_mode)
+            des_vel.scale(this.creative_speedup);
+        // apply velocity to player
         const max_delta_speed = this.max_acc * delta_time;
         // x vel
         if (this.vel.x < des_vel.x) {

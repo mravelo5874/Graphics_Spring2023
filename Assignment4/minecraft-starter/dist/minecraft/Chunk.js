@@ -1,6 +1,6 @@
 import { Vec3 } from "../lib/TSM.js";
-import Rand from "../lib/rand-seed/Rand.js";
 import { CubeCollider } from "./Colliders.js";
+import { noise } from "./Utils.js";
 export class Chunk {
     constructor(centerX, centerY, size) {
         this.x = centerX;
@@ -16,11 +16,15 @@ export class Chunk {
         // The real landscape-generation logic. The example code below shows you how to use the pseudorandom number generator to create a few cubes.
         this.cubes = this.size * this.size;
         this.cubePositionsF32 = new Float32Array(4 * this.cubes);
-        const seed = "42";
-        let rng = new Rand(seed);
+        const scale = 1;
+        const freq = 0.1;
+        const octs = 1;
+        const seed = '42';
+        let height_map = noise.generate_noise_map(this.size, scale, freq, octs, seed);
+        //console.log('height map: ' + height_map)
         for (let i = 0; i < this.size; i++) {
             for (let j = 0; j < this.size; j++) {
-                const height = Math.floor(10.0 * rng.next());
+                const height = height_map[i][j];
                 const idx = this.size * i + j;
                 const x = topleftx + j;
                 const z = toplefty + i;
