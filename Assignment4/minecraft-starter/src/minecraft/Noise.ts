@@ -216,7 +216,7 @@ export class Noise
 			tz);
     }
 
-    public static generate_noise_map(size: number, scale: number, freq: number, octs: number, seed: string): number[][]
+    public static generate_noise_map(size: number, seed: string, scale: number, freq: number, octs: number, persistance: number, lacunarity: number): number[][]
     {
         // make sure scale is not 0
         if (scale <= 0) { scale = 0.0001 }
@@ -232,15 +232,47 @@ export class Noise
         // }
 
         let noise_map: number[][] = new Array(size).fill(0).map(() => new Array(size).fill(0));
-        const step_size: number = 1 / size;
+
+        let max_noise: number = Number.MIN_VALUE
+        let min_noise: number = Number.MAX_VALUE
 
         // fill values
         for (let y = 0; y < size; y++)
         {
             for (let x = 0; x < size; x++)
             {
-                const point: Vec3 = new Vec3([x, y, 0])
-                noise_map[x][y] = Noise.perlin_3d(point, freq)
+                let cell_ampl: number = 1
+                let cell_freq: number = 1
+                let noise_height: number = 0
+
+                for (let oct = 0; oct < octs; oct++)
+                {
+                    const point: Vec3 = new Vec3([x / scale * cell_freq, y / scale * cell_freq, 1 / scale * cell_freq])
+                    const perlin: number = Noise.perlin_3d(point, freq) * 2 - 1
+                    noise_height += perlin * cell_ampl
+
+                    cell_ampl *= persistance
+                    cell_freq *= lacunarity
+                }
+
+                if (noise_height > max_noise)
+                {
+                    max_noise = noise_height
+                }
+                else if (noise_height < min_noise)
+                {
+                    min_noise = noise_height
+                }
+                noise_map[x][y] = noise_height            
+            }
+        }
+
+
+        for (let y = 0; y < size; y++)
+        {
+            for (let x = 0; x < size; x++)
+            {
+                noise_map[x][y] = Utils.inverse_lerp(min_noise, max_noise, noise_map[x][y])
             }
         }
 

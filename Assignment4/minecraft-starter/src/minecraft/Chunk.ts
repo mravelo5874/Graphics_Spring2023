@@ -3,6 +3,33 @@ import Rand from "../lib/rand-seed/Rand.js"
 import { CubeCollider } from "./Colliders.js";
 import { Noise } from "./Noise.js";
 
+export class noise_map_data
+{
+    public seed: string
+    public scale: number
+    public freq: number
+    public octs: number
+    public pers: number
+    public lacu: number
+
+    constructor(
+        _seed: string = '42', 
+        _scale: number = 64,
+        _freq: number = 1,  
+        _octs: number = 4,
+        _pers: number = 0.5, 
+        _lacu: number = 2
+        )
+    {
+        this.seed = _seed
+        this.scale = _scale
+        this.freq = _freq
+        this.octs = _octs
+        this.pers = _pers
+        this.lacu = _lacu
+    }
+}
+
 export class Chunk 
 {
     private cubes: number; // Number of cubes that should be *drawn* each frame
@@ -11,14 +38,16 @@ export class Chunk
     private y : number;
     private size: number; // Number of cubes along each side of the chunk
     private cube_colliders: CubeCollider[];
+    private noise_data: noise_map_data;
     
-    constructor(centerX : number, centerY : number, size: number) 
+    constructor(centerX : number, centerY : number, size: number, _noise_data: noise_map_data)
     {
         this.x = centerX;
         this.y = centerY;
         this.size = size;
         this.cubes = size*size;
         this.cube_colliders = new Array<CubeCollider>()
+        this.noise_data = _noise_data
         this.generateCubes();
     }
     
@@ -31,11 +60,7 @@ export class Chunk
         this.cubes = this.size * this.size;
         this.cubePositionsF32 = new Float32Array(4 * this.cubes);
 
-        const scale: number = 1
-        const freq: number = 1 / 8
-        const octs: number = 3
-        const seed: string = '42'
-        let height_map: number[][] = Noise.generate_noise_map(this.size, scale, freq, octs, seed)
+        let height_map: number[][] = Noise.generate_noise_map(this.size, this.noise_data.seed, this.noise_data.scale, this.noise_data.freq, this.noise_data.octs, this.noise_data.pers, this.noise_data.lacu)
         
         //console.log('height map: ' + height_map)
 
@@ -43,7 +68,7 @@ export class Chunk
         {
             for(let j=0; j<this.size; j++)
             {
-                const height = height_map[i][j]
+                const height = height_map[i][j] * 24
                 const idx = this.size * i + j
 
                 const x: number = topleftx + j

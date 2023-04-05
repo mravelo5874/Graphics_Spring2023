@@ -44,6 +44,8 @@ export class GUI implements IGUI {
   private go_up: boolean;
   private go_down: boolean;
 
+  private alt_pressed: boolean;
+
   /**
    *
    * @param canvas required to get the width and height of the canvas
@@ -174,12 +176,50 @@ export class GUI implements IGUI {
     answer.normalize();
     return answer;
   }
+
+  private alt_controls(key: KeyboardEvent)
+  {
+    switch (key.code) 
+    {
+      case "KeyO": {
+        this.animation.terrain_data.pers -= 0.1
+        break;
+      }
+      case "KeyP": {
+        this.animation.terrain_data.pers += 0.1
+        break;
+      }
+      case "KeyK": {
+        this.animation.terrain_data.lacu -= 0.1
+        break;
+      }
+      case "KeyL": {
+        this.animation.terrain_data.lacu += 0.1
+        break;
+      }
+      case "KeyN": {
+        this.animation.terrain_data.scale -= 1
+        break;
+      }
+      case "KeyM": {
+        this.animation.terrain_data.scale += 1
+        break;
+      }
+      default: break;
+    }
+
+    this.animation.update_terrain()
+  }
   
   /**
    * Callback function for a key press event
    * @param key
    */
-  public onKeydown(key: KeyboardEvent): void {
+  public onKeydown(key: KeyboardEvent): void
+  {
+    // alt controls for dev stuff :3
+    if (this.alt_pressed) { this.alt_controls(key) }
+
     switch (key.code) {
       case "KeyW": {
         this.Wdown = true;
@@ -211,7 +251,6 @@ export class GUI implements IGUI {
         {
           this.animation.player.jump()
         }  
-        
         break;
       }
       case "ShiftLeft": {
@@ -223,8 +262,13 @@ export class GUI implements IGUI {
         this.animation.player.toggle_creative_mode()
         break;
       }
+      // DEV controls for perlin values
+      case "AltLeft": {
+        this.alt_pressed = true
+        break;
+      }
       default: {
-        console.log("Key : '", key.code, "' was pressed.");
+        //console.log("Key : '", key.code, "' was pressed.");
         break;
       }
     }
@@ -255,6 +299,9 @@ export class GUI implements IGUI {
       case "ShiftLeft": {
         this.go_down = false;
         break;
+      }
+      case "AltLeft": {
+        this.alt_pressed = false
       }
     }
   }  

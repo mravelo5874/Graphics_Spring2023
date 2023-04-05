@@ -87,39 +87,49 @@ export class Player {
                 this.collider.end = this.pos.copy().subtract(new Vec3([0, Utils.PLAYER_HEIGHT, 0]));
             }
             // check for horizontal collision
-            if (Utils.simple_horz_collision(cubes[i], this.collider)) {
+            /*
+            if (Utils.simple_horz_collision(cubes[i], this.collider))
+            {
                 // determine max offset between x and z
-                const x_offset_dist = Math.abs(this.pos.x - cubes[i].get_pos().x) / 256;
-                const z_offset_dist = Math.abs(this.pos.z - cubes[i].get_pos().z) / 256;
+                const x_offset_dist = Math.abs(this.pos.x - cubes[i].get_pos().x) / 256
+                const z_offset_dist = Math.abs(this.pos.z - cubes[i].get_pos().z) / 256
+
                 // apply offset(s)
-                let new_pos = this.pos.copy();
-                if (x_offset_dist > 0) {
+                let new_pos: Vec3 = this.pos.copy()
+                if (x_offset_dist > 0)
+                {
                     // which direction is the player moving?
-                    if (this.vel.x > 0) {
-                        new_pos.x -= x_offset_dist;
+                    if (this.vel.x > 0)
+                    {
+                        new_pos.x -= x_offset_dist
                     }
-                    else if (this.vel.x < 0) {
-                        new_pos.x += x_offset_dist;
+                    else if (this.vel.x < 0)
+                    {
+                        new_pos.x += x_offset_dist
                     }
                     // set new pos and vel
-                    this.pos = new_pos.copy();
-                    this.vel.x = 0;
+                    this.pos = new_pos.copy()
+                    this.vel.x = 0
                 }
-                if (z_offset_dist > 0) {
+                if (z_offset_dist > 0)
+                {
                     // which direction is the player moving?
-                    if (this.vel.z > 0) {
-                        new_pos.z -= z_offset_dist;
+                    if (this.vel.z > 0)
+                    {
+                        new_pos.z -= z_offset_dist
                     }
-                    else if (this.vel.z < 0) {
-                        new_pos.z += z_offset_dist;
+                    else if (this.vel.z < 0)
+                    {
+                        new_pos.z += z_offset_dist
                     }
                     // set new pos and vel
-                    this.pos = new_pos.copy();
-                    this.vel.z = 0;
+                    this.pos = new_pos.copy()
+                    this.vel.z = 0
                 }
-                this.collider.start = this.pos.copy();
-                this.collider.end = this.pos.copy().subtract(new Vec3([0, Utils.PLAYER_HEIGHT, 0]));
+                this.collider.start = this.pos.copy()
+                this.collider.end = this.pos.copy().subtract(new Vec3([0,Utils.PLAYER_HEIGHT,0]))
             }
+            */
         }
     }
     jump() {

@@ -81,16 +81,39 @@ export class CanvasAnimation {
         this.prev_fps_time = Date.now();
         this.curr_delta_time = 0;
         this.fps = 0;
+        // set initial value
+        this.scale_ui = 0;
+        this.pers_ui = 0;
+        this.lacu_ui = 0;
         if (debugMode) {
             this.ctx = Debugger.makeDebugContext(this.ctx, glErrorCallback, glCallback);
         }
-        // look up the elements we want to affect
+        // add fps text element to screen
         const fps_element = document.querySelector("#fps");
-        // Create text nodes to save some time for the browser.
         this.fps_node = document.createTextNode("");
-        // Add those text nodes where they need to go
         fps_element === null || fps_element === void 0 ? void 0 : fps_element.appendChild(this.fps_node);
         this.fps_node.nodeValue = this.fps.toFixed(0); // no decimal place
+        // add scale text element to screen
+        const scale_element = document.querySelector("#scale");
+        this.scale_node = document.createTextNode("");
+        scale_element === null || scale_element === void 0 ? void 0 : scale_element.appendChild(this.scale_node);
+        this.scale_node.nodeValue = this.scale_ui.toFixed(2);
+        // add persistance text element to screen
+        const pers_element = document.querySelector("#pers");
+        this.pers_node = document.createTextNode("");
+        pers_element === null || pers_element === void 0 ? void 0 : pers_element.appendChild(this.pers_node);
+        this.pers_node.nodeValue = this.pers_ui.toFixed(2);
+        // add lacunarity text element to screen
+        const lacu_element = document.querySelector("#lacu");
+        this.lacu_node = document.createTextNode("");
+        lacu_element === null || lacu_element === void 0 ? void 0 : lacu_element.appendChild(this.lacu_node);
+        this.lacu_node.nodeValue = this.lacu_ui.toFixed(2);
+    }
+    update_ui() {
+        this.fps_node.nodeValue = this.fps.toFixed(0); // no decimal place
+        this.scale_node.nodeValue = this.scale_ui.toFixed(2);
+        this.pers_node.nodeValue = this.pers_ui.toFixed(2);
+        this.lacu_node.nodeValue = this.lacu_ui.toFixed(2);
     }
     /**
      * Draws and then requests a draw for the next frame.

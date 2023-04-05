@@ -68,6 +68,7 @@ export class Utils
         return t * t * t * (t * (t * 6 - 15) + 10)
     }
 
+    // thanks to chatgpt: 'create a function that interpolates between two numbers given a t value' 
     public static lerp(p0: number, p1: number, t: number): number
     {
         // make sure t is clamped between 0 and 1
@@ -75,6 +76,17 @@ export class Utils
         if (t < 0) t = 0
         // return interpolated value
         return (1 - t) * p0 + t * p1
+    }
+
+    // thanks to chatgpt: 'can you now write a function that performs inverse interpolation between 
+    // two numbers given two numbers and a number in their range'
+    public static inverse_lerp(p0: number, p1: number, val: number): number
+    {
+        // clamp value to range if outside
+        if (val > p1) return 1
+        else if (val < p0) return 0
+        // return t value
+        return (val - p0) / (p1 - p0)
     }
 
     // a simple means of vertical detection collison of a line with a cube, returns the y-offset to apply to the player

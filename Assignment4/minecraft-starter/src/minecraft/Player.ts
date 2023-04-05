@@ -97,6 +97,7 @@ export class Player
                 this.collider.end = this.pos.copy().subtract(new Vec3([0,Utils.PLAYER_HEIGHT,0])) 
             }
             // check for horizontal collision
+            /*
             if (Utils.simple_horz_collision(cubes[i], this.collider))
             {
                 // determine max offset between x and z
@@ -138,6 +139,7 @@ export class Player
                 this.collider.start = this.pos.copy()
                 this.collider.end = this.pos.copy().subtract(new Vec3([0,Utils.PLAYER_HEIGHT,0])) 
             }
+            */
         }
     }
 
