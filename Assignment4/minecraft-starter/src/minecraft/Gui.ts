@@ -70,8 +70,8 @@ export class GUI implements IGUI {
    */
   public reset(): void {
     this.camera = new Camera(
-      new Vec3([0, 16, 0]),
-      new Vec3([0, 16, -1]),
+      new Vec3([0, 100, 0]),
+      new Vec3([0, 100, -1]),
       new Vec3([0, 1, 0]),
       45,
       this.width / this.height,
@@ -205,6 +205,13 @@ export class GUI implements IGUI {
         this.animation.terrain_data.scale += 1
         break;
       }
+      case "Equal": {
+        //this.animation.
+        break;
+      }
+      case "Minus": {
+        break;
+      }
       default: break;
     }
 
@@ -260,6 +267,7 @@ export class GUI implements IGUI {
       case "KeyC": {
         // toggle player creative mode
         this.animation.player.toggle_creative_mode()
+        this.animation.mode_ui = this.animation.player.get_creative_mode()
         break;
       }
       // DEV controls for perlin values
@@ -268,7 +276,7 @@ export class GUI implements IGUI {
         break;
       }
       default: {
-        //console.log("Key : '", key.code, "' was pressed.");
+        console.log("Key : '", key.code, "' was pressed.");
         break;
       }
     }

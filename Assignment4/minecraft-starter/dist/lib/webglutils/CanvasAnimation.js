@@ -1,3 +1,5 @@
+import { print } from "../../minecraft/Utils.js";
+import { Vec2, Vec3 } from "../TSM.js";
 import { Debugger } from "./Debugging.js";
 export class WebGLUtilities {
     /**
@@ -108,12 +110,30 @@ export class CanvasAnimation {
         this.lacu_node = document.createTextNode("");
         lacu_element === null || lacu_element === void 0 ? void 0 : lacu_element.appendChild(this.lacu_node);
         this.lacu_node.nodeValue = this.lacu_ui.toFixed(2);
+        // add player pos text element
+        const pos_element = document.querySelector("#pos");
+        this.pos_node = document.createTextNode("");
+        pos_element === null || pos_element === void 0 ? void 0 : pos_element.appendChild(this.pos_node);
+        this.pos_node.nodeValue = print.v3(Vec3.zero.copy(), 1);
+        // add lacunarity text element to screen
+        const chunk_element = document.querySelector("#chunk");
+        this.chunk_node = document.createTextNode("");
+        chunk_element === null || chunk_element === void 0 ? void 0 : chunk_element.appendChild(this.chunk_node);
+        this.chunk_node.nodeValue = print.v2(Vec2.zero.copy(), 0);
+        // add lacunarity text element to screen
+        const mode_element = document.querySelector("#mode");
+        this.mode_node = document.createTextNode("");
+        mode_element === null || mode_element === void 0 ? void 0 : mode_element.appendChild(this.mode_node);
+        this.mode_node.nodeValue = this.mode_ui ? 'on' : 'off';
     }
     update_ui() {
         this.fps_node.nodeValue = this.fps.toFixed(0); // no decimal place
         this.scale_node.nodeValue = this.scale_ui.toFixed(2);
         this.pers_node.nodeValue = this.pers_ui.toFixed(2);
         this.lacu_node.nodeValue = this.lacu_ui.toFixed(2);
+        this.pos_node.nodeValue = print.v3(this.pos_ui.copy(), 1);
+        this.chunk_node.nodeValue = print.v2(this.chunk_ui.copy(), 0);
+        this.mode_node.nodeValue = this.mode_ui ? 'on' : 'off';
     }
     /**
      * Draws and then requests a draw for the next frame.

@@ -24,7 +24,7 @@ class GUI {
      * Resets the state of the GUI
      */
     reset() {
-        this.camera = new Camera(new Vec3([0, 16, 0]), new Vec3([0, 16, -1]), new Vec3([0, 1, 0]), 45, this.width / this.height, 0.1, 1000.0);
+        this.camera = new Camera(new Vec3([0, 100, 0]), new Vec3([0, 100, -1]), new Vec3([0, 1, 0]), 45, this.width / this.height, 0.1, 1000.0);
     }
     /**
      * Sets the GUI's camera to the given camera
@@ -127,6 +127,13 @@ class GUI {
                 this.animation.terrain_data.scale += 1;
                 break;
             }
+            case "Equal": {
+                //this.animation.
+                break;
+            }
+            case "Minus": {
+                break;
+            }
             default: break;
         }
         this.animation.update_terrain();
@@ -178,6 +185,7 @@ class GUI {
             case "KeyC": {
                 // toggle player creative mode
                 this.animation.player.toggle_creative_mode();
+                this.animation.mode_ui = this.animation.player.get_creative_mode();
                 break;
             }
             // DEV controls for perlin values
@@ -186,7 +194,7 @@ class GUI {
                 break;
             }
             default: {
-                //console.log("Key : '", key.code, "' was pressed.");
+                console.log("Key : '", key.code, "' was pressed.");
                 break;
             }
         }

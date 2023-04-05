@@ -59,9 +59,19 @@ export class MinecraftAnimation extends CanvasAnimation
     console.log('init pos: {' + print.v3(this.player.get_pos()) + '}')
     console.log('init chunk: {' + print.v2(this.player.get_chunk()) + '}')
     
-    // Generate initial landscape
+    // create terrain data object
     this.terrain_data = new noise_map_data()
-    this.current_chunk = new Chunk(0.0, 0.0, Utils.CHUNK_SIZE, this.terrain_data);
+
+    // update ui
+    this.scale_ui = this.terrain_data.scale
+    this.pers_ui = this.terrain_data.pers
+    this.lacu_ui = this.terrain_data.lacu
+    this.pos_ui = this.player.get_pos()
+    this.chunk_ui = this.player.get_chunk()
+    this.update_ui()
+
+    // generate chunks
+    this.current_chunk = new Chunk(0.0, 0.0, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk());
     this.adj_chunks = this.generate_adj_chunks(this.player.get_chunk())
     
     this.blankCubeRenderPass = new RenderPass(gl, blankCubeVSText, blankCubeFSText);
@@ -83,35 +93,43 @@ export class MinecraftAnimation extends CanvasAnimation
 
     // north chunk (+Z)
     const n_cen = Utils.get_chunk_center(x_cen, z_cen + 1)
-    new_chunks.push(new Chunk(n_cen.x, n_cen.y, Utils.CHUNK_SIZE, this.terrain_data))
+    let chunk_offset: Vec2 = this.player.get_chunk().add(new Vec2([0, 1]))
+    new_chunks.push(new Chunk(n_cen.x, n_cen.y, Utils.CHUNK_SIZE, this.terrain_data, chunk_offset.copy()))
 
     // north-east chunk (+Z)
     const ne_cen = Utils.get_chunk_center(x_cen + 1, z_cen + 1)
-    new_chunks.push(new Chunk(ne_cen.x, ne_cen.y, Utils.CHUNK_SIZE, this.terrain_data))
+    chunk_offset = this.player.get_chunk().add(new Vec2([1, 1]))
+    new_chunks.push(new Chunk(ne_cen.x, ne_cen.y, Utils.CHUNK_SIZE, this.terrain_data, chunk_offset.copy()))
 
     // east chunk (+X)
     const e_cen = Utils.get_chunk_center(x_cen + 1, z_cen)
-    new_chunks.push(new Chunk(e_cen.x, e_cen.y, Utils.CHUNK_SIZE, this.terrain_data))
+    chunk_offset = this.player.get_chunk().add(new Vec2([1, 0]))
+    new_chunks.push(new Chunk(e_cen.x, e_cen.y, Utils.CHUNK_SIZE, this.terrain_data, chunk_offset.copy()))
 
     // south-east chunk (+X)
     const se_cen = Utils.get_chunk_center(x_cen + 1, z_cen - 1)
-    new_chunks.push(new Chunk(se_cen.x, se_cen.y, Utils.CHUNK_SIZE, this.terrain_data))
+    chunk_offset = this.player.get_chunk().add(new Vec2([1, -1]))
+    new_chunks.push(new Chunk(se_cen.x, se_cen.y, Utils.CHUNK_SIZE, this.terrain_data, chunk_offset.copy()))
 
     // south chunk (-Z)
     const s_cen = Utils.get_chunk_center(x_cen, z_cen - 1)
-    new_chunks.push(new Chunk(s_cen.x, s_cen.y, Utils.CHUNK_SIZE, this.terrain_data))
+    chunk_offset = this.player.get_chunk().add(new Vec2([0, -1]))
+    new_chunks.push(new Chunk(s_cen.x, s_cen.y, Utils.CHUNK_SIZE, this.terrain_data, chunk_offset.copy()))
 
     // south-west chunk (-Z)
     const sw_cen = Utils.get_chunk_center(x_cen - 1, z_cen - 1)
-    new_chunks.push(new Chunk(sw_cen.x, sw_cen.y, Utils.CHUNK_SIZE, this.terrain_data))
+    chunk_offset = this.player.get_chunk().add(new Vec2([-1, -1]))
+    new_chunks.push(new Chunk(sw_cen.x, sw_cen.y, Utils.CHUNK_SIZE, this.terrain_data, chunk_offset.copy()))
 
     // west chunk (-X)
     const w_cen = Utils.get_chunk_center(x_cen - 1, z_cen)
-    new_chunks.push(new Chunk(w_cen.x, w_cen.y, Utils.CHUNK_SIZE, this.terrain_data))
+    chunk_offset = this.player.get_chunk().add(new Vec2([-1, 0]))
+    new_chunks.push(new Chunk(w_cen.x, w_cen.y, Utils.CHUNK_SIZE, this.terrain_data, chunk_offset.copy()))
 
     // north-west chunk (-X)
     const nw_cen = Utils.get_chunk_center(x_cen - 1, z_cen + 1)
-    new_chunks.push(new Chunk(nw_cen.x, nw_cen.y, Utils.CHUNK_SIZE, this.terrain_data))
+    chunk_offset = this.player.get_chunk().add(new Vec2([-1, 1]))
+    new_chunks.push(new Chunk(nw_cen.x, nw_cen.y, Utils.CHUNK_SIZE, this.terrain_data, chunk_offset.copy()))
 
     return new_chunks
   }
@@ -203,7 +221,7 @@ export class MinecraftAnimation extends CanvasAnimation
     
     // render new 3x3 chunks around player
     const new_chunk_center: Vec2 = Utils.get_chunk_center(this.player.get_chunk().x, this.player.get_chunk().y)
-    this.current_chunk = new Chunk(new_chunk_center.x, new_chunk_center.y, Utils.CHUNK_SIZE, this.terrain_data);
+    this.current_chunk = new Chunk(new_chunk_center.x, new_chunk_center.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk());
     this.adj_chunks = this.generate_adj_chunks(this.player.get_chunk())
   }
 
@@ -231,12 +249,17 @@ export class MinecraftAnimation extends CanvasAnimation
 
       // render new 3x3 chunks around player
       const new_chunk_center: Vec2 = Utils.get_chunk_center(this.player.get_chunk().x, this.player.get_chunk().y)
-      this.current_chunk = new Chunk(new_chunk_center.x, new_chunk_center.y, Utils.CHUNK_SIZE, this.terrain_data);
+      this.current_chunk = new Chunk(new_chunk_center.x, new_chunk_center.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk());
       this.adj_chunks = this.generate_adj_chunks(this.player.get_chunk())
     }
 
     // set the player's current position
     this.gui.getCamera().setPos(this.player.get_pos());
+
+    // set ui values 
+    this.pos_ui = this.player.get_pos()
+    this.chunk_ui = this.player.get_chunk()
+    this.update_ui()
     
     // Drawing
     const gl: WebGLRenderingContext = this.ctx;

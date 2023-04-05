@@ -1,8 +1,8 @@
-import { Vec3 } from "../lib/TSM.js";
+import { Vec2, Vec3 } from "../lib/TSM.js";
 import { CubeCollider } from "./Colliders.js";
 import { Noise } from "./Noise.js";
 export class noise_map_data {
-    constructor(_seed = '42', _scale = 64, _freq = 1, _octs = 4, _pers = 0.5, _lacu = 2) {
+    constructor(_seed = '42', _scale = 75, _freq = 1, _octs = 4, _pers = 0.1, _lacu = 5) {
         this.seed = _seed;
         this.scale = _scale;
         this.freq = _freq;
@@ -12,13 +12,14 @@ export class noise_map_data {
     }
 }
 export class Chunk {
-    constructor(centerX, centerY, size, _noise_data) {
+    constructor(centerX, centerY, size, _noise_data, _offset) {
         this.x = centerX;
         this.y = centerY;
         this.size = size;
         this.cubes = size * size;
         this.cube_colliders = new Array();
         this.noise_data = _noise_data;
+        this.offset = _offset;
         this.generateCubes();
     }
     generateCubes() {
@@ -27,8 +28,8 @@ export class Chunk {
         // The real landscape-generation logic. The example code below shows you how to use the pseudorandom number generator to create a few cubes.
         this.cubes = this.size * this.size;
         this.cubePositionsF32 = new Float32Array(4 * this.cubes);
-        let height_map = Noise.generate_noise_map(this.size, this.noise_data.seed, this.noise_data.scale, this.noise_data.freq, this.noise_data.octs, this.noise_data.pers, this.noise_data.lacu);
-        //console.log('height map: ' + height_map)
+        let height_map = Noise.generate_noise_map(this.size, this.noise_data.seed, this.noise_data.scale, this.noise_data.freq, this.noise_data.octs, this.noise_data.pers, this.noise_data.lacu, new Vec2([this.x, this.y]), // this.offset.copy(), 
+        true);
         for (let i = 0; i < this.size; i++) {
             for (let j = 0; j < this.size; j++) {
                 const height = height_map[i][j] * 24;
@@ -36,7 +37,7 @@ export class Chunk {
                 const x = topleftx + j;
                 const z = toplefty + i;
                 this.cubePositionsF32[4 * idx + 0] = x;
-                this.cubePositionsF32[4 * idx + 1] = height;
+                this.cubePositionsF32[4 * idx + 1] = Math.floor(height);
                 this.cubePositionsF32[4 * idx + 2] = z;
                 this.cubePositionsF32[4 * idx + 3] = 0;
                 //console.log('cube: ' + idx + ', a: ' + x + ', b: ' + z + ', height: ' + height)

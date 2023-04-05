@@ -1,3 +1,5 @@
+import { print } from "../../minecraft/Utils.js";
+import { Vec2, Vec3 } from "../TSM.js";
 import { Debugger, GLCallback, GLErrorCallback } from "./Debugging.js";
 
 export class WebGLUtilities {
@@ -130,11 +132,17 @@ export abstract class CanvasAnimation {
   private scale_node: Text;
   private pers_node: Text;
   private lacu_node: Text;
+  private pos_node: Text;
+  private chunk_node: Text;
+  private mode_node: Text;
 
   // public set values for UI text
   public scale_ui: number
   public pers_ui: number
   public lacu_ui: number
+  public pos_ui: Vec3
+  public chunk_ui: Vec2
+  public mode_ui: boolean
 
   public get_delta_time(): number { return this.curr_delta_time }
   public get_elapsed_time(): number { return Date.now() - this.start_time }
@@ -187,6 +195,24 @@ export abstract class CanvasAnimation {
     this.lacu_node = document.createTextNode("");
     lacu_element?.appendChild(this.lacu_node);
     this.lacu_node.nodeValue = this.lacu_ui.toFixed(2)
+
+    // add player pos text element
+    const pos_element = document.querySelector("#pos");
+    this.pos_node = document.createTextNode("");
+    pos_element?.appendChild(this.pos_node);
+    this.pos_node.nodeValue = print.v3(Vec3.zero.copy(), 1)
+
+    // add lacunarity text element to screen
+    const chunk_element = document.querySelector("#chunk");
+    this.chunk_node = document.createTextNode("");
+    chunk_element?.appendChild(this.chunk_node);
+    this.chunk_node.nodeValue = print.v2(Vec2.zero.copy(), 0)
+
+    // add lacunarity text element to screen
+    const mode_element = document.querySelector("#mode");
+    this.mode_node = document.createTextNode("");
+    mode_element?.appendChild(this.mode_node);
+    this.mode_node.nodeValue = this.mode_ui ? 'on' : 'off'
   }
 
   public update_ui(): void
@@ -195,6 +221,9 @@ export abstract class CanvasAnimation {
     this.scale_node.nodeValue = this.scale_ui.toFixed(2)
     this.pers_node.nodeValue = this.pers_ui.toFixed(2)
     this.lacu_node.nodeValue = this.lacu_ui.toFixed(2)
+    this.pos_node.nodeValue = print.v3(this.pos_ui.copy(), 1)
+    this.chunk_node.nodeValue = print.v2(this.chunk_ui.copy(), 0)
+    this.mode_node.nodeValue = this.mode_ui ? 'on' : 'off'
   }
 
   /**

@@ -216,38 +216,60 @@ export class Noise
 			tz);
     }
 
-    public static generate_noise_map(size: number, seed: string, scale: number, freq: number, octs: number, persistance: number, lacunarity: number): number[][]
+    public static generate_noise_map(
+        size: number, 
+        seed: string, 
+        scale: number, 
+        freq: number, 
+        octs: number, 
+        persistance: number, 
+        lacunarity: number, 
+        offset: Vec2, 
+        normalize: boolean
+        ): number[][]
     {
         // make sure scale is not 0
         if (scale <= 0) { scale = 0.0001 }
 
-        // let rng = new Rand(seed);
-        // let rand_map: number[][] = new Array(size).fill(0).map(() => new Array(size).fill(0))
-        // for (let i = 0; i < size; i++)
-        // {
-        //     for (let j = 0; j < size; j++)
-        //     {
-        //         rand_map[i][j] = rng.next()
-        //     }
-        // }
+        // create RNG
+        let rng = new Rand(seed);
 
-        let noise_map: number[][] = new Array(size).fill(0).map(() => new Array(size).fill(0));
+        // create per-octave offsets
+        let oct_offsets: Vec2[] = []
+        let max_height: number = 0
+        let cell_ampl: number = 1
+        let cell_freq: number = 1
 
+        for (let i = 0; i < octs; i++)
+        {
+            let offset_x = rng.next() + offset.x
+            let offset_y = rng.next() - offset.y
+            oct_offsets.push(new Vec2([offset_x, offset_y]))
+            max_height += cell_ampl
+            cell_ampl *= persistance
+        }
+
+        let noise_map: number[][] = new Array(size).fill(0).map(() => new Array(size).fill(0))
         let max_noise: number = Number.MIN_VALUE
         let min_noise: number = Number.MAX_VALUE
+
+        const half_w: number = size / 2
 
         // fill values
         for (let y = 0; y < size; y++)
         {
             for (let x = 0; x < size; x++)
             {
-                let cell_ampl: number = 1
-                let cell_freq: number = 1
+                cell_ampl = 1
+                cell_freq = 1
                 let noise_height: number = 0
 
                 for (let oct = 0; oct < octs; oct++)
                 {
-                    const point: Vec3 = new Vec3([x / scale * cell_freq, y / scale * cell_freq, 1 / scale * cell_freq])
+                    const sample_x = (x - half_w + oct_offsets[oct].x) / scale * cell_freq
+                    const sample_y = (y - half_w + oct_offsets[oct].y) / scale * cell_freq
+                    const sample_z = 1 / scale * cell_freq
+                    const point: Vec3 = new Vec3([sample_x, sample_y, sample_z])
                     const perlin: number = Noise.perlin_3d(point, freq) * 2 - 1
                     noise_height += perlin * cell_ampl
 
@@ -272,7 +294,15 @@ export class Noise
         {
             for (let x = 0; x < size; x++)
             {
-                noise_map[x][y] = Utils.inverse_lerp(min_noise, max_noise, noise_map[x][y])
+                if (normalize)
+                {   
+                    let norm_height: number = (noise_map[x][y] + 1) / (2 * max_height)
+                    noise_map[x][y] = norm_height
+                }
+                else
+                {
+                    noise_map[x][y] = Utils.inverse_lerp(min_noise, max_noise, noise_map[x][y])
+                }
             }
         }
 
