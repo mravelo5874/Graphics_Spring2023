@@ -1,7 +1,7 @@
 import { Mat3, Mat4, Vec3, Vec4 } from "../lib/TSM.js";
 import Rand from "../lib/rand-seed/Rand.js"
 import { CubeCollider } from "./Colliders.js";
-import { noise } from "./Utils.js";
+import { Noise } from "./Noise.js";
 
 export class Chunk 
 {
@@ -31,11 +31,11 @@ export class Chunk
         this.cubes = this.size * this.size;
         this.cubePositionsF32 = new Float32Array(4 * this.cubes);
 
-        const scale: number = 1
-        const freq: number = 0.1
+        const scale: number = 16
+        const freq: number = 1 / 64
         const octs: number = 1
         const seed: string = '42'
-        let height_map: number[][] = noise.generate_noise_map(this.size, scale, freq, octs, seed)
+        let height_map: number[][] = Noise.generate_noise_map(this.size, scale, freq, octs, seed)
         
         //console.log('height map: ' + height_map)
 
