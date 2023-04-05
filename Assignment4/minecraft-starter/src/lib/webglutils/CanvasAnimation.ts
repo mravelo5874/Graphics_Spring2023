@@ -130,6 +130,7 @@ export abstract class CanvasAnimation {
   // UI nodes
   private fps_node: Text;
   private scale_node: Text;
+  private height_node: Text;
   private pers_node: Text;
   private lacu_node: Text;
   private pos_node: Text;
@@ -138,6 +139,7 @@ export abstract class CanvasAnimation {
 
   // public set values for UI text
   public scale_ui: number
+  public height_ui: number
   public pers_ui: number
   public lacu_ui: number
   public pos_ui: Vec3
@@ -165,6 +167,7 @@ export abstract class CanvasAnimation {
     this.fps = 0
     // set initial value
     this.scale_ui = 0
+    this.height_ui = 0
     this.pers_ui = 0
     this.lacu_ui = 0
     
@@ -184,6 +187,12 @@ export abstract class CanvasAnimation {
     scale_element?.appendChild(this.scale_node);
     this.scale_node.nodeValue = this.scale_ui.toFixed(2)
 
+    // add height text element to screen
+    const height_element = document.querySelector("#height");
+    this.height_node = document.createTextNode("");
+    height_element?.appendChild(this.height_node);
+    this.height_node.nodeValue = this.height_ui.toFixed(0)
+
     // add persistance text element to screen
     const pers_element = document.querySelector("#pers");
     this.pers_node = document.createTextNode("");
@@ -202,13 +211,13 @@ export abstract class CanvasAnimation {
     pos_element?.appendChild(this.pos_node);
     this.pos_node.nodeValue = print.v3(Vec3.zero.copy(), 1)
 
-    // add lacunarity text element to screen
+    // add player chunk text element to screen
     const chunk_element = document.querySelector("#chunk");
     this.chunk_node = document.createTextNode("");
     chunk_element?.appendChild(this.chunk_node);
     this.chunk_node.nodeValue = print.v2(Vec2.zero.copy(), 0)
 
-    // add lacunarity text element to screen
+    // add player mode text element to screen
     const mode_element = document.querySelector("#mode");
     this.mode_node = document.createTextNode("");
     mode_element?.appendChild(this.mode_node);
@@ -219,6 +228,7 @@ export abstract class CanvasAnimation {
   {
     this.fps_node.nodeValue = this.fps.toFixed(0);  // no decimal place
     this.scale_node.nodeValue = this.scale_ui.toFixed(2)
+    this.height_node.nodeValue = this.height_ui.toFixed(0) // no decimal place
     this.pers_node.nodeValue = this.pers_ui.toFixed(2)
     this.lacu_node.nodeValue = this.lacu_ui.toFixed(2)
     this.pos_node.nodeValue = print.v3(this.pos_ui.copy(), 1)

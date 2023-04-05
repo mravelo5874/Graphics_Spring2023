@@ -64,6 +64,7 @@ export class MinecraftAnimation extends CanvasAnimation
 
     // update ui
     this.scale_ui = this.terrain_data.scale
+    this.height_ui = this.terrain_data.height
     this.pers_ui = this.terrain_data.pers
     this.lacu_ui = this.terrain_data.lacu
     this.pos_ui = this.player.get_pos()
@@ -222,13 +223,10 @@ export class MinecraftAnimation extends CanvasAnimation
   public update_terrain(): void
   {
     this.scale_ui = this.terrain_data.scale
+    this.height_ui = this.terrain_data.height
     this.pers_ui = this.terrain_data.pers
     this.lacu_ui = this.terrain_data.lacu
     this.update_ui()
-
-    // // set player's current chunk
-    // const curr_chunk: Vec2 = Utils.pos_to_chunck(this.player.get_pos())
-    // this.player.set_chunk(curr_chunk.copy())
     
     // render new 3x3 chunks around player
     const new_chunk_center: Vec2 = Utils.get_chunk_center(this.player.get_chunk().x, this.player.get_chunk().y)
@@ -255,8 +253,6 @@ export class MinecraftAnimation extends CanvasAnimation
     if (!curr_chunk.equals(this.player.get_chunk()))
     {
       this.player.set_chunk(curr_chunk.copy())
-      console.log('pos: {' + print.v3(this.player.get_pos()) + '}')
-      console.log('chunk: {' + print.v2(this.player.get_chunk(), 0) + '}')
 
       // render new 3x3 chunks around player
       const new_chunk_center: Vec2 = Utils.get_chunk_center(this.player.get_chunk().x, this.player.get_chunk().y)

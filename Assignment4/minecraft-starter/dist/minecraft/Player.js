@@ -13,7 +13,7 @@ export class Player {
     toggle_creative_mode() { this.creative_mode = !this.creative_mode; this.acc = Vec3.zero.copy(); this.vel.y = 0; }
     constructor(_pos) {
         this.max_acc = 0.00002; // default = 0.00002    
-        this.speed = 0.005; // default = 0.005
+        this.speed = 0.01; // default = 0.005
         this.creative_speedup = 4;
         this.sense = 0.25; // default = 0.25
         this.jump_vel = 0.008; // default = 0.008

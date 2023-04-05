@@ -11,7 +11,7 @@ export class Player
     private vel: Vec3;
     private acc: Vec3;
     private max_acc: number = 0.00002; // default = 0.00002    
-    private speed: number = 0.005; // default = 0.005
+    private speed: number = 0.01; // default = 0.005
     private creative_speedup: number = 4; 
     private sense: number = 0.25; // default = 0.25
     private jump_vel: number = 0.008; // default = 0.008

@@ -25,6 +25,7 @@ class MinecraftAnimation extends CanvasAnimation {
         this.terrain_data = new noise_map_data();
         // update ui
         this.scale_ui = this.terrain_data.scale;
+        this.height_ui = this.terrain_data.height;
         this.pers_ui = this.terrain_data.pers;
         this.lacu_ui = this.terrain_data.lacu;
         this.pos_ui = this.player.get_pos();
@@ -110,12 +111,10 @@ class MinecraftAnimation extends CanvasAnimation {
     // used to update chunks after terrain change has been made 
     update_terrain() {
         this.scale_ui = this.terrain_data.scale;
+        this.height_ui = this.terrain_data.height;
         this.pers_ui = this.terrain_data.pers;
         this.lacu_ui = this.terrain_data.lacu;
         this.update_ui();
-        // // set player's current chunk
-        // const curr_chunk: Vec2 = Utils.pos_to_chunck(this.player.get_pos())
-        // this.player.set_chunk(curr_chunk.copy())
         // render new 3x3 chunks around player
         const new_chunk_center = Utils.get_chunk_center(this.player.get_chunk().x, this.player.get_chunk().y);
         this.current_chunk = new Chunk(new_chunk_center.x, new_chunk_center.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk());
@@ -136,8 +135,6 @@ class MinecraftAnimation extends CanvasAnimation {
         const curr_chunk = Utils.pos_to_chunck(this.player.get_pos());
         if (!curr_chunk.equals(this.player.get_chunk())) {
             this.player.set_chunk(curr_chunk.copy());
-            console.log('pos: {' + print.v3(this.player.get_pos()) + '}');
-            console.log('chunk: {' + print.v2(this.player.get_chunk(), 0) + '}');
             // render new 3x3 chunks around player
             const new_chunk_center = Utils.get_chunk_center(this.player.get_chunk().x, this.player.get_chunk().y);
             this.current_chunk = new Chunk(new_chunk_center.x, new_chunk_center.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk());
