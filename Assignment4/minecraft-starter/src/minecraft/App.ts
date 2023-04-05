@@ -82,15 +82,15 @@ export class MinecraftAnimation extends CanvasAnimation
     this.backgroundColor = new Vec4([0.470588, 0.756863, 0.890196, 1.0]);
   }
 
-  public static n_offset: Vec2 = new Vec2([1, 0])
-  public static ne_offset: Vec2 = new Vec2([1, 1])
-  public static e_offset: Vec2 = new Vec2([0, 1])
-  public static se_offset: Vec2 = new Vec2([-1, 1])
+  public static n_offset:   Vec2 = new Vec2([ 0, 1])
+  public static ne_offset:  Vec2 = new Vec2([ 1, 1])
+  public static e_offset:   Vec2 = new Vec2([ 1, 0])
+  public static se_offset:  Vec2 = new Vec2([ 1,-1])
 
-  public static s_offset: Vec2 = new Vec2([-1, 0])
-  public static sw_offset: Vec2 = new Vec2([-1, -1])
-  public static w_offset: Vec2 = new Vec2([0, -1])
-  public static nw_offset: Vec2 = new Vec2([1, -1])
+  public static s_offset:   Vec2 = new Vec2([ 0,-1])
+  public static sw_offset:  Vec2 = new Vec2([-1,-1])
+  public static w_offset:   Vec2 = new Vec2([-1, 0])
+  public static nw_offset:  Vec2 = new Vec2([-1, 1])
 
   private generate_adj_chunks(center_chunk: Vec2): Chunk[]
   {

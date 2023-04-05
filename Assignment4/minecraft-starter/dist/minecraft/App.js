@@ -195,14 +195,14 @@ class MinecraftAnimation extends CanvasAnimation {
     }
     getGUI() { return this.gui; }
 }
-MinecraftAnimation.n_offset = new Vec2([1, 0]);
+MinecraftAnimation.n_offset = new Vec2([0, 1]);
 MinecraftAnimation.ne_offset = new Vec2([1, 1]);
-MinecraftAnimation.e_offset = new Vec2([0, 1]);
-MinecraftAnimation.se_offset = new Vec2([-1, 1]);
-MinecraftAnimation.s_offset = new Vec2([-1, 0]);
+MinecraftAnimation.e_offset = new Vec2([1, 0]);
+MinecraftAnimation.se_offset = new Vec2([1, -1]);
+MinecraftAnimation.s_offset = new Vec2([0, -1]);
 MinecraftAnimation.sw_offset = new Vec2([-1, -1]);
-MinecraftAnimation.w_offset = new Vec2([0, -1]);
-MinecraftAnimation.nw_offset = new Vec2([1, -1]);
+MinecraftAnimation.w_offset = new Vec2([-1, 0]);
+MinecraftAnimation.nw_offset = new Vec2([-1, 1]);
 export { MinecraftAnimation };
 export function initializeCanvas() {
     const canvas = document.getElementById("glCanvas");

@@ -48,8 +48,6 @@ export class Chunk
     
     constructor(centerX : number, centerY : number, size: number, _noise_data: noise_map_data, _coord: Vec2)
     {
-        //console.log('chunk coords: ' + print.v2(_coord))
-
         this.x = centerX;
         this.y = centerY;
         this.size = size;
@@ -58,9 +56,6 @@ export class Chunk
         this.noise_data = _noise_data
         this.coord = _coord
         this.pos = _coord.copy().scale(size)
-
-        console.log('chunk pos: ' + print.v2(this.pos))
-
         this.generateCubes();
     }
     
@@ -89,7 +84,7 @@ export class Chunk
         {
             for(let j=0; j<this.size; j++)
             {
-                const height = height_map[i][j] * this.noise_data.height
+                const height = height_map[j][i] * this.noise_data.height
                 const idx = this.size * i + j
 
                 const x: number = topleftx + j
@@ -99,8 +94,6 @@ export class Chunk
                 this.cubePositionsF32[4*idx + 1] = Math.floor(height)
                 this.cubePositionsF32[4*idx + 2] = z
                 this.cubePositionsF32[4*idx + 3] = 0
-
-                //console.log('cube: ' + idx + ', a: ' + x + ', b: ' + z + ', height: ' + height)
 
                 // create cube collider for block
                 this.cube_colliders.push(new CubeCollider(new Vec3([x, height, z])))
