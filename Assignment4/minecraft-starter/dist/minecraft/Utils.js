@@ -45,15 +45,8 @@ class Utils {
             t = 1;
         if (t < 0)
             t = 0;
-        // set min and max
-        let min = Number.MAX_VALUE;
-        if (p0 < min)
-            min = p0;
-        if (p1 < min)
-            min = p1;
-        // get number between p0 and p1
-        const dist = Math.abs(p1 - p0);
-        return min + (dist * t);
+        // return interpolated value
+        return (1 - t) * p0 + t * p1;
     }
     // a simple means of vertical detection collison of a line with a cube, returns the y-offset to apply to the player
     static simple_vert_collision(cube, cylinder) {

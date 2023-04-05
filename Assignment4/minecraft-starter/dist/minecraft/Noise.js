@@ -125,19 +125,12 @@ class Noise {
         //     }
         // }
         let noise_map = new Array(size).fill(0).map(() => new Array(size).fill(0));
-        const point00 = new Vec3([-0.5, 0, -0.5]);
-        const point10 = new Vec3([0.5, 0, -0.5]);
-        const point01 = new Vec3([-0.5, 0, 0.5]);
-        const point11 = new Vec3([0.5, 0, 0.5]);
+        const step_size = 1 / size;
         // fill values
         for (let y = 0; y < size; y++) {
-            const point0 = Vec3.lerp(point00.copy(), point01.copy(), (y + 0.5) * 1);
-            const point1 = Vec3.lerp(point10.copy(), point11.copy(), (y + 0.5) * 1);
             for (let x = 0; x < size; x++) {
-                const point = Vec3.lerp(point0.copy(), point1.copy(), (x + 0.5) * 1);
-                let sample = Noise.perlin_3d(point, freq);
-                sample = (sample * 0.5) + 0.5;
-                noise_map[x][y] = sample;
+                const point = new Vec3([x, y, 0]);
+                noise_map[x][y] = Noise.perlin_3d(point, freq);
             }
         }
         return noise_map;

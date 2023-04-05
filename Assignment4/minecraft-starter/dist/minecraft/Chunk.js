@@ -17,8 +17,8 @@ export class Chunk {
         this.cubes = this.size * this.size;
         this.cubePositionsF32 = new Float32Array(4 * this.cubes);
         const scale = 1;
-        const freq = 1 / 64;
-        const octs = 1;
+        const freq = 1 / 8;
+        const octs = 3;
         const seed = '42';
         let height_map = Noise.generate_noise_map(this.size, scale, freq, octs, seed);
         //console.log('height map: ' + height_map)
