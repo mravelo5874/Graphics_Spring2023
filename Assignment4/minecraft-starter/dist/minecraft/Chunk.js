@@ -1,10 +1,12 @@
-import { Vec2, Vec3 } from "../lib/TSM.js";
+import { Vec3 } from "../lib/TSM.js";
 import { CubeCollider } from "./Colliders.js";
 import { Noise } from "./Noise.js";
+import { print } from "./Utils.js";
 export class noise_map_data {
-    constructor(_seed = '42', _scale = 75, _freq = 1, _octs = 4, _pers = 0.1, _lacu = 5) {
+    constructor(_seed = '42', _scale = 75, _height = 16, _freq = 1, _octs = 4, _pers = 0.1, _lacu = 5) {
         this.seed = _seed;
         this.scale = _scale;
+        this.height = _height;
         this.freq = _freq;
         this.octs = _octs;
         this.pers = _pers;
@@ -12,14 +14,17 @@ export class noise_map_data {
     }
 }
 export class Chunk {
-    constructor(centerX, centerY, size, _noise_data, _offset) {
+    constructor(centerX, centerY, size, _noise_data, _coord) {
+        //console.log('chunk coords: ' + print.v2(_coord))
         this.x = centerX;
         this.y = centerY;
         this.size = size;
         this.cubes = size * size;
         this.cube_colliders = new Array();
         this.noise_data = _noise_data;
-        this.offset = _offset;
+        this.coord = _coord;
+        this.pos = _coord.copy().scale(size);
+        console.log('chunk pos: ' + print.v2(this.pos));
         this.generateCubes();
     }
     generateCubes() {
@@ -28,11 +33,10 @@ export class Chunk {
         // The real landscape-generation logic. The example code below shows you how to use the pseudorandom number generator to create a few cubes.
         this.cubes = this.size * this.size;
         this.cubePositionsF32 = new Float32Array(4 * this.cubes);
-        let height_map = Noise.generate_noise_map(this.size, this.noise_data.seed, this.noise_data.scale, this.noise_data.freq, this.noise_data.octs, this.noise_data.pers, this.noise_data.lacu, new Vec2([this.x, this.y]), // this.offset.copy(), 
-        true);
+        let height_map = Noise.generate_noise_map(this.size, this.noise_data.seed, this.noise_data.scale, this.noise_data.freq, this.noise_data.octs, this.noise_data.pers, this.noise_data.lacu, this.pos.copy(), true);
         for (let i = 0; i < this.size; i++) {
             for (let j = 0; j < this.size; j++) {
-                const height = height_map[i][j] * 24;
+                const height = height_map[i][j] * this.noise_data.height;
                 const idx = this.size * i + j;
                 const x = topleftx + j;
                 const z = toplefty + i;

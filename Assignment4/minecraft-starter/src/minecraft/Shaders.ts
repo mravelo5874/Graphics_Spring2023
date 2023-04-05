@@ -33,8 +33,8 @@ export const blankCubeFSText = `
     varying vec2 uv;
     
     void main() {
-        vec3 kd = vec3(1.0, 1.0, 1.0);
-        vec3 ka = vec3(0.1, 0.1, 0.1);
+        vec3 kd = vec3(0.517647, 0.960784, 0.533333);
+        vec3 ka = vec3(0.0, 0.0, 0.0);
 
         /* Compute light fall off */
         vec4 lightDirection = uLightPos - wsPos;

@@ -124,8 +124,8 @@ class Noise {
         let cell_ampl = 1;
         let cell_freq = 1;
         for (let i = 0; i < octs; i++) {
-            let offset_x = rng.next() + offset.x;
-            let offset_y = rng.next() - offset.y;
+            let offset_x = offset.x; //+ (rng.next() * 100)
+            let offset_y = offset.y; //+ (rng.next() * 100)
             oct_offsets.push(new Vec2([offset_x, offset_y]));
             max_height += cell_ampl;
             cell_ampl *= persistance;

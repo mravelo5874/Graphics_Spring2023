@@ -9,7 +9,7 @@ import { Chunk, noise_map_data } from "./Chunk.js";
 // custom imports
 import { Utils, print } from "./Utils.js";
 import { Player } from "./Player.js";
-export class MinecraftAnimation extends CanvasAnimation {
+class MinecraftAnimation extends CanvasAnimation {
     constructor(canvas) {
         super(canvas);
         this.canvas2d = document.getElementById("textCanvas");
@@ -37,7 +37,7 @@ export class MinecraftAnimation extends CanvasAnimation {
         this.cubeGeometry = new Cube();
         this.initBlankCube();
         this.lightPosition = new Vec4([-1000, 1000, -1000, 1]);
-        this.backgroundColor = new Vec4([0.0, 0.37254903, 0.37254903, 1.0]);
+        this.backgroundColor = new Vec4([0.470588, 0.756863, 0.890196, 1.0]);
     }
     generate_adj_chunks(center_chunk) {
         // get center chunk coordinates
@@ -47,45 +47,44 @@ export class MinecraftAnimation extends CanvasAnimation {
         const new_chunks = new Array();
         // north chunk (+Z)
         const n_cen = Utils.get_chunk_center(x_cen, z_cen + 1);
-        let chunk_offset = this.player.get_chunk().add(new Vec2([0, 1]));
-        new_chunks.push(new Chunk(n_cen.x, n_cen.y, Utils.CHUNK_SIZE, this.terrain_data, chunk_offset.copy()));
+        new_chunks.push(new Chunk(n_cen.x, n_cen.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk().add(MinecraftAnimation.n_offset)));
         // north-east chunk (+Z)
         const ne_cen = Utils.get_chunk_center(x_cen + 1, z_cen + 1);
-        chunk_offset = this.player.get_chunk().add(new Vec2([1, 1]));
-        new_chunks.push(new Chunk(ne_cen.x, ne_cen.y, Utils.CHUNK_SIZE, this.terrain_data, chunk_offset.copy()));
+        new_chunks.push(new Chunk(ne_cen.x, ne_cen.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk().add(MinecraftAnimation.ne_offset)));
         // east chunk (+X)
         const e_cen = Utils.get_chunk_center(x_cen + 1, z_cen);
-        chunk_offset = this.player.get_chunk().add(new Vec2([1, 0]));
-        new_chunks.push(new Chunk(e_cen.x, e_cen.y, Utils.CHUNK_SIZE, this.terrain_data, chunk_offset.copy()));
+        new_chunks.push(new Chunk(e_cen.x, e_cen.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk().add(MinecraftAnimation.e_offset)));
         // south-east chunk (+X)
         const se_cen = Utils.get_chunk_center(x_cen + 1, z_cen - 1);
-        chunk_offset = this.player.get_chunk().add(new Vec2([1, -1]));
-        new_chunks.push(new Chunk(se_cen.x, se_cen.y, Utils.CHUNK_SIZE, this.terrain_data, chunk_offset.copy()));
+        new_chunks.push(new Chunk(se_cen.x, se_cen.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk().add(MinecraftAnimation.se_offset)));
         // south chunk (-Z)
         const s_cen = Utils.get_chunk_center(x_cen, z_cen - 1);
-        chunk_offset = this.player.get_chunk().add(new Vec2([0, -1]));
-        new_chunks.push(new Chunk(s_cen.x, s_cen.y, Utils.CHUNK_SIZE, this.terrain_data, chunk_offset.copy()));
+        new_chunks.push(new Chunk(s_cen.x, s_cen.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk().add(MinecraftAnimation.s_offset)));
         // south-west chunk (-Z)
         const sw_cen = Utils.get_chunk_center(x_cen - 1, z_cen - 1);
-        chunk_offset = this.player.get_chunk().add(new Vec2([-1, -1]));
-        new_chunks.push(new Chunk(sw_cen.x, sw_cen.y, Utils.CHUNK_SIZE, this.terrain_data, chunk_offset.copy()));
+        new_chunks.push(new Chunk(sw_cen.x, sw_cen.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk().add(MinecraftAnimation.sw_offset)));
         // west chunk (-X)
         const w_cen = Utils.get_chunk_center(x_cen - 1, z_cen);
-        chunk_offset = this.player.get_chunk().add(new Vec2([-1, 0]));
-        new_chunks.push(new Chunk(w_cen.x, w_cen.y, Utils.CHUNK_SIZE, this.terrain_data, chunk_offset.copy()));
+        new_chunks.push(new Chunk(w_cen.x, w_cen.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk().add(MinecraftAnimation.w_offset)));
         // north-west chunk (-X)
         const nw_cen = Utils.get_chunk_center(x_cen - 1, z_cen + 1);
-        chunk_offset = this.player.get_chunk().add(new Vec2([-1, 1]));
-        new_chunks.push(new Chunk(nw_cen.x, nw_cen.y, Utils.CHUNK_SIZE, this.terrain_data, chunk_offset.copy()));
+        new_chunks.push(new Chunk(nw_cen.x, nw_cen.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk().add(MinecraftAnimation.nw_offset)));
         return new_chunks;
     }
     /**
      * Setup the simulation. This can be called again to reset the program.
      */
     reset() {
+        // reser gui
         this.gui.reset();
+        // reset player
         const player_pos = this.gui.getCamera().pos();
         this.player = new Player(player_pos);
+        const curr_chunk = Utils.pos_to_chunck(this.player.get_pos());
+        this.player.set_chunk(curr_chunk.copy());
+        // generate chunks
+        this.current_chunk = new Chunk(0.0, 0.0, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk());
+        this.adj_chunks = this.generate_adj_chunks(this.player.get_chunk());
     }
     /**
      * Sets up the blank cube drawing
@@ -196,6 +195,15 @@ export class MinecraftAnimation extends CanvasAnimation {
     }
     getGUI() { return this.gui; }
 }
+MinecraftAnimation.n_offset = new Vec2([1, 0]);
+MinecraftAnimation.ne_offset = new Vec2([1, 1]);
+MinecraftAnimation.e_offset = new Vec2([0, 1]);
+MinecraftAnimation.se_offset = new Vec2([-1, 1]);
+MinecraftAnimation.s_offset = new Vec2([-1, 0]);
+MinecraftAnimation.sw_offset = new Vec2([-1, -1]);
+MinecraftAnimation.w_offset = new Vec2([0, -1]);
+MinecraftAnimation.nw_offset = new Vec2([1, -1]);
+export { MinecraftAnimation };
 export function initializeCanvas() {
     const canvas = document.getElementById("glCanvas");
     /* Start drawing */

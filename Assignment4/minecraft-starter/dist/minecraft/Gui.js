@@ -128,10 +128,11 @@ class GUI {
                 break;
             }
             case "Equal": {
-                //this.animation.
+                this.animation.terrain_data.height += 1;
                 break;
             }
             case "Minus": {
+                this.animation.terrain_data.height -= 1;
                 break;
             }
             default: break;

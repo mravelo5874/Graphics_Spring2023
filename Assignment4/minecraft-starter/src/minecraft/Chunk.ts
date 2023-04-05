@@ -2,11 +2,13 @@ import { Mat3, Mat4, Vec2, Vec3, Vec4 } from "../lib/TSM.js";
 import Rand from "../lib/rand-seed/Rand.js"
 import { CubeCollider } from "./Colliders.js";
 import { Noise } from "./Noise.js";
+import { print } from "./Utils.js"
 
 export class noise_map_data
 {
     public seed: string
     public scale: number
+    public height: number
     public freq: number
     public octs: number
     public pers: number
@@ -15,6 +17,7 @@ export class noise_map_data
     constructor(
         _seed: string = '42', 
         _scale: number = 75,
+        _height: number = 16,
         _freq: number = 1,  
         _octs: number = 4,
         _pers: number = 0.1, 
@@ -23,6 +26,7 @@ export class noise_map_data
     {
         this.seed = _seed
         this.scale = _scale
+        this.height = _height
         this.freq = _freq
         this.octs = _octs
         this.pers = _pers
@@ -39,17 +43,24 @@ export class Chunk
     private size: number; // Number of cubes along each side of the chunk
     private cube_colliders: CubeCollider[];
     private noise_data: noise_map_data;
-    private offset: Vec2;
+    private coord: Vec2;
+    private pos: Vec2;
     
-    constructor(centerX : number, centerY : number, size: number, _noise_data: noise_map_data, _offset: Vec2)
+    constructor(centerX : number, centerY : number, size: number, _noise_data: noise_map_data, _coord: Vec2)
     {
+        //console.log('chunk coords: ' + print.v2(_coord))
+
         this.x = centerX;
         this.y = centerY;
         this.size = size;
         this.cubes = size*size;
         this.cube_colliders = new Array<CubeCollider>()
         this.noise_data = _noise_data
-        this.offset = _offset
+        this.coord = _coord
+        this.pos = _coord.copy().scale(size)
+
+        console.log('chunk pos: ' + print.v2(this.pos))
+
         this.generateCubes();
     }
     
@@ -70,7 +81,7 @@ export class Chunk
             this.noise_data.octs, 
             this.noise_data.pers, 
             this.noise_data.lacu, 
-            new Vec2([this.x, this.y]), // this.offset.copy(), 
+            this.pos.copy(),
             true)
     
 
@@ -78,7 +89,7 @@ export class Chunk
         {
             for(let j=0; j<this.size; j++)
             {
-                const height = height_map[i][j] * 24
+                const height = height_map[i][j] * this.noise_data.height
                 const idx = this.size * i + j
 
                 const x: number = topleftx + j
