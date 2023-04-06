@@ -28,7 +28,7 @@ export class Player {
         this.collider = new CylinderCollider(this.pos.copy(), this.pos.copy().subtract(new Vec3([0, Utils.PLAYER_HEIGHT, 0])), Utils.PLAYER_RADIUS);
         this.aabb = new AABB(new Vec3([-Utils.PLAYER_RADIUS, -Utils.PLAYER_RADIUS, -(Utils.PLAYER_HEIGHT / 2)]), new Vec3([Utils.PLAYER_RADIUS, Utils.PLAYER_RADIUS, (Utils.PLAYER_HEIGHT / 2)]), this.pos.copy());
     }
-    update(dir, _chunk, delta_time) {
+    update(dir, _chunk, _edges, delta_time) {
         // apply physics
         // w/ some help from: https://catlikecoding.com/unity/tutorials/movement/sliding-a-sphere/
         // apply gravity
@@ -84,6 +84,20 @@ export class Player {
                     break;
                 // apply offset
                 this.pos = new Vec3([this.pos.x, cubes[i].get_pos().y + (Utils.CUBE_LEN / 2) + this.collider.height, this.pos.z]);
+                this.vel.y = 0;
+                this.collider.start = this.pos.copy();
+                this.collider.end = this.pos.copy().subtract(new Vec3([0, Utils.PLAYER_HEIGHT, 0]));
+            }
+        }
+        // detect collisions with edge blocks
+        for (let i = 0; i < _edges.length; i++) {
+            // check for vertical collision
+            if (Utils.simple_vert_collision(_edges[i], this.collider)) {
+                // do not apply vertical offset if going up
+                if (this.vel.y > 0)
+                    break;
+                // apply offset
+                this.pos = new Vec3([this.pos.x, _edges[i].get_pos().y + (Utils.CUBE_LEN / 2) + this.collider.height, this.pos.z]);
                 this.vel.y = 0;
                 this.collider.start = this.pos.copy();
                 this.collider.end = this.pos.copy().subtract(new Vec3([0, Utils.PLAYER_HEIGHT, 0]));

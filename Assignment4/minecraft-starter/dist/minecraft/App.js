@@ -34,6 +34,14 @@ class MinecraftAnimation extends CanvasAnimation {
         // generate chunks
         this.current_chunk = new Chunk(0.0, 0.0, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk());
         this.adj_chunks = this.generate_adj_chunks(this.player.get_chunk());
+        // get edge colliders for all 8 adjacent chunks
+        this.edge_colliders = new Array();
+        for (let i = 0; i < this.adj_chunks.length; i++) {
+            let edges = this.adj_chunks[i].get_edge_colliders();
+            for (let j = 0; j < edges.length; j++) {
+                this.edge_colliders.push(edges[j]);
+            }
+        }
         // generate cube textures
         this.cube_texture_size = 32;
         this.cube_noise_map = new noise_map_data();
@@ -91,6 +99,23 @@ class MinecraftAnimation extends CanvasAnimation {
         // generate chunks
         this.current_chunk = new Chunk(0.0, 0.0, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk());
         this.adj_chunks = this.generate_adj_chunks(this.player.get_chunk());
+        // get edge colliders for all 8 adjacent chunks
+        this.edge_colliders = new Array();
+        for (let i = 0; i < this.adj_chunks.length; i++) {
+            let edges = this.adj_chunks[i].get_edge_colliders();
+            for (let j = 0; j < edges.length; j++) {
+                this.edge_colliders.push(edges[j]);
+            }
+        }
+        // update ui
+        this.scale_ui = this.terrain_data.scale;
+        this.height_ui = this.terrain_data.height;
+        this.pers_ui = this.terrain_data.pers;
+        this.lacu_ui = this.terrain_data.lacu;
+        this.pos_ui = this.player.get_pos();
+        this.chunk_ui = this.player.get_chunk();
+        this.mode_ui = this.player.get_creative_mode();
+        this.update_ui();
     }
     /**
      * Sets up the blank cube drawing
@@ -101,6 +126,7 @@ class MinecraftAnimation extends CanvasAnimation {
         this.blankCubeRenderPass.addAttribute("aNorm", 4, this.ctx.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.cubeGeometry.normalsFlat());
         this.blankCubeRenderPass.addAttribute("aUV", 2, this.ctx.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.cubeGeometry.uvFlat());
         this.blankCubeRenderPass.addInstancedAttribute("aOffset", 4, this.ctx.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, new Float32Array(0));
+        this.blankCubeRenderPass.addInstancedAttribute("terrain_height", 1, this.ctx.FLOAT, false, 1 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, new Float32Array(this.terrain_data.height));
         this.blankCubeRenderPass.addUniform("uLightPos", (gl, loc) => {
             gl.uniform4fv(loc, this.lightPosition.xyzw);
         });
@@ -124,6 +150,16 @@ class MinecraftAnimation extends CanvasAnimation {
         const new_chunk_center = Utils.get_chunk_center(this.player.get_chunk().x, this.player.get_chunk().y);
         this.current_chunk = new Chunk(new_chunk_center.x, new_chunk_center.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk());
         this.adj_chunks = this.generate_adj_chunks(this.player.get_chunk());
+        // get edge colliders for all 8 adjacent chunks
+        this.edge_colliders = new Array();
+        for (let i = 0; i < this.adj_chunks.length; i++) {
+            let edges = this.adj_chunks[i].get_edge_colliders();
+            for (let j = 0; j < edges.length; j++) {
+                this.edge_colliders.push(edges[j]);
+            }
+        }
+        // update current terrain_height
+        this.blankCubeRenderPass.updateAttributeBuffer("terrain_height", new Float32Array(this.terrain_data.height));
     }
     /**
      * Draws a single frame
@@ -135,7 +171,7 @@ class MinecraftAnimation extends CanvasAnimation {
         // and loading of new chunks when necessary.
         const move_dir = this.gui.walkDir();
         // apply physics to player rigid body
-        this.player.update(move_dir, this.current_chunk, this.get_delta_time());
+        this.player.update(move_dir, this.current_chunk, this.edge_colliders, this.get_delta_time());
         // set player's current chunk
         const curr_chunk = Utils.pos_to_chunck(this.player.get_pos());
         if (!curr_chunk.equals(this.player.get_chunk())) {
@@ -144,6 +180,14 @@ class MinecraftAnimation extends CanvasAnimation {
             const new_chunk_center = Utils.get_chunk_center(this.player.get_chunk().x, this.player.get_chunk().y);
             this.current_chunk = new Chunk(new_chunk_center.x, new_chunk_center.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk());
             this.adj_chunks = this.generate_adj_chunks(this.player.get_chunk());
+            // get edge colliders for all 8 adjacent chunks
+            this.edge_colliders = new Array();
+            for (let i = 0; i < this.adj_chunks.length; i++) {
+                let edges = this.adj_chunks[i].get_edge_colliders();
+                for (let j = 0; j < edges.length; j++) {
+                    this.edge_colliders.push(edges[j]);
+                }
+            }
         }
         // set the player's current position
         this.gui.getCamera().setPos(this.player.get_pos());

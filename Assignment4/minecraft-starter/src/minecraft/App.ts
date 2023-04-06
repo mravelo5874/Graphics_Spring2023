@@ -19,6 +19,7 @@ import { Chunk, noise_map_data } from "./Chunk.js";
 import { Utils, print } from "./Utils.js";
 import { Player } from "./Player.js";
 import { Noise } from "./Noise.js";
+import { CubeCollider } from "./Colliders.js";
 
 export class MinecraftAnimation extends CanvasAnimation 
 {
@@ -27,6 +28,7 @@ export class MinecraftAnimation extends CanvasAnimation
   private current_chunk : Chunk; // the current chunk in which the player is in
   private adj_chunks: Chunk[]; // the 8 adjacent chuncks that surround the current_chunk
   public terrain_data: noise_map_data
+  private edge_colliders: CubeCollider[]
   
   /*  Cube Rendering */
   private cubeGeometry: Cube;
@@ -76,6 +78,17 @@ export class MinecraftAnimation extends CanvasAnimation
     // generate chunks
     this.current_chunk = new Chunk(0.0, 0.0, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk());
     this.adj_chunks = this.generate_adj_chunks(this.player.get_chunk())
+
+    // get edge colliders for all 8 adjacent chunks
+    this.edge_colliders = new Array<CubeCollider>()
+    for (let i = 0; i < this.adj_chunks.length; i++)
+    {
+      let edges: CubeCollider[] = this.adj_chunks[i].get_edge_colliders()
+      for (let j = 0; j < edges.length; j++)
+      {
+        this.edge_colliders.push(edges[j])
+      }
+    }
 
     // generate cube textures
     this.cube_texture_size = 32
@@ -166,6 +179,27 @@ export class MinecraftAnimation extends CanvasAnimation
     // generate chunks
     this.current_chunk = new Chunk(0.0, 0.0, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk());
     this.adj_chunks = this.generate_adj_chunks(this.player.get_chunk())
+
+    // get edge colliders for all 8 adjacent chunks
+    this.edge_colliders = new Array<CubeCollider>()
+    for (let i = 0; i < this.adj_chunks.length; i++)
+    {
+      let edges: CubeCollider[] = this.adj_chunks[i].get_edge_colliders()
+      for (let j = 0; j < edges.length; j++)
+      {
+        this.edge_colliders.push(edges[j])
+      }
+    }
+
+    // update ui
+    this.scale_ui = this.terrain_data.scale
+    this.height_ui = this.terrain_data.height
+    this.pers_ui = this.terrain_data.pers
+    this.lacu_ui = this.terrain_data.lacu
+    this.pos_ui = this.player.get_pos()
+    this.chunk_ui = this.player.get_chunk()
+    this.mode_ui = this.player.get_creative_mode()
+    this.update_ui()
   }
   
   /**
@@ -213,6 +247,16 @@ export class MinecraftAnimation extends CanvasAnimation
       new Float32Array(0)
     );
 
+    this.blankCubeRenderPass.addInstancedAttribute("terrain_height",
+      1,
+      this.ctx.FLOAT,
+      false,
+      1 * Float32Array.BYTES_PER_ELEMENT,
+      0,
+      undefined,
+      new Float32Array(this.terrain_data.height)
+    );
+
     this.blankCubeRenderPass.addUniform("uLightPos",
       (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
         gl.uniform4fv(loc, this.lightPosition.xyzw);
@@ -243,6 +287,20 @@ export class MinecraftAnimation extends CanvasAnimation
     const new_chunk_center: Vec2 = Utils.get_chunk_center(this.player.get_chunk().x, this.player.get_chunk().y)
     this.current_chunk = new Chunk(new_chunk_center.x, new_chunk_center.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk());
     this.adj_chunks = this.generate_adj_chunks(this.player.get_chunk())
+
+    // get edge colliders for all 8 adjacent chunks
+    this.edge_colliders = new Array<CubeCollider>()
+    for (let i = 0; i < this.adj_chunks.length; i++)
+    {
+      let edges: CubeCollider[] = this.adj_chunks[i].get_edge_colliders()
+      for (let j = 0; j < edges.length; j++)
+      {
+        this.edge_colliders.push(edges[j])
+      }
+    }
+
+    // update current terrain_height
+    this.blankCubeRenderPass.updateAttributeBuffer("terrain_height", new Float32Array(this.terrain_data.height));
   }
 
   /**
@@ -257,7 +315,7 @@ export class MinecraftAnimation extends CanvasAnimation
     const move_dir: Vec3 = this.gui.walkDir()
 
     // apply physics to player rigid body
-    this.player.update(move_dir, this.current_chunk, this.get_delta_time())
+    this.player.update(move_dir, this.current_chunk, this.edge_colliders, this.get_delta_time())
     
     // set player's current chunk
     const curr_chunk: Vec2 = Utils.pos_to_chunck(this.player.get_pos())
@@ -269,6 +327,17 @@ export class MinecraftAnimation extends CanvasAnimation
       const new_chunk_center: Vec2 = Utils.get_chunk_center(this.player.get_chunk().x, this.player.get_chunk().y)
       this.current_chunk = new Chunk(new_chunk_center.x, new_chunk_center.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk());
       this.adj_chunks = this.generate_adj_chunks(this.player.get_chunk())
+
+      // get edge colliders for all 8 adjacent chunks
+      this.edge_colliders = new Array<CubeCollider>()
+      for (let i = 0; i < this.adj_chunks.length; i++)
+      {
+        let edges: CubeCollider[] = this.adj_chunks[i].get_edge_colliders()
+        for (let j = 0; j < edges.length; j++)
+        {
+          this.edge_colliders.push(edges[j])
+        }
+      }
     }
 
     // set the player's current position

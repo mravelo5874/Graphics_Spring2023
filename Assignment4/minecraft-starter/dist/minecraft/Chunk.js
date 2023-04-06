@@ -1,5 +1,5 @@
 import { Vec3 } from "../lib/TSM.js";
-import { CubeCollider, AABB } from "./Colliders.js";
+import { CubeCollider } from "./Colliders.js";
 import { Noise } from "./Noise.js";
 import { Utils } from "./Utils.js";
 export class noise_map_data {
@@ -23,7 +23,7 @@ export class Chunk {
         this.cubes = size * size; // height cubes
         this.cube_pos = new Array();
         this.cube_colliders = new Array();
-        this.cube_aabbs = new Array();
+        this.edge_colliders = new Array();
         this.noise_data = _noise_data;
         this.pos = _coord.copy().scale(size);
         // generate cubes in chunk
@@ -60,7 +60,10 @@ export class Chunk {
                 // add cube to pos and collider arrays
                 this.cube_pos.push(new Vec3([x, y, z]));
                 this.cube_colliders.push(new CubeCollider(new Vec3([x, y, z])));
-                this.cube_aabbs.push(new AABB(new Vec3([-0.5, -0.5, -0.5]), new Vec3([+0.5, +0.5, +0.5]), new Vec3([x, y, z])));
+                // add to edge colliders if at chunk edge
+                if (i == 0 || i == Utils.CHUNK_SIZE - 1 || j == 0 || j == Utils.CHUNK_SIZE - 1) {
+                    this.edge_colliders.push(new CubeCollider(new Vec3([x, y, z])));
+                }
             }
         }
     }
@@ -83,8 +86,6 @@ export class Chunk {
                         // add cube to pos and collider arrays
                         this.cubes++;
                         this.cube_pos.push(new Vec3([my_x, my_y - i, my_z]));
-                        this.cube_colliders.push(new CubeCollider(new Vec3([my_x, my_y - i, my_z])));
-                        this.cube_aabbs.push(new AABB(new Vec3([-0.5, -0.5, -0.5]), new Vec3([+0.5, +0.5, +0.5]), new Vec3([my_x, my_y - i, my_z])));
                     }
                     continue;
                 }
@@ -159,8 +160,7 @@ export class Chunk {
                         // add cube to pos and collider arrays
                         this.cubes++;
                         this.cube_pos.push(new Vec3([my_x, my_y - i, my_z]));
-                        this.cube_colliders.push(new CubeCollider(new Vec3([my_x, my_y - i, my_z])));
-                        this.cube_aabbs.push(new AABB(new Vec3([-0.5, -0.5, -0.5]), new Vec3([+0.5, +0.5, +0.5]), new Vec3([my_x, my_y - i, my_z])));
+                        // this.cube_colliders.push(new CubeCollider(new Vec3([my_x, my_y-i, my_z])))
                     }
                 }
             }
@@ -181,8 +181,8 @@ export class Chunk {
     get_cube_colliders() {
         return this.cube_colliders;
     }
-    get_cube_aabbs() {
-        return this.cube_aabbs;
+    get_edge_colliders() {
+        return this.edge_colliders;
     }
     cubePositions() {
         return this.cubePositionsF32;

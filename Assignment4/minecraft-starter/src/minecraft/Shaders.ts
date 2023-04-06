@@ -10,11 +10,13 @@ export const blankCubeVSText =
     attribute vec4 aVertPos;
     attribute vec4 aOffset;
     attribute vec2 aUV;
+    attribute float terrain_height;
     
     varying vec4 normal;
     varying vec4 wsPos;
     varying vec2 uv;
     varying vec3 offset;
+    varying float height;
 
     void main () 
     {
@@ -23,6 +25,7 @@ export const blankCubeVSText =
         normal = normalize(aNorm);
         uv = aUV;
         offset = vec3(aOffset.x, aOffset.y, aOffset.z);
+        height = terrain_height;
     }
 `;
 
@@ -36,6 +39,16 @@ export const blankCubeFSText =
     varying vec4 wsPos;
     varying vec2 uv;
     varying vec3 offset;
+    varying float height;
+
+    float inverse_lerp(float p0, float p1, float val)
+    {
+        // clamp value to range if outside
+        if (val > p1) return 1.0;
+        else if (val < p0) return 0.0;
+        // return t value
+        return (val - p0) / (p1 - p0);
+    }
 
     float smoothmix(float a0, float a1, float w) 
     {
@@ -46,6 +59,11 @@ export const blankCubeFSText =
     float random (vec2 pt, float seed) 
     {
         return fract(sin((seed + dot(pt.xy, vec2(12.9898,78.233))))*43758.5453123);
+    }
+
+    float not_as_random(vec2 pt, float seed)
+    {
+        return fract(sin((seed + dot(pt.xy, vec2(12.9898,12.233)))));
     }
 
     // returns a random unit vector
@@ -129,15 +147,79 @@ export const blankCubeFSText =
     
     void main()
     {
-        float scale = 0.2;
-        float persistance = 0.5;
-        float lacunarity = 2.0;
         float seed = 42.0;
-
-        float sample = perlin(uv, seed, scale, persistance, lacunarity, offset);
-        //vec3 kd = vec3(0.517647 - sample, 0.960784 - sample, 0.533333 - sample);
-        vec3 kd = vec3(sample, sample, sample);
+        vec3 kd = vec3(0.0, 0.0, 0.0);
         vec3 ka = vec3(0.0, 0.0, 0.0);
+
+        // set block noise based on height (offset.y) 
+        float level_01 = inverse_lerp(-height, height, offset.y);
+        float level_h = offset.y;
+
+        float snow_level = 45.5;
+        float dirt_level = 20.5;
+        float dark_grass_level = 0.5;
+        float light_grass_level = -20.5;
+
+        // add transition layers between block layers
+        float trans_layers = 12.0;
+        level_h += floor(not_as_random(vec2(offset.x, offset.z), seed) * trans_layers);
+
+        // snow block
+        if (level_h > snow_level)
+        {
+            float scale = 0.2;
+            float persistance = 0.5;
+            float lacunarity = 2.0;
+            
+            float sample = perlin(uv, seed, scale, persistance, lacunarity, offset);
+            sample = interpolate(-0.1, 0.1, sample);
+            kd = vec3(0.900, 0.900, 0.900) + sample;
+        }
+        // dirt block
+        else if (level_h > dirt_level)
+        {
+            float scale = 0.2;
+            float persistance = 0.5;
+            float lacunarity = 2.0;
+
+            float sample = perlin(uv, seed, scale, persistance, lacunarity, offset);
+            sample = interpolate(-0.2, 0.2, sample);
+            kd = vec3(0.278, 0.196, 0.122) + sample;
+        }
+        // dark grass block
+        else if (level_h > dark_grass_level)
+        {
+            float scale = 0.2;
+            float persistance = 0.5;
+            float lacunarity = 2.0;
+
+            float sample = perlin(uv, seed, scale, persistance, lacunarity, offset);
+            sample = interpolate(-0.2, 0.2, sample);
+            kd = vec3(0.161, 0.296, 0.148) + sample;
+        }
+        // light grass block
+        else if (level_h > light_grass_level)
+        {
+            float scale = 0.2;
+            float persistance = 0.5;
+            float lacunarity = 2.0;
+
+            float sample = perlin(uv, seed, scale, persistance, lacunarity, offset);
+            sample = interpolate(-0.2, 0.2, sample);
+            kd = vec3(0.471, 0.569, 0.31) + sample;
+        }
+        // sand block
+        else
+        {
+            float scale = 0.2;
+            float persistance = 0.5;
+            float lacunarity = 2.0;
+            
+            float sample = perlin(uv, seed, scale, persistance, lacunarity, offset);
+            sample = interpolate(-0.2, 0.2, sample);
+            kd = vec3(1.0, 0.941, 0.816) + sample;
+        }
+        
 
         /* Compute light fall off */
         vec4 lightDirection = uLightPos - wsPos;
