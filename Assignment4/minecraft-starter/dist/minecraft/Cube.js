@@ -169,7 +169,6 @@ export class Cube {
         return this.normalsF32;
     }
     uvFlat() {
-        console.log('uv: ' + this.uvF32);
         return this.uvF32;
     }
 }

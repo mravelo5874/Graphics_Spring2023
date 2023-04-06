@@ -34,19 +34,14 @@ export const blankCubeFSText =
     varying vec4 wsPos;
     varying vec2 uv;
 
-    float random (in vec2 pt, in float seed) 
+    float perlin(vec2 pos)
     {
-        return fract(sin((seed + dot(pt.xy, vec2(12.9898,78.233))))*43758.5453123);
-    }
-
-    float perlin (in vec2 pos, in float seed, in float freq)
-    {
-        return random(pos, seed);
+        return pos.x + pos.y;
     }
     
     void main()
     {
-        float sample = perlin(uv, 42.0, 1.0) * 0.5;
+        float sample = perlin(uv) * 0.5;
         vec3 kd = vec3(0.517647 + sample, 0.960784 + sample, 0.533333 + sample);
         vec3 ka = vec3(0.0, 0.0, 0.0);
 
