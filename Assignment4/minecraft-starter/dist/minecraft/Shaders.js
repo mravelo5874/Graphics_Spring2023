@@ -60,7 +60,7 @@ export const blankCubeFSText = `
 
     float not_as_random(vec2 pt, float seed)
     {
-        return fract(sin((seed + dot(pt.xy, vec2(12.9898,12.233)))));
+        return fract(sin((seed + dot(pt.xy, vec2(12.9898,12.233))))*0.7);
     }
 
     // returns a random unit vector
@@ -130,8 +130,8 @@ export const blankCubeFSText = `
         const int octs = 4;
         for (int i = 0; i < octs; i++)
         {
-            float x = (pos.x + _offset.x + (_offset.z * 4.0)) / scale * frequency;
-            float y = (pos.y + _offset.y - (_offset.z * 4.0)) / scale * frequency;
+            float x = (pos.x + _offset.x + (_offset.y * 4.0)) / scale * frequency;
+            float y = (pos.y + _offset.z + (_offset.y * 4.0)) / scale * frequency;
             float p = perlin_2d(x, y, seed) * 2.0 + 0.5;
 
             noise_height += p * amplitude;
@@ -153,9 +153,12 @@ export const blankCubeFSText = `
         float level_h = offset.y;
 
         float snow_level = 45.5;
+        float stone_level = 35.5;
         float dirt_level = 20.5;
-        float dark_grass_level = 0.5;
-        float light_grass_level = -20.5;
+        float grass_0_level = 0.5;
+        float grass_1_level = -5.5;
+        float grass_2_level = -12.5;
+        float grass_3_level = -20.5;
 
         // add transition layers between block layers
         float trans_layers = 12.0;
@@ -164,57 +167,90 @@ export const blankCubeFSText = `
         // snow block
         if (level_h > snow_level)
         {
-            float scale = 0.2;
-            float persistance = 0.5;
-            float lacunarity = 2.0;
+            float scale = 0.25;
+            float persistance = 0.2;
+            float lacunarity = 1.0;
             
             float sample = perlin(uv, seed, scale, persistance, lacunarity, offset);
-            sample = interpolate(-0.1, 0.1, sample);
-            kd = vec3(0.900, 0.900, 0.900) + sample;
+            sample = interpolate(-0.01, 0.01, sample);
+            kd = vec3(0.99, 0.99, 0.99) + vec3(sample, sample, sample);
+        }
+        // stone block
+        else if (level_h > stone_level)
+        {
+            float scale = 0.7;
+            float persistance = 0.2;
+            float lacunarity = 5.0;
+
+            float sample = perlin(uv, seed, scale, persistance, lacunarity, offset);
+            sample = interpolate(-0.05, 0.05, sample); 
+            kd = vec3(0.639, 0.639, 0.639) + vec3(sample*0.94, sample*1.03, sample*1.13);
         }
         // dirt block
         else if (level_h > dirt_level)
         {
-            float scale = 0.2;
-            float persistance = 0.5;
-            float lacunarity = 2.0;
+            float scale = 0.1;
+            float persistance = 0.0;
+            float lacunarity = 5.0;
 
             float sample = perlin(uv, seed, scale, persistance, lacunarity, offset);
-            sample = interpolate(-0.2, 0.2, sample);
-            kd = vec3(0.278, 0.196, 0.122) + sample;
+            sample = interpolate(-0.1, 0.1, sample); 
+            kd = vec3(0.349, 0.325, 0.267) + vec3(sample*1.244, sample*1.03, sample*0.972);
         }
-        // dark grass block
-        else if (level_h > dark_grass_level)
+        // grass 0 block
+        else if (level_h > grass_0_level)
         {
-            float scale = 0.2;
-            float persistance = 0.5;
+            float scale = 0.5;
+            float persistance = 1.5;
             float lacunarity = 2.0;
 
             float sample = perlin(uv, seed, scale, persistance, lacunarity, offset);
-            sample = interpolate(-0.2, 0.2, sample);
-            kd = vec3(0.161, 0.296, 0.148) + sample;
+            sample = interpolate(-0.1, 0.1, sample);
+            kd = vec3(0.247, 0.322, 0.192) + sample;
         }
-        // light grass block
-        else if (level_h > light_grass_level)
+        // grass 1 block
+        else if (level_h > grass_1_level)
         {
-            float scale = 0.2;
-            float persistance = 0.5;
+            float scale = 0.5;
+            float persistance = 1.5;
             float lacunarity = 2.0;
 
             float sample = perlin(uv, seed, scale, persistance, lacunarity, offset);
             sample = interpolate(-0.2, 0.2, sample);
-            kd = vec3(0.471, 0.569, 0.31) + sample;
+            kd = vec3(0.322, 0.412, 0.255) + sample;
+        }
+        // grass 2 block
+        else if (level_h > grass_2_level)
+        {
+            float scale = 0.5;
+            float persistance = 1.5;
+            float lacunarity = 2.0;
+
+            float sample = perlin(uv, seed, scale, persistance, lacunarity, offset);
+            sample = interpolate(-0.2, 0.2, sample);
+            kd = vec3(0.4, 0.502, 0.329) + sample;
+        }
+        // grass 3 block
+        else if (level_h > grass_3_level)
+        {
+            float scale = 0.5;
+            float persistance = 1.5;
+            float lacunarity = 2.0;
+
+            float sample = perlin(uv, seed, scale, persistance, lacunarity, offset);
+            sample = interpolate(-0.2, 0.2, sample);
+            kd = vec3(0.51, 0.631, 0.42) + sample;
         }
         // sand block
         else
         {
-            float scale = 0.2;
-            float persistance = 0.5;
-            float lacunarity = 2.0;
-            
+            float scale = 0.7;
+            float persistance = 1.0;
+            float lacunarity = 5.0;
+
             float sample = perlin(uv, seed, scale, persistance, lacunarity, offset);
-            sample = interpolate(-0.2, 0.2, sample);
-            kd = vec3(1.0, 0.941, 0.816) + sample;
+            sample = interpolate(-0.05, 0.05, sample);
+            kd = vec3(1.0, 0.941, 0.816) + vec3(sample, sample*1.5, sample*1.5);
         }
         
 
