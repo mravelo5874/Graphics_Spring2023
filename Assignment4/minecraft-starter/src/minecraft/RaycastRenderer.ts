@@ -23,6 +23,15 @@ export class RaycastRenderer
         return this.rays;
     }
 
+    public clear_rays()
+    {
+        this.rays = []
+        this.ray_indices = new Array<number>();
+        this.ray_positions = new Array<number>();
+        this.ray_colors = new Array<number>();
+        this.ray_index_count = 0
+    }
+
     public add_ray(r : Ray, color : string, length : number = -100.0) : void
     {
         // add to ray list

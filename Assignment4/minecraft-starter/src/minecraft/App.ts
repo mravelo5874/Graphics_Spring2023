@@ -201,6 +201,11 @@ export class MinecraftAnimation extends CanvasAnimation
       }
     }
 
+    // reset rays
+    this.prev_ray_length = 0
+    this.rr.clear_rays()
+    this.init_rays()
+
     // update ui
     this.scale_ui = this.terrain_data.scale
     this.height_ui = this.terrain_data.height

@@ -11,6 +11,13 @@ export class RaycastRenderer {
     get_rays() {
         return this.rays;
     }
+    clear_rays() {
+        this.rays = [];
+        this.ray_indices = new Array();
+        this.ray_positions = new Array();
+        this.ray_colors = new Array();
+        this.ray_index_count = 0;
+    }
     add_ray(r, color, length = -100.0) {
         // add to ray list
         this.rays.push(r);
