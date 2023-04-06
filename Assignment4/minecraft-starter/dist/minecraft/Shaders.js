@@ -13,6 +13,7 @@ export const blankCubeVSText = `
     varying vec4 normal;
     varying vec4 wsPos;
     varying vec2 uv;
+    varying vec3 offset;
 
     void main () 
     {
@@ -20,6 +21,7 @@ export const blankCubeVSText = `
         wsPos = aVertPos + aOffset;
         normal = normalize(aNorm);
         uv = aUV;
+        offset = vec3(aOffset.x, aOffset.y, aOffset.z);
     }
 `;
 export const blankCubeFSText = `
@@ -30,6 +32,7 @@ export const blankCubeFSText = `
     varying vec4 normal;
     varying vec4 wsPos;
     varying vec2 uv;
+    varying vec3 offset;
 
     float smoothmix(float a0, float a1, float w) 
     {
@@ -100,7 +103,7 @@ export const blankCubeFSText = `
         return value;
     }
 
-    float perlin(vec2 pos, float seed, float scale, float persistance, float lacunarity)
+    float perlin(vec2 pos, float seed, float scale, float persistance, float lacunarity, vec3 _offset)
     {
         float amplitude = 1.0;
         float frequency = 1.0;
@@ -109,8 +112,8 @@ export const blankCubeFSText = `
         const int octs = 4;
         for (int i = 0; i < octs; i++)
         {
-            float x = pos.x / scale * frequency;
-            float y = pos.y / scale * frequency;
+            float x = (pos.x + _offset.x + (_offset.z * 4.0)) / scale * frequency;
+            float y = (pos.y + _offset.y - (_offset.z * 4.0)) / scale * frequency;
             float p = perlin_2d(x, y, seed) * 2.0 + 0.5;
 
             noise_height += p * amplitude;
@@ -128,7 +131,7 @@ export const blankCubeFSText = `
         float lacunarity = 2.0;
         float seed = 42.0;
 
-        float sample = perlin(uv, seed, scale, persistance, lacunarity);
+        float sample = perlin(uv, seed, scale, persistance, lacunarity, offset);
         //vec3 kd = vec3(0.517647 - sample, 0.960784 - sample, 0.533333 - sample);
         vec3 kd = vec3(sample, sample, sample);
         vec3 ka = vec3(0.0, 0.0, 0.0);

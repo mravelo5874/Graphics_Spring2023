@@ -202,16 +202,6 @@ export class MinecraftAnimation extends CanvasAnimation
       undefined,
       this.cubeGeometry.uvFlat()
     );
-
-    // this.blankCubeRenderPass.addAttribute("noise_map",
-    //   1,
-    //   this.ctx.FLOAT,
-    //   false,
-    //   1 * Float32Array.BYTES_PER_ELEMENT,
-    //   0,
-    //   undefined,
-    //   new Float32Array(Utils.flatten_2d_array(this.cube_texture, this.cube_texture_size))
-    // );
     
     this.blankCubeRenderPass.addInstancedAttribute("aOffset",
       4,

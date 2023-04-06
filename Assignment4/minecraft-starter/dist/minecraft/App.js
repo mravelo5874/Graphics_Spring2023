@@ -100,15 +100,6 @@ class MinecraftAnimation extends CanvasAnimation {
         this.blankCubeRenderPass.addAttribute("aVertPos", 4, this.ctx.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.cubeGeometry.positionsFlat());
         this.blankCubeRenderPass.addAttribute("aNorm", 4, this.ctx.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.cubeGeometry.normalsFlat());
         this.blankCubeRenderPass.addAttribute("aUV", 2, this.ctx.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.cubeGeometry.uvFlat());
-        // this.blankCubeRenderPass.addAttribute("noise_map",
-        //   1,
-        //   this.ctx.FLOAT,
-        //   false,
-        //   1 * Float32Array.BYTES_PER_ELEMENT,
-        //   0,
-        //   undefined,
-        //   new Float32Array(Utils.flatten_2d_array(this.cube_texture, this.cube_texture_size))
-        // );
         this.blankCubeRenderPass.addInstancedAttribute("aOffset", 4, this.ctx.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, new Float32Array(0));
         this.blankCubeRenderPass.addUniform("uLightPos", (gl, loc) => {
             gl.uniform4fv(loc, this.lightPosition.xyzw);
