@@ -16,4 +16,11 @@ export class CylinderCollider {
         this.height = Vec3.distance(_start, _end);
     }
 }
+export class AABB {
+    constructor(_min, _max, _pos) {
+        this.min = _min.copy();
+        this.max = _max.copy();
+        this.pos = _pos.copy();
+    }
+}
 //# sourceMappingURL=Colliders.js.map

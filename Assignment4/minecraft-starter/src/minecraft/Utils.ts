@@ -1,5 +1,5 @@
 import { Vec3, Vec2 } from "../lib/TSM.js";
-import { CubeCollider, CylinderCollider } from "./Colliders.js";
+import { CubeCollider, CylinderCollider, AABB } from "./Colliders.js";
 
 export class print
 {
@@ -27,6 +27,31 @@ export class Line
     }
 }
 
+export class Ray
+{
+    private origin : Vec3
+    private direction : Vec3
+
+    public get_origin() : Vec3 { return new Vec3(this.origin.xyz) }
+    public get_direction() : Vec3 { return new Vec3(this.direction.xyz).normalize() }
+
+    constructor(_origin : Vec3, _direction : Vec3)
+    {
+        this.origin = _origin.copy()
+        this.direction = _direction.copy()
+    }
+
+    public copy()
+    {
+        return new Ray(this.origin.copy(), this.direction.copy())
+    }
+
+    public print()
+    {
+        return '{origin: ' + print.v3(this.origin, 3) + ', direction: ' + print.v3(this.direction, 3) + '}'
+    }
+}
+
 export class Utils
 {
     public static CHUNK_SIZE: number = 64
@@ -34,7 +59,7 @@ export class Utils
     public static NUM_ADJ_CHUNKS: number = 8
     public static GRAVITY: Vec3 = new Vec3([0.0, -9.8, 0.0])
     public static CUBE_LEN: number = 1
-    public static PLAYER_RADIUS: number = 0.2
+    public static PLAYER_RADIUS: number = 0.1
     public static PLAYER_HEIGHT: number = 2
     public static SQRT2: number = 1.41421356237
 
@@ -68,6 +93,16 @@ export class Utils
         return t * t * t * (t * (t * 6 - 15) + 10)
     }
 
+    public static magnitude(v : Vec3) : number
+    {
+        const a : number = v.at(0) * v.at(0)
+        const b : number = v.at(1) * v.at(1)
+        const c : number = v.at(2) * v.at(2)
+        let res : number = a + b + c
+        res = Math.sqrt(res)
+        return res
+    }
+
     // thanks to chatgpt: 'create a function that interpolates between two numbers given a t value' 
     public static lerp(p0: number, p1: number, t: number): number
     {
@@ -89,6 +124,53 @@ export class Utils
         return (val - p0) / (p1 - p0)
     }
 
+    // thanks to chatgpt: can you write a function that returns the two perpendicular 2d vectors 
+    // when given a single 2d vector.
+    public static perpendiculars(vec: Vec2): [Vec2, Vec2]
+    {
+        const x: number = vec.x
+        const y: number = vec.y
+
+        if (x == 0)
+        {
+            // If the x-coordinate is zero, the first perpendicular vector has an x-coordinate of 1
+            // and the second perpendicular vector has an x-coordinate of -1.
+            return [new Vec2([1, 0]), new Vec2([-1, 0])]
+        }
+        else if (y == 0)
+        {
+            // If the y-coordinate is zero, the first perpendicular vector has a y-coordinate of 1
+            // and the second perpendicular vector has a y-coordinate of -1.
+            return [new Vec2([0, 1]), new Vec2([0, -1])]
+        }
+
+        // For other vectors, we use the fact that the dot product of two perpendicular vectors is 0.
+        // We solve for one coordinate and set the other coordinate to 1 or -1, as appropriate.
+        let perp1 = [1, -x/y]
+        let perp_norm = (perp1[0]**2 + perp1[1]**2)**0.5
+        perp1[0] /= perp_norm
+        perp1[1] /= perp_norm
+        let perp2 = [-1, x/y]
+        perp_norm = (perp2[0]**2 + perp2[1]**2)**0.5
+        perp2[0] /= perp_norm
+        perp2[1] /= perp_norm
+        return [new Vec2([perp1[0], perp1[1]]).normalize(), new Vec2([perp2[0], perp2[1]]).normalize()]
+    }
+    
+    // thanks to chatgpt: write a function which projects a 2d vector onto another 2d vector. this 
+    // should return a 2d vector.
+    public static project_2d_vector(v: Vec2, p: Vec2): Vec2
+    {
+        let length: number = v.x**2 + v.y**2
+        if (length == 0)
+        {
+            return Vec2.zero.copy()
+        }
+        let dot: number = Vec2.dot(v, p)
+        let scalar: number = dot / length
+        return new Vec2([scalar*p.x, scalar*p.y]).normalize()
+    }
+    
     // a simple means of vertical detection collison of a line with a cube, returns the y-offset to apply to the player
     public static simple_vert_collision(cube: CubeCollider, cylinder: CylinderCollider): boolean
     {
@@ -127,6 +209,19 @@ export class Utils
                 return true
             }
         }
+        // no offset
         return false
+    }
+
+    public static aabb_collision(a: AABB, b: AABB): boolean
+    {
+        return (
+            a.min.x + a.pos.x <= b.max.x + b.pos.x &&
+            a.max.x + a.pos.x >= b.min.x + b.pos.x &&
+            a.min.y + a.pos.y <= b.max.y + b.pos.y &&
+            a.max.y + a.pos.y >= b.min.y + b.pos.y &&
+            a.min.z + a.pos.z <= b.max.z + b.pos.z &&
+            a.max.z + a.pos.z >= b.min.z + b.pos.z
+        );      
     }
 }

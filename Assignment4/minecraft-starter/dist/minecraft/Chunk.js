@@ -1,5 +1,5 @@
 import { Vec3 } from "../lib/TSM.js";
-import { CubeCollider } from "./Colliders.js";
+import { CubeCollider, AABB } from "./Colliders.js";
 import { Noise } from "./Noise.js";
 import { Utils } from "./Utils.js";
 export class noise_map_data {
@@ -23,6 +23,7 @@ export class Chunk {
         this.cubes = size * size; // height cubes
         this.cube_pos = new Array();
         this.cube_colliders = new Array();
+        this.cube_aabbs = new Array();
         this.noise_data = _noise_data;
         this.pos = _coord.copy().scale(size);
         // generate cubes in chunk
@@ -59,6 +60,7 @@ export class Chunk {
                 // add cube to pos and collider arrays
                 this.cube_pos.push(new Vec3([x, y, z]));
                 this.cube_colliders.push(new CubeCollider(new Vec3([x, y, z])));
+                this.cube_aabbs.push(new AABB(new Vec3([-0.5, -0.5, -0.5]), new Vec3([+0.5, +0.5, +0.5]), new Vec3([x, y, z])));
             }
         }
     }
@@ -82,6 +84,7 @@ export class Chunk {
                         this.cubes++;
                         this.cube_pos.push(new Vec3([my_x, my_y - i, my_z]));
                         this.cube_colliders.push(new CubeCollider(new Vec3([my_x, my_y - i, my_z])));
+                        this.cube_aabbs.push(new AABB(new Vec3([-0.5, -0.5, -0.5]), new Vec3([+0.5, +0.5, +0.5]), new Vec3([my_x, my_y - i, my_z])));
                     }
                     continue;
                 }
@@ -157,13 +160,29 @@ export class Chunk {
                         this.cubes++;
                         this.cube_pos.push(new Vec3([my_x, my_y - i, my_z]));
                         this.cube_colliders.push(new CubeCollider(new Vec3([my_x, my_y - i, my_z])));
+                        this.cube_aabbs.push(new AABB(new Vec3([-0.5, -0.5, -0.5]), new Vec3([+0.5, +0.5, +0.5]), new Vec3([my_x, my_y - i, my_z])));
                     }
                 }
             }
         }
     }
+    get_cube_from_pos(pos) {
+        // check each cube to see if pos.xz are in cube.xz
+        for (let i = 0; i < this.cube_colliders.length; i++) {
+            if (pos.x > this.cube_colliders[i].get_pos().x - (Utils.CUBE_LEN / 2) &&
+                pos.x < this.cube_colliders[i].get_pos().x + (Utils.CUBE_LEN / 2) &&
+                pos.z > this.cube_colliders[i].get_pos().z - (Utils.CUBE_LEN / 2) &&
+                pos.z < this.cube_colliders[i].get_pos().z + (Utils.CUBE_LEN / 2)) {
+                return this.cube_colliders[i];
+            }
+        }
+        return null;
+    }
     get_cube_colliders() {
         return this.cube_colliders;
+    }
+    get_cube_aabbs() {
+        return this.cube_aabbs;
     }
     cubePositions() {
         return this.cubePositionsF32;

@@ -1,5 +1,5 @@
 import { Vec2, Vec3 } from "../lib/TSM.js";
-import { CubeCollider } from "./Colliders.js";
+import { CubeCollider, AABB } from "./Colliders.js";
 import { Noise } from "./Noise.js";
 import { Utils } from "./Utils.js";
 
@@ -44,6 +44,7 @@ export class Chunk
     private y : number;
     private size: number; // Number of cubes along each side of the chunk
     private cube_colliders: CubeCollider[];
+    private cube_aabbs: AABB[]
     private noise_data: noise_map_data;
     private pos: Vec2;
     
@@ -55,6 +56,7 @@ export class Chunk
         this.cubes = size*size; // height cubes
         this.cube_pos = new Array<Vec3>()
         this.cube_colliders = new Array<CubeCollider>()
+        this.cube_aabbs = new Array<AABB>()
         this.noise_data = _noise_data
         this.pos = _coord.copy().scale(size)
 
@@ -112,6 +114,11 @@ export class Chunk
                 // add cube to pos and collider arrays
                 this.cube_pos.push(new Vec3([x, y, z]))
                 this.cube_colliders.push(new CubeCollider(new Vec3([x, y, z])))
+                this.cube_aabbs.push(new AABB(
+                    new Vec3([-0.5, -0.5, -0.5]),
+                    new Vec3([+0.5, +0.5, +0.5]),
+                    new Vec3([x, y, z])
+                ))
             }
         }
     }
@@ -141,6 +148,11 @@ export class Chunk
                         this.cubes++
                         this.cube_pos.push(new Vec3([my_x, my_y-i, my_z]))
                         this.cube_colliders.push(new CubeCollider(new Vec3([my_x, my_y-i, my_z])))
+                        this.cube_aabbs.push(new AABB(
+                            new Vec3([-0.5, -0.5, -0.5]),
+                            new Vec3([+0.5, +0.5, +0.5]),
+                            new Vec3([my_x, my_y-i, my_z])
+                        ))
                     }
                     continue
                 }
@@ -223,15 +235,42 @@ export class Chunk
                         this.cubes++
                         this.cube_pos.push(new Vec3([my_x, my_y-i, my_z]))
                         this.cube_colliders.push(new CubeCollider(new Vec3([my_x, my_y-i, my_z])))
+                        this.cube_aabbs.push(new AABB(
+                            new Vec3([-0.5, -0.5, -0.5]),
+                            new Vec3([+0.5, +0.5, +0.5]),
+                            new Vec3([my_x, my_y-i, my_z])
+                        ))
                     }
                 }
             }
         }
     }
 
+    public get_cube_from_pos(pos: Vec3): CubeCollider | null
+    {
+        // check each cube to see if pos.xz are in cube.xz
+        for (let i = 0; i < this.cube_colliders.length; i++)
+        {
+            if (pos.x > this.cube_colliders[i].get_pos().x - (Utils.CUBE_LEN / 2) &&
+                pos.x < this.cube_colliders[i].get_pos().x + (Utils.CUBE_LEN / 2) &&
+                pos.z > this.cube_colliders[i].get_pos().z - (Utils.CUBE_LEN / 2) &&
+                pos.z < this.cube_colliders[i].get_pos().z + (Utils.CUBE_LEN / 2))
+            {
+                return this.cube_colliders[i]
+            }
+        }
+
+        return null
+    }
+
     public get_cube_colliders(): CubeCollider[]
     {   
         return this.cube_colliders
+    }
+
+    public get_cube_aabbs(): AABB[]
+    {
+        return this.cube_aabbs
     }
     
     public cubePositions(): Float32Array 
