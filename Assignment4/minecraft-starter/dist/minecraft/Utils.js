@@ -171,6 +171,20 @@ class Utils {
         }
         return flat_array;
     }
+    static get_color(_name) {
+        switch (_name) {
+            case "white": return new Vec3([1.0, 1.0, 1.0]);
+            case "black": return new Vec3([0.0, 0.0, 0.0]);
+            case "red": return new Vec3([1.0, 0.0, 0.0]);
+            case "green": return new Vec3([0.0, 1.0, 0.0]);
+            case "blue": return new Vec3([0.0, 0.0, 1.0]);
+            case "cyan": return new Vec3([0.0, 1.0, 1.0]);
+            case "pink": return new Vec3([1.0, 0.0, 1.0]);
+            default: break;
+        }
+        // return white as default
+        return new Vec3([0.0, 0.0, 0.0]);
+    }
 }
 _a = Utils;
 Utils.CHUNK_SIZE = 64;

@@ -5,9 +5,11 @@ import {
 } from "../lib/webglutils/CanvasAnimation.js";
 import { GUI } from "./Gui.js";
 import {
-
   blankCubeFSText,
-  blankCubeVSText
+  blankCubeVSText,
+
+  ray_vertex_shader,
+  ray_fragment_shader
 } from "./Shaders.js";
 import { Mat4, Vec4, Vec3, Vec2 } from "../lib/TSM.js";
 import { RenderPass } from "../lib/webglutils/RenderPass.js";
@@ -20,8 +22,9 @@ import { Utils, print } from "./Utils.js";
 import { Player } from "./Player.js";
 import { Noise } from "./Noise.js";
 import { CubeCollider } from "./Colliders.js";
+import { RaycastRenderer } from "./RaycastRenderer.js";
 
-export class MinecraftAnimation extends CanvasAnimation 
+export class MinecraftAnimation extends CanvasAnimation
 {
   private gui: GUI;
   
@@ -43,10 +46,13 @@ export class MinecraftAnimation extends CanvasAnimation
   private backgroundColor: Vec4;
 
   private canvas2d: HTMLCanvasElement;
-  
-  // Player's head position in world coordinate.
-  // Player should extend two units down from this location, and 0.4 units radially.
+
   public player: Player;
+
+  // render pass for rendering rays
+  private prev_ray_length : number = 0;
+  private ray_render_pass : RenderPass;
+  public rr: RaycastRenderer;
   
   constructor(canvas: HTMLCanvasElement) 
   {
@@ -62,6 +68,10 @@ export class MinecraftAnimation extends CanvasAnimation
     // create player
     const player_pos: Vec3 = this.gui.getCamera().pos();
     this.player = new Player(player_pos)
+
+    // create raycast renderer
+    this.rr = new RaycastRenderer()
+    this.ray_render_pass = new RenderPass(gl, ray_vertex_shader, ray_fragment_shader)
     
     // create terrain data object
     this.terrain_data = new noise_map_data()
@@ -274,6 +284,57 @@ export class MinecraftAnimation extends CanvasAnimation
     this.blankCubeRenderPass.setup();    
   }
 
+  public init_rays() : void 
+  {
+    // index buffer ray is ray indices
+    this.ray_render_pass.setIndexBufferData(this.rr.get_ray_indices());
+
+    // vertex positions
+    this.ray_render_pass.addAttribute(
+        "vertex_pos",
+        3, 
+        this.ctx.FLOAT, 
+        false, 
+        3 * Float32Array.BYTES_PER_ELEMENT,
+        0,
+        undefined,
+        this.rr.get_ray_positions());
+
+    // vertex colors
+    this.ray_render_pass.addAttribute(
+      "vertex_color",
+      3, 
+      this.ctx.FLOAT, 
+      false, 
+      3 * Float32Array.BYTES_PER_ELEMENT,
+      0,
+      undefined,
+      this.rr.get_ray_colors());
+    
+    // add matricies
+    this.ray_render_pass.addUniform("world_mat",
+      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+        gl.uniformMatrix4fv(loc, false, new Float32Array(Mat4.identity.all()));
+    });
+    this.ray_render_pass.addUniform("proj_mat",
+      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+        gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.projMatrix().all()));
+    });
+    this.ray_render_pass.addUniform("view_mat",
+      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+        gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.viewMatrix().all()));
+    });
+      
+    this.ray_render_pass.setDrawData(this.ctx.LINES, this.rr.get_ray_indices().length, this.ctx.UNSIGNED_INT, 0);
+    this.ray_render_pass.setup();
+
+    /*
+    console.log('ray.init:\n\tray_indices: ' + this.scene.rr.get_ray_indices().length + 
+    '\n\tray_pos: ' + this.scene.rr.get_ray_positions().length +
+    '\n\tray_color: ' + this.scene.rr.get_ray_colors().length)
+    */
+  }
+
   // used to update chunks after terrain change has been made 
   public update_terrain(): void
   {
@@ -340,6 +401,14 @@ export class MinecraftAnimation extends CanvasAnimation
       }
     }
 
+    // init rays update
+    if (this.prev_ray_length < this.rr.get_rays().length)
+    {
+      this.prev_ray_length = this.rr.get_rays().length;
+      this.init_rays();
+      //console.log('init rays')
+    }
+
     // set the player's current position
     this.gui.getCamera().setPos(this.player.get_pos());
 
@@ -371,6 +440,12 @@ export class MinecraftAnimation extends CanvasAnimation
     // Render multiple chunks around the player, using Perlin noise shaders
     this.blankCubeRenderPass.updateAttributeBuffer("aOffset", this.get_all_cube_pos());
     this.blankCubeRenderPass.drawInstanced(this.get_all_num_cubes());
+
+    // draw rays
+    if (this.prev_ray_length > 0)
+    {
+      this.ray_render_pass.draw();  
+    }
   }
 
   private get_all_cube_pos(): Float32Array

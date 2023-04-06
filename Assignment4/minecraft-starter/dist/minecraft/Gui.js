@@ -1,5 +1,6 @@
 import { Camera } from "../lib/webglutils/Camera.js";
-import { Vec3 } from "../lib/TSM.js";
+import { Vec3, Vec4 } from "../lib/TSM.js";
+import { Ray } from "./Utils.js";
 /**
  * Handles Mouse and Button events along with
  * the the camera.
@@ -75,9 +76,31 @@ class GUI {
             const x_move = mov * dx;
             this.camera.pitch(y_mov, y_mov > 0);
             this.camera.rotate(Vec3.up, -x_move);
-            //this.camera.rotate(new Vec3([0, 1, 0]), -GUI.rotationSpeed*dx*this.animation.player.get_sense());
-            //this.camera.rotate(this.camera.right(), -GUI.rotationSpeed*dy*this.animation.player.get_sense());
         }
+        if (!this.dragging) {
+            // convert mouse x y position to world ray
+            this.mouse_ray = this.screen_to_world_ray(x, y);
+        }
+    }
+    screen_to_world_ray(x, y) {
+        // convert x y to ndc
+        const x_ndc = ((2.0 * x) / this.width) - 1.0;
+        const y_ndc = 1.0 - ((2.0 * y) / (this.height));
+        // inverse projections
+        const proj_mat = this.camera.projMatrix().inverse();
+        const view_mat = this.camera.viewMatrix().inverse();
+        // get to and from points
+        let from_v4 = proj_mat.multiplyVec4(new Vec4([x_ndc, y_ndc, -1.0, 1.0]));
+        let to_v4 = proj_mat.multiplyVec4(new Vec4([x_ndc, y_ndc, 1.0, 1.0]));
+        // convert to v3
+        const from_v3 = new Vec3([from_v4.at(0) / from_v4.at(3), from_v4.at(1) / from_v4.at(3), from_v4.at(2) / from_v4.at(3)]);
+        const to_v3 = new Vec3([to_v4.at(0) / to_v4.at(3), to_v4.at(1) / to_v4.at(3), to_v4.at(2) / to_v4.at(3)]);
+        let dir = from_v3.subtract(to_v3).normalize();
+        let dir_v4 = new Vec4([dir.x, dir.y, dir.z, 0.0]);
+        dir_v4 = view_mat.multiplyVec4(dir_v4);
+        const dir_v3 = new Vec3(dir_v4.xyz);
+        //console.log('dir: ' + Ray.Vec3_toFixed(dir_v3))
+        return new Ray(this.camera.pos(), dir_v3.normalize());
     }
     walkDir() {
         // move player in xz direction
@@ -135,6 +158,30 @@ class GUI {
                 this.animation.terrain_data.height -= 1;
                 break;
             }
+            case "KeyB":
+                {
+                    // custom button to shoot a ray from the 
+                    // camera and draw it to the screen.
+                    let cam_dir = this.camera.forward();
+                    const cam_ray = new Ray(this.camera.pos(), cam_dir);
+                    this.animation.rr.add_ray(cam_ray, "cyan");
+                    console.log('new camera raycast: ' + cam_ray.print());
+                    console.log('total rays: ' + this.animation.rr.get_rays().length);
+                    break;
+                }
+            case "KeyV":
+                {
+                    // return if mouse_ray has not been created
+                    if (!this.mouse_ray)
+                        return;
+                    // custom button to shoot a ray from the 
+                    // mouse and draw it to the screen.
+                    // convert mouse x y position to world ray
+                    this.animation.rr.add_ray(this.mouse_ray, "pink");
+                    console.log('new mouse raycast: ' + this.mouse_ray.print());
+                    console.log('total rays: ' + this.animation.rr.get_rays().length);
+                    break;
+                }
             default: break;
         }
         this.animation.update_terrain();
