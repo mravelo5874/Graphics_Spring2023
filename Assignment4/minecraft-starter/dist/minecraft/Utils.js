@@ -29,6 +29,13 @@ export class Ray {
     print() {
         return '{origin: ' + print.v3(this.origin, 3) + ', direction: ' + print.v3(this.direction, 3) + '}';
     }
+    inverse() {
+        let inv = this.get_direction();
+        inv.x = inv.x / 1;
+        inv.y = inv.y / 1;
+        inv.z = inv.z / 1;
+        return inv.copy();
+    }
 }
 class Utils {
     // returns what chunk the player is in based of their position
@@ -153,6 +160,55 @@ class Utils {
         }
         // no offset
         return false;
+    }
+    // thanks to: https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection.html
+    static ray_cube_intersection(ray, cube) {
+        const pos = cube.get_pos();
+        const r_dir = ray.get_direction();
+        const r_ori = ray.get_origin();
+        const min_bb = new Vec3([pos.x - 0.5, pos.y - 0.5, pos.z - 0.5]);
+        const max_bb = new Vec3([pos.x + 0.5, pos.y + 0.5, pos.z + 0.5]);
+        let tmin, tmax = 0;
+        if (r_dir.x >= 0) {
+            tmin = (min_bb.x - r_ori.x) * r_dir.x;
+            tmax = (max_bb.x - r_ori.x) * r_dir.x;
+        }
+        else {
+            tmin = (max_bb.x - r_ori.x) * r_dir.x;
+            tmax = (min_bb.x - r_ori.x) * r_dir.x;
+        }
+        let tymin, tymax = 0;
+        if (r_dir.y >= 0) {
+            tymin = (min_bb.y - r_ori.y) * r_dir.y;
+            tymax = (max_bb.y - r_ori.y) * r_dir.y;
+        }
+        else {
+            tymin = (max_bb.y - r_ori.y) * r_dir.y;
+            tymax = (min_bb.y - r_ori.y) * r_dir.y;
+        }
+        if ((tmin > tymax) || (tymin > tmax))
+            return -1;
+        if (tymin > tmin)
+            tmin = tymin;
+        if (tymax < tmax)
+            tmax = tymax;
+        let tzmin, tzmax = 0;
+        if (r_dir.z >= 0) {
+            tzmin = (min_bb.z - r_ori.z) * r_dir.z;
+            tzmax = (max_bb.z - r_ori.z) * r_dir.z;
+        }
+        else {
+            tzmin = (max_bb.z - r_ori.z) * r_dir.z;
+            tzmax = (min_bb.z - r_ori.z) * r_dir.z;
+        }
+        if ((tmin > tzmax) || (tzmin > tmax))
+            return -1;
+        if (tzmin > tmin)
+            tmin = tzmin;
+        if (tzmax < tmax)
+            tmax = tzmax;
+        console.log('hit! pos: ' + print.v3(pos) + ', tmin: ' + tmin + ', tmax: ' + tmax);
+        return Math.abs(tmin);
     }
     static aabb_collision(a, b) {
         return (a.min.x + a.pos.x <= b.max.x + b.pos.x &&

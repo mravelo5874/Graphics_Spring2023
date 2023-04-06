@@ -18,7 +18,7 @@ import { Cube } from "./Cube.js";
 import { Chunk, noise_map_data } from "./Chunk.js";
 
 // custom imports
-import { Utils, print } from "./Utils.js";
+import { Utils, Ray } from "./Utils.js";
 import { Player } from "./Player.js";
 import { Noise } from "./Noise.js";
 import { CubeCollider } from "./Colliders.js";
@@ -367,6 +367,12 @@ export class MinecraftAnimation extends CanvasAnimation
 
     // update current terrain_height
     this.blankCubeRenderPass.updateAttributeBuffer("terrain_height", new Float32Array(this.terrain_data.height));
+  }
+
+  // send mouse raycast and chunk blocks to player
+  public try_destroy_block(ray: Ray): void
+  {
+    this.player.try_destroy_block(ray.copy(), this.current_chunk)
   }
 
   /**

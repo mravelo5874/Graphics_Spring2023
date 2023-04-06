@@ -1,7 +1,7 @@
 import { Vec3 } from "../lib/TSM.js";
 import { CubeCollider } from "./Colliders.js";
 import { Noise } from "./Noise.js";
-import { Utils } from "./Utils.js";
+import { Utils, print } from "./Utils.js";
 export class noise_map_data {
     constructor(
     // default terrain values
@@ -160,11 +160,15 @@ export class Chunk {
                         // add cube to pos and collider arrays
                         this.cubes++;
                         this.cube_pos.push(new Vec3([my_x, my_y - i, my_z]));
-                        // this.cube_colliders.push(new CubeCollider(new Vec3([my_x, my_y-i, my_z])))
+                        this.cube_colliders.push(new CubeCollider(new Vec3([my_x, my_y - i, my_z])));
                     }
                 }
             }
         }
+    }
+    remove_cube(cube) {
+        // TODO this!!!
+        console.log('hit block: ' + print.v3(cube.get_pos()));
     }
     get_cube_from_pos(pos) {
         // check each cube to see if pos.xz are in cube.xz

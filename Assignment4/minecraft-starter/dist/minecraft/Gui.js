@@ -53,6 +53,15 @@ class GUI {
         this.prevX = mouse.screenX;
         this.prevY = mouse.screenY;
         this.dragging = true;
+        switch (mouse.buttons) {
+            case 2:
+                {
+                    // send raycast from mouse pos
+                    this.animation.try_destroy_block(this.mouse_ray);
+                    this.animation.rr.add_ray(this.mouse_ray, "green");
+                    break;
+                }
+        }
     }
     dragEnd(mouse) {
         this.dragging = false;
@@ -71,16 +80,21 @@ class GUI {
         this.prevX = mouse.screenX;
         this.prevY = mouse.screenY;
         if (this.dragging) {
-            const mov = GUI.rotationSpeed * this.animation.player.get_sense();
-            const y_mov = mov * dy;
-            const x_move = mov * dx;
-            this.camera.pitch(y_mov, y_mov > 0);
-            this.camera.rotate(Vec3.up, -x_move);
+            switch (mouse.buttons) {
+                case 1:
+                    {
+                        const mov = GUI.rotationSpeed * this.animation.player.get_sense();
+                        const y_mov = mov * dy;
+                        const x_move = mov * dx;
+                        // move camera
+                        this.camera.pitch(y_mov, y_mov > 0);
+                        this.camera.rotate(Vec3.up, -x_move);
+                        break;
+                    }
+            }
         }
-        if (!this.dragging) {
-            // convert mouse x y position to world ray
-            this.mouse_ray = this.screen_to_world_ray(x, y);
-        }
+        // convert mouse x y position to world ray
+        this.mouse_ray = this.screen_to_world_ray(x, y);
     }
     screen_to_world_ray(x, y) {
         // convert x y to ndc

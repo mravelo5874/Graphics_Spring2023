@@ -196,6 +196,10 @@ class MinecraftAnimation extends CanvasAnimation {
         // update current terrain_height
         this.blankCubeRenderPass.updateAttributeBuffer("terrain_height", new Float32Array(this.terrain_data.height));
     }
+    // send mouse raycast and chunk blocks to player
+    try_destroy_block(ray) {
+        this.player.try_destroy_block(ray.copy(), this.current_chunk);
+    }
     /**
      * Draws a single frame
      *

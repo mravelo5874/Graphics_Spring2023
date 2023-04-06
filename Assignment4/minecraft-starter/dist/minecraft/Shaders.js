@@ -100,7 +100,7 @@ export const blankCubeFSText = `
 
     // linearly interpolate between two numbers
     float interpolate(float a0, float a1, float t)
-    {   
+    {
         if (0.0 > t) return a0;
         if (1.0 < t) return a1;
 

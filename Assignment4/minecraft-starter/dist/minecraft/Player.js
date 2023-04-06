@@ -115,6 +115,25 @@ export class Player {
         this.collider.end = this.pos.copy().subtract(new Vec3([0, Utils.PLAYER_HEIGHT, 0]));
         this.aabb.pos = this.pos.copy().subtract(new Vec3([0, Utils.PLAYER_HEIGHT / 2, 0]));
     }
+    try_destroy_block(ray, chunk) {
+        const cubes = chunk.get_cube_colliders();
+        let min_t = Number.MAX_VALUE;
+        let hit_idx = -1;
+        // check each cube for ray intersection
+        for (let i = 0; i < cubes.length; i++) {
+            const t = Utils.ray_cube_intersection(ray.copy(), cubes[i]);
+            console.log('t: ' + t + ', min_t: ' + min_t);
+            if (t < min_t && t > 0) {
+                min_t = t;
+                hit_idx = i;
+            }
+        }
+        console.log('min_t: ' + min_t + ', hit_idx: ' + hit_idx);
+        // remove cube from chunk
+        if (hit_idx > -1 && min_t > -1) {
+            chunk.remove_cube(cubes[hit_idx]);
+        }
+    }
     jump() {
         // determine if player on ground before jumping
         if (this.vel.y == 0)

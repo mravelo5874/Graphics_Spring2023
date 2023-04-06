@@ -249,7 +249,7 @@ export abstract class CanvasAnimation {
   /**
    * Draws and then requests a draw for the next frame.
    */
-  public drawLoop(): void 
+  public drawLoop(): void
   {
     // calculate current delta time
     const curr_time: number = Date.now()

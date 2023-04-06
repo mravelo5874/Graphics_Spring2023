@@ -20,7 +20,8 @@ interface IGUI {
  * the the camera.
  */
 
-export class GUI implements IGUI {
+export class GUI implements IGUI 
+{
   private static readonly rotationSpeed: number = 0.01;
   private static readonly walkSpeed: number = 1;
   private static readonly rollSpeed: number = 0.1;
@@ -118,6 +119,17 @@ export class GUI implements IGUI {
     this.prevX = mouse.screenX;
     this.prevY = mouse.screenY;
     this.dragging = true;
+
+    switch (mouse.buttons) 
+    {
+      case 2: 
+        {
+          // send raycast from mouse pos
+          this.animation.try_destroy_block(this.mouse_ray)
+          this.animation.rr.add_ray(this.mouse_ray, "green")
+          break
+        }
+    }
   }
   public dragEnd(mouse: MouseEvent): void {
       this.dragging = false;
@@ -129,28 +141,34 @@ export class GUI implements IGUI {
    * before dragEnd.
    * @param mouse
    */
-  public drag(mouse: MouseEvent): void {
+  public drag(mouse: MouseEvent): void 
+  {
     let x = mouse.offsetX;
     let y = mouse.offsetY;
     const dx = mouse.screenX - this.prevX;
     const dy = mouse.screenY - this.prevY;
     this.prevX = mouse.screenX;
     this.prevY = mouse.screenY;
+
     if (this.dragging)
     {
-      const mov: number = GUI.rotationSpeed*this.animation.player.get_sense()
-      const y_mov: number = mov*dy
-      const x_move: number = mov*dx
-
-      this.camera.pitch(y_mov, y_mov > 0)
-      this.camera.rotate(Vec3.up, -x_move)
+      switch (mouse.buttons) 
+      {
+        case 1:
+        {
+          const mov: number = GUI.rotationSpeed*this.animation.player.get_sense()
+          const y_mov: number = mov*dy
+          const x_move: number = mov*dx 
+          // move camera
+          this.camera.pitch(y_mov, y_mov > 0)
+          this.camera.rotate(Vec3.up, -x_move)
+          break
+        }
+      }
     }
 
-    if (!this.dragging)
-    {
-      // convert mouse x y position to world ray
-      this.mouse_ray = this.screen_to_world_ray(x, y)
-    }
+    // convert mouse x y position to world ray
+    this.mouse_ray = this.screen_to_world_ray(x, y)
   }
 
   private screen_to_world_ray(x : number, y : number) : Ray
