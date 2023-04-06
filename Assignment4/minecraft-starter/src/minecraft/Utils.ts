@@ -224,4 +224,17 @@ export class Utils
             a.max.z + a.pos.z >= b.min.z + b.pos.z
         );      
     }
+
+    public static flatten_2d_array(array: number[][], size: number): number[]
+    {
+        let flat_array: number[] = new Array<number>()
+        for (let y = 0; y < size; y++)
+        {
+            for (let x = 0; x < size; x++)
+            {
+                flat_array.push(array[x][y])
+            }
+        }
+        return flat_array
+    }
 }

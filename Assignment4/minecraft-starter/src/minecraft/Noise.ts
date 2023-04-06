@@ -1,5 +1,6 @@
 import { Vec2, Vec3 } from "../lib/TSM.js";
 import Rand from "../lib/rand-seed/Rand.js";
+import { noise_map_data } from "./Chunk.js";
 import { Utils } from "./Utils.js";
 
 // thanks to some help:
@@ -218,16 +219,18 @@ export class Noise
 
     public static generate_noise_map(
         size: number, 
-        seed: string, 
-        scale: number, 
-        freq: number, 
-        octs: number, 
-        persistance: number, 
-        lacunarity: number, 
+        noise_data: noise_map_data,
         offset: Vec2, 
         normalize: boolean
         ): number[][]
     {
+        let scale: number = noise_data.scale
+        const seed: string = noise_data.seed
+        const freq: number = noise_data.freq
+        const octs: number = noise_data.octs
+        const persistance: number = noise_data.pers
+        const lacunarity: number = noise_data.lacu
+
         // make sure scale is not 0
         if (scale <= 0) { scale = 0.0001 }
 

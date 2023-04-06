@@ -111,7 +111,13 @@ class Noise {
         let tz = Utils.smooth(tz0);
         return Utils.lerp(Utils.lerp(Utils.lerp(v000, v100, tx), Utils.lerp(v010, v110, tx), ty), Utils.lerp(Utils.lerp(v001, v101, tx), Utils.lerp(v011, v111, tx), ty), tz);
     }
-    static generate_noise_map(size, seed, scale, freq, octs, persistance, lacunarity, offset, normalize) {
+    static generate_noise_map(size, noise_data, offset, normalize) {
+        let scale = noise_data.scale;
+        const seed = noise_data.seed;
+        const freq = noise_data.freq;
+        const octs = noise_data.octs;
+        const persistance = noise_data.pers;
+        const lacunarity = noise_data.lacu;
         // make sure scale is not 0
         if (scale <= 0) {
             scale = 0.0001;

@@ -162,6 +162,15 @@ class Utils {
             a.min.z + a.pos.z <= b.max.z + b.pos.z &&
             a.max.z + a.pos.z >= b.min.z + b.pos.z);
     }
+    static flatten_2d_array(array, size) {
+        let flat_array = new Array();
+        for (let y = 0; y < size; y++) {
+            for (let x = 0; x < size; x++) {
+                flat_array.push(array[x][y]);
+            }
+        }
+        return flat_array;
+    }
 }
 _a = Utils;
 Utils.CHUNK_SIZE = 64;

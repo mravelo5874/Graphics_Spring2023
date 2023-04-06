@@ -194,7 +194,8 @@ export class Cube
     return this.normalsF32;
   }
   
-  public uvFlat() : Float32Array {
+  public uvFlat() : Float32Array
+  {
     return this.uvF32;
   }
 }

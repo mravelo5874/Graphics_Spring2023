@@ -7,11 +7,13 @@ import { RenderPass } from "../lib/webglutils/RenderPass.js";
 import { Cube } from "./Cube.js";
 import { Chunk, noise_map_data } from "./Chunk.js";
 // custom imports
-import { Utils, print } from "./Utils.js";
+import { Utils } from "./Utils.js";
 import { Player } from "./Player.js";
+import { Noise } from "./Noise.js";
 class MinecraftAnimation extends CanvasAnimation {
     constructor(canvas) {
         super(canvas);
+        this.cube_texture_size = 32;
         this.canvas2d = document.getElementById("textCanvas");
         this.ctx = Debugger.makeDebugContext(this.ctx);
         let gl = this.ctx;
@@ -19,8 +21,6 @@ class MinecraftAnimation extends CanvasAnimation {
         // create player
         const player_pos = this.gui.getCamera().pos();
         this.player = new Player(player_pos);
-        console.log('init pos: {' + print.v3(this.player.get_pos()) + '}');
-        console.log('init chunk: {' + print.v2(this.player.get_chunk()) + '}');
         // create terrain data object
         this.terrain_data = new noise_map_data();
         // update ui
@@ -34,6 +34,11 @@ class MinecraftAnimation extends CanvasAnimation {
         // generate chunks
         this.current_chunk = new Chunk(0.0, 0.0, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk());
         this.adj_chunks = this.generate_adj_chunks(this.player.get_chunk());
+        // generate cube textures
+        this.cube_texture_size = 32;
+        this.cube_noise_map = new noise_map_data();
+        this.cube_texture = Noise.generate_noise_map(this.cube_texture_size, this.cube_noise_map, Vec2.zero.copy(), true);
+        // blank cube
         this.blankCubeRenderPass = new RenderPass(gl, blankCubeVSText, blankCubeFSText);
         this.cubeGeometry = new Cube();
         this.initBlankCube();
@@ -95,6 +100,15 @@ class MinecraftAnimation extends CanvasAnimation {
         this.blankCubeRenderPass.addAttribute("aVertPos", 4, this.ctx.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.cubeGeometry.positionsFlat());
         this.blankCubeRenderPass.addAttribute("aNorm", 4, this.ctx.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.cubeGeometry.normalsFlat());
         this.blankCubeRenderPass.addAttribute("aUV", 2, this.ctx.FLOAT, false, 2 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.cubeGeometry.uvFlat());
+        // this.blankCubeRenderPass.addAttribute("noise_map",
+        //   1,
+        //   this.ctx.FLOAT,
+        //   false,
+        //   1 * Float32Array.BYTES_PER_ELEMENT,
+        //   0,
+        //   undefined,
+        //   new Float32Array(Utils.flatten_2d_array(this.cube_texture, this.cube_texture_size))
+        // );
         this.blankCubeRenderPass.addInstancedAttribute("aOffset", 4, this.ctx.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, new Float32Array(0));
         this.blankCubeRenderPass.addUniform("uLightPos", (gl, loc) => {
             gl.uniform4fv(loc, this.lightPosition.xyzw);

@@ -86,12 +86,7 @@ export class Chunk
         // generate noise map from terrain data
         let height_map: number[][] = Noise.generate_noise_map(
             this.size, 
-            this.noise_data.seed, 
-            this.noise_data.scale, 
-            this.noise_data.freq, 
-            this.noise_data.octs, 
-            this.noise_data.pers, 
-            this.noise_data.lacu, 
+            this.noise_data, 
             this.pos.copy(),
             true)
     
