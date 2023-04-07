@@ -61,6 +61,11 @@ export class Ray
     }
 }
 
+export enum CubeFace
+{
+    posX, negX, posY, negY, posZ, negZ
+}
+
 export class Utils
 {
     public static CHUNK_SIZE: number = 64
@@ -223,7 +228,8 @@ export class Utils
         return false
     }
 
-    public static ray_cube_intersection(ray: Ray, cube: CubeCollider): number
+    // returns t_min and the face at which the cube was intersected
+    public static ray_cube_intersection(ray: Ray, cube: CubeCollider): [number, CubeFace]
     {
         const pos: Vec3 = cube.get_pos()
         const r_inv: Vec3 = ray.get_inverse().normalize()
@@ -245,9 +251,48 @@ export class Utils
 
         // If the minimum t-value for the exit point is greater than the maximum t-value for the entry point,
         // there is no intersection
-        if (t_min > t_max) return -1
+        if (t_min > t_max) return [-1, CubeFace.negX]
 
-        return Math.abs(t_min)
+        // get absolute val of t_min
+        t_min = Math.abs(t_min)
+
+        // determine which face of the cube the player intersected
+
+        // TODO fix this as it doesnt work correctly :)
+        const i_point: Vec3 = ray.get_direction().scale(t_min).add(r_ori)
+        let face: CubeFace = CubeFace.negX
+        if (Math.abs(i_point.x - min_bb.x) < 0.001) // left -x face
+        {
+            face = CubeFace.negX
+            console.log('hit neg x face')
+        }
+        if (Math.abs(i_point.x - min_bb.x) > 0.999) // right +x face
+        {
+            face = CubeFace.posX
+            console.log('hit pos x face')
+        }
+        if (Math.abs(i_point.y - min_bb.y) < 0.001) // bottom -y face
+        {
+            face = CubeFace.negY
+            console.log('hit neg y face')
+        }
+        if (Math.abs(i_point.y - min_bb.y) > 0.999) // top +y face
+        {
+            face = CubeFace.posY
+            console.log('hit pos y face')
+        }
+        if (Math.abs(i_point.z - min_bb.z) < 0.001) // front -z face
+        {
+            face = CubeFace.negZ
+            console.log('hit neg z face')
+        }
+        if (Math.abs(i_point.z - min_bb.z) > 0.999) // back +z face
+        {
+            face = CubeFace.posZ
+            console.log('hit pos z face')
+        }
+
+        return [t_min, face]
     }
 
     public static aabb_collision(a: AABB, b: AABB): boolean

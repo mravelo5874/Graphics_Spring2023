@@ -1,7 +1,30 @@
 import { Vec3 } from "../lib/TSM.js";
 import { CubeCollider } from "./Colliders.js";
 import { Noise } from "./Noise.js";
-import { Utils, print } from "./Utils.js";
+import { CubeFace, Utils } from "./Utils.js";
+export class chunk_data {
+    get_id() { return this.id.copy(); }
+    get_cubes() {
+        let cubes_copy = new Array();
+        for (let i = 0; i < this.cubes.length; i++) {
+            cubes_copy.push(this.cubes[i].copy());
+        }
+        return cubes_copy;
+    }
+    constructor(_id, _cubes) {
+        this.id = _id;
+        this.cubes = new Array();
+        for (let i = 0; i < _cubes.length; i++) {
+            this.cubes.push(_cubes[i].copy());
+        }
+    }
+    update(_cubes) {
+        this.cubes = new Array();
+        for (let i = 0; i < _cubes.length; i++) {
+            this.cubes.push(_cubes[i].copy());
+        }
+    }
+}
 export class noise_map_data {
     constructor(
     // default terrain values
@@ -16,16 +39,43 @@ export class noise_map_data {
     }
 }
 export class Chunk {
-    constructor(centerX, centerY, size, _noise_data, _coord) {
+    constructor(centerX, centerY, size, _coord) {
         this.x = centerX;
         this.y = centerY;
         this.size = size;
-        this.cubes = size * size; // height cubes
+        this.id = _coord.copy();
+        this.pos = _coord.copy().scale(size);
+    }
+    load_chunk(cubes) {
+        this.cubes = cubes.length;
+        this.cube_pos = new Array();
+        this.cube_colliders = new Array();
+        this.edge_colliders = new Array();
+        // add all cubes
+        for (let i = 0; i < cubes.length; i++) {
+            const pos = cubes[i].copy();
+            this.cube_pos.push(pos);
+            this.cube_colliders.push(new CubeCollider(pos));
+            // add to edge colliders if at chunk edge
+            if (pos.x == 0 || pos.x == Utils.CHUNK_SIZE - 1 || pos.z == 0 || pos.z == Utils.CHUNK_SIZE - 1) {
+                this.edge_colliders.push(new CubeCollider(pos));
+            }
+        }
+        // create array f32 array
+        this.cubePositionsF32 = new Float32Array(4 * this.cube_pos.length);
+        for (let i = 0; i < this.cube_pos.length; i++) {
+            this.cubePositionsF32[(4 * i) + 0] = this.cube_pos[i].x;
+            this.cubePositionsF32[(4 * i) + 1] = this.cube_pos[i].y;
+            this.cubePositionsF32[(4 * i) + 2] = this.cube_pos[i].z;
+            this.cubePositionsF32[(4 * i) + 3] = 0;
+        }
+    }
+    generate_new_chunk(_noise_data) {
+        this.cubes = this.size * this.size; // height cubes
         this.cube_pos = new Array();
         this.cube_colliders = new Array();
         this.edge_colliders = new Array();
         this.noise_data = _noise_data;
-        this.pos = _coord.copy().scale(size);
         // generate cubes in chunk
         this.generate_height_cubes();
         this.generate_fill_cubes();
@@ -167,7 +217,7 @@ export class Chunk {
             }
         }
     }
-    remove_cube(cube) {
+    remove_cube(cube, face) {
         // remove from cube_pos
         let index = -1;
         for (let i = 0; i < this.cube_pos.length; i++) {
@@ -178,8 +228,43 @@ export class Chunk {
         }
         if (index > -1)
             this.cube_pos.splice(index, 1);
-        else
-            return false;
+        // add new cube(s) if required
+        // look at the 6 cubes which touched each face of removed cube
+        // depends on which face you removed the block?
+        let opp_cube = cube.copy();
+        switch (face) {
+            case CubeFace.negX:
+                opp_cube.x += 1;
+                break;
+            case CubeFace.posX:
+                opp_cube.x -= 1;
+                break;
+            case CubeFace.negY:
+                opp_cube.y += 1;
+                break;
+            case CubeFace.posY:
+                opp_cube.y -= 1;
+                break;
+            case CubeFace.negZ:
+                opp_cube.z += 1;
+                break;
+            case CubeFace.posZ:
+                opp_cube.y -= 1;
+                break;
+        }
+        // look for opposite cube 
+        let found_cube = false;
+        for (let i = 0; i < this.cube_pos.length; i++) {
+            if (this.cube_pos[i].equals(opp_cube)) {
+                found_cube = true;
+                break;
+            }
+        }
+        // if not found, add it to chunk
+        if (!found_cube) {
+            this.cube_pos.push(opp_cube.copy());
+            this.cube_colliders.push(new CubeCollider(opp_cube.copy()));
+        }
         // create new array f32 array
         this.cubePositionsF32 = new Float32Array(4 * this.cube_pos.length);
         for (let i = 0; i < this.cube_pos.length; i++) {
@@ -197,9 +282,6 @@ export class Chunk {
         }
         if (index > -1)
             this.cube_colliders.splice(index, 1);
-        // add new cube(s) if required
-        console.log('removed cube: ' + index + ', @ ' + print.v3(cube.copy()));
-        return true;
     }
     get_cube_from_pos(pos) {
         // check each cube to see if pos.xz are in cube.xz
@@ -224,6 +306,12 @@ export class Chunk {
     }
     numCubes() {
         return this.cubes;
+    }
+    get_cube_pos() {
+        return this.cube_pos;
+    }
+    get_id() {
+        return this.id.copy();
     }
 }
 //# sourceMappingURL=Chunk.js.map

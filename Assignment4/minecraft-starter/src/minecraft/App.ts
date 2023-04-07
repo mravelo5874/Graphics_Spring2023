@@ -15,10 +15,10 @@ import { Mat4, Vec4, Vec3, Vec2 } from "../lib/TSM.js";
 import { RenderPass } from "../lib/webglutils/RenderPass.js";
 import { Camera } from "../lib/webglutils/Camera.js";
 import { Cube } from "./Cube.js";
-import { Chunk, noise_map_data } from "./Chunk.js";
+import { Chunk, noise_map_data, chunk_data } from "./Chunk.js";
 
 // custom imports
-import { Utils, Ray, print } from "./Utils.js";
+import { Utils, Ray, print, CubeFace } from "./Utils.js";
 import { Player } from "./Player.js";
 import { Noise } from "./Noise.js";
 import { CubeCollider } from "./Colliders.js";
@@ -29,10 +29,12 @@ export class MinecraftAnimation extends CanvasAnimation
 {
   private gui: GUI;
   
+  // chunk related vars
   private current_chunk : Chunk; // the current chunk in which the player is in
   private adj_chunks: Chunk[]; // the 8 adjacent chuncks that surround the current_chunk
-  public terrain_data: noise_map_data
-  private edge_colliders: CubeCollider[]
+  public terrain_data: noise_map_data // nouse map data used to generate new chunks
+  private edge_colliders: CubeCollider[] // edge colliders of 8 adjacent chunks
+  private chunk_datas: chunk_data[] // used to store already generated chunks
   
   /*  Cube Rendering */
   private cubeGeometry: Cube;
@@ -84,20 +86,13 @@ export class MinecraftAnimation extends CanvasAnimation
     this.chunk_ui = this.player.get_chunk()
     this.update_ui()
 
-    // generate chunks
-    this.current_chunk = new Chunk(0.0, 0.0, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk());
-    this.adj_chunks = this.generate_adj_chunks(this.player.get_chunk())
-
-    // get edge colliders for all 8 adjacent chunks
-    this.edge_colliders = new Array<CubeCollider>()
-    for (let i = 0; i < this.adj_chunks.length; i++)
-    {
-      let edges: CubeCollider[] = this.adj_chunks[i].get_edge_colliders()
-      for (let j = 0; j < edges.length; j++)
-      {
-        this.edge_colliders.push(edges[j])
-      }
-    }
+    // generate current chunk
+    this.current_chunk = new Chunk(0.0, 0.0, Utils.CHUNK_SIZE, this.player.get_chunk());
+    this.current_chunk.generate_new_chunk(this.terrain_data)
+    this.chunk_datas = new Array<chunk_data>()
+    this.chunk_datas.push(new chunk_data(this.current_chunk.get_id(), this.current_chunk.get_cube_pos()))
+    // and adjacent chunks
+    this.try_load_adj_chunks(this.player.get_chunk())
       
     // blank cube
     this.blankCubeRenderPass = new RenderPass(gl, blankCubeVSText, blankCubeFSText);
@@ -125,7 +120,7 @@ export class MinecraftAnimation extends CanvasAnimation
   public static w_offset:   Vec2 = new Vec2([-1, 0])
   public static nw_offset:  Vec2 = new Vec2([-1, 1])
 
-  private generate_adj_chunks(center_chunk: Vec2): Chunk[]
+  private try_load_adj_chunks(center_chunk: Vec2): void
   {
     // get center chunk coordinates
     const x_cen: number = center_chunk.x
@@ -135,57 +130,47 @@ export class MinecraftAnimation extends CanvasAnimation
     const new_chunks: Chunk[] = new Array<Chunk>()
 
     // north chunk (+Z)
-    const n_cen = Utils.get_chunk_center(x_cen, z_cen + 1)
-    new_chunks.push(new Chunk(n_cen.x, n_cen.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk().add(MinecraftAnimation.n_offset)))
+    const n_id = this.player.get_chunk().add(MinecraftAnimation.n_offset)
+    const n_res = this.try_load_chunk(n_id.copy())
+    new_chunks.push(n_res[1])
 
     // north-east chunk (+Z)
-    const ne_cen = Utils.get_chunk_center(x_cen + 1, z_cen + 1)
-    new_chunks.push(new Chunk(ne_cen.x, ne_cen.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk().add(MinecraftAnimation.ne_offset)))
+    const ne_id = this.player.get_chunk().add(MinecraftAnimation.ne_offset)
+    const ne_res = this.try_load_chunk(ne_id.copy())
+    new_chunks.push(ne_res[1])
 
     // east chunk (+X)
-    const e_cen = Utils.get_chunk_center(x_cen + 1, z_cen)
-    new_chunks.push(new Chunk(e_cen.x, e_cen.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk().add(MinecraftAnimation.e_offset)))
+    const e_id = this.player.get_chunk().add(MinecraftAnimation.e_offset)
+    const e_res = this.try_load_chunk(e_id.copy())
+    new_chunks.push(e_res[1])
 
     // south-east chunk (+X)
-    const se_cen = Utils.get_chunk_center(x_cen + 1, z_cen - 1)
-    new_chunks.push(new Chunk(se_cen.x, se_cen.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk().add(MinecraftAnimation.se_offset)))
+    const se_id = this.player.get_chunk().add(MinecraftAnimation.se_offset)
+    const se_res = this.try_load_chunk(se_id.copy())
+    new_chunks.push(se_res[1])
 
     // south chunk (-Z)
-    const s_cen = Utils.get_chunk_center(x_cen, z_cen - 1)
-    new_chunks.push(new Chunk(s_cen.x, s_cen.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk().add(MinecraftAnimation.s_offset)))
+    const s_id = this.player.get_chunk().add(MinecraftAnimation.s_offset)
+    const s_res = this.try_load_chunk(s_id.copy())
+    new_chunks.push(s_res[1])
 
     // south-west chunk (-Z)
-    const sw_cen = Utils.get_chunk_center(x_cen - 1, z_cen - 1)
-    new_chunks.push(new Chunk(sw_cen.x, sw_cen.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk().add(MinecraftAnimation.sw_offset)))
+    const sw_id = this.player.get_chunk().add(MinecraftAnimation.sw_offset)
+    const sw_res = this.try_load_chunk(sw_id.copy())
+    new_chunks.push(sw_res[1])
 
     // west chunk (-X)
-    const w_cen = Utils.get_chunk_center(x_cen - 1, z_cen)
-    new_chunks.push(new Chunk(w_cen.x, w_cen.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk().add(MinecraftAnimation.w_offset)))
+    const w_id = this.player.get_chunk().add(MinecraftAnimation.w_offset)
+    const w_res = this.try_load_chunk(w_id.copy())
+    new_chunks.push(w_res[1])
 
     // north-west chunk (-X)
-    const nw_cen = Utils.get_chunk_center(x_cen - 1, z_cen + 1)
-    new_chunks.push(new Chunk(nw_cen.x, nw_cen.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk().add(MinecraftAnimation.nw_offset)))
+    const nw_id = this.player.get_chunk().add(MinecraftAnimation.nw_offset)
+    const nw_res = this.try_load_chunk(nw_id.copy())
+    new_chunks.push(nw_res[1])
 
-    return new_chunks
-  }
-
-  /**
-   * Setup the simulation. This can be called again to reset the program.
-   */
-  public reset(): void 
-  {    
-    // reser gui
-    this.gui.reset();
-
-    // reset player
-    const player_pos: Vec3 = this.gui.getCamera().pos();
-    this.player = new Player(player_pos)
-    const curr_chunk: Vec2 = Utils.pos_to_chunck(this.player.get_pos())
-    this.player.set_chunk(curr_chunk.copy())
-
-    // generate chunks
-    this.current_chunk = new Chunk(0.0, 0.0, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk());
-    this.adj_chunks = this.generate_adj_chunks(this.player.get_chunk())
+    // set adjacent chunks
+    this.adj_chunks = new_chunks
 
     // get edge colliders for all 8 adjacent chunks
     this.edge_colliders = new Array<CubeCollider>()
@@ -197,6 +182,31 @@ export class MinecraftAnimation extends CanvasAnimation
         this.edge_colliders.push(edges[j])
       }
     }
+  }
+
+  /**
+   * Setup the simulation. This can be called again to reset the program.
+   */
+  public reset(): void 
+  {    
+    // reset gui
+    this.gui.reset();
+
+    // reset chunk data
+    this.chunk_datas = []
+
+    // reset player
+    const player_pos: Vec3 = this.gui.getCamera().pos();
+    this.player = new Player(player_pos)
+    const curr_chunk: Vec2 = Utils.pos_to_chunck(this.player.get_pos())
+    this.player.set_chunk(curr_chunk.copy())
+
+    // generate chunks
+    this.current_chunk = new Chunk(0.0, 0.0, Utils.CHUNK_SIZE, this.player.get_chunk());
+    this.current_chunk.generate_new_chunk(this.terrain_data)
+    this.chunk_datas.push(new chunk_data(this.current_chunk.get_id(), this.current_chunk.get_cube_pos()))
+    // and adjacent chunks
+    this.try_load_adj_chunks(this.player.get_chunk())
 
     // reset rays
     this.rr.clear_rays()
@@ -387,24 +397,48 @@ export class MinecraftAnimation extends CanvasAnimation
     this.lacu_ui = this.terrain_data.lacu
     this.update_ui()
     
-    // render new 3x3 chunks around player
-    const new_chunk_center: Vec2 = Utils.get_chunk_center(this.player.get_chunk().x, this.player.get_chunk().y)
-    this.current_chunk = new Chunk(new_chunk_center.x, new_chunk_center.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk());
-    this.adj_chunks = this.generate_adj_chunks(this.player.get_chunk())
-
-    // get edge colliders for all 8 adjacent chunks
-    this.edge_colliders = new Array<CubeCollider>()
-    for (let i = 0; i < this.adj_chunks.length; i++)
-    {
-      let edges: CubeCollider[] = this.adj_chunks[i].get_edge_colliders()
-      for (let j = 0; j < edges.length; j++)
-      {
-        this.edge_colliders.push(edges[j])
-      }
-    }
+    // load or generate new chunk
+    this.try_load_chunk(this.player.get_chunk().copy())
+    // and adj chunks
+    this.try_load_adj_chunks(this.player.get_chunk())
 
     // update current terrain_height
     this.blankCubeRenderPass.updateAttributeBuffer("terrain_height", new Float32Array(this.terrain_data.height));
+  }
+
+  // attempts to load a chunk from data, else generates a new chunk
+  private try_load_chunk(chunk: Vec2): [boolean, Chunk]
+  {
+    // search for chunk in chunk datas
+    let found_data: boolean = false
+    let idx: number = -1
+    for (let i = 0; i < this.chunk_datas.length; i++)
+    {
+      if (this.chunk_datas[i].get_id().equals(chunk))
+      {
+        found_data = true
+        idx = i
+        break
+      }
+    }
+
+    // render new 3x3 chunks around player
+    const new_chunk_center: Vec2 = Utils.get_chunk_center(chunk.x, chunk.y)
+    let the_chunk: Chunk = new Chunk(new_chunk_center.x, new_chunk_center.y, Utils.CHUNK_SIZE, chunk);
+
+    // if found, load cubes into current chunk
+    if (found_data)
+    {
+      the_chunk.load_chunk(this.chunk_datas[idx].get_cubes())
+    }
+    // else generate a new chunk and save data
+    else
+    {
+      the_chunk.generate_new_chunk(this.terrain_data)
+      this.chunk_datas.push(new chunk_data(the_chunk.get_id(), the_chunk.get_cube_pos()))
+    }
+
+    return [found_data, the_chunk]
   }
 
   // send mouse raycast and chunk blocks to player
@@ -414,6 +448,7 @@ export class MinecraftAnimation extends CanvasAnimation
     let near: CubeCollider[] = new Array<CubeCollider>()
     let min_t: number = Number.MAX_VALUE
     let hit_idx: number = -1;
+    let face: CubeFace = CubeFace.negX
 
     // get all blocks within a certain range
     for (let i = 0; i < cubes.length; i++)
@@ -427,11 +462,13 @@ export class MinecraftAnimation extends CanvasAnimation
     // check each near cube for ray intersection
     for (let i = 0; i < near.length; i++)
     {
-      const t = Utils.ray_cube_intersection(ray.copy(), near[i])
+      const res = Utils.ray_cube_intersection(ray.copy(), near[i])
+      let t: number = res[0]
       if (t > -1 && t < min_t)
       {
         min_t = t
         hit_idx = i
+        face = res[1]
       }
     }
 
@@ -441,7 +478,25 @@ export class MinecraftAnimation extends CanvasAnimation
       // find cube and hightlight
       this.wire_cube.set_positions(near[hit_idx].get_pos(), Utils.CUBE_LEN)
       // remove cube from chunk
-      this.current_chunk.remove_cube(near[hit_idx].get_pos())
+      this.current_chunk.remove_cube(near[hit_idx].get_pos(), face)
+      // search for chunk in chunk datas
+      const chunk: Vec2 = this.player.get_chunk()
+      let found_data: boolean = false
+      let idx: number = -1
+      for (let i = 0; i < this.chunk_datas.length; i++)
+      {
+        if (this.chunk_datas[i].get_id().equals(chunk))
+        {
+          found_data = true
+          idx = i
+          break
+        }
+      }
+      // update chunk data
+      if (found_data)
+      {
+        this.chunk_datas[idx].update(this.current_chunk.get_cube_pos())
+      }
     }
   }
 
@@ -463,23 +518,13 @@ export class MinecraftAnimation extends CanvasAnimation
     const curr_chunk: Vec2 = Utils.pos_to_chunck(this.player.get_pos())
     if (!curr_chunk.equals(this.player.get_chunk()))
     {
+      // load or generate new chunk
       this.player.set_chunk(curr_chunk.copy())
+      const res = this.try_load_chunk(curr_chunk.copy())
+      this.current_chunk = res[1]
 
-      // render new 3x3 chunks around player
-      const new_chunk_center: Vec2 = Utils.get_chunk_center(this.player.get_chunk().x, this.player.get_chunk().y)
-      this.current_chunk = new Chunk(new_chunk_center.x, new_chunk_center.y, Utils.CHUNK_SIZE, this.terrain_data, this.player.get_chunk());
-      this.adj_chunks = this.generate_adj_chunks(this.player.get_chunk())
-
-      // get edge colliders for all 8 adjacent chunks
-      this.edge_colliders = new Array<CubeCollider>()
-      for (let i = 0; i < this.adj_chunks.length; i++)
-      {
-        let edges: CubeCollider[] = this.adj_chunks[i].get_edge_colliders()
-        for (let j = 0; j < edges.length; j++)
-        {
-          this.edge_colliders.push(edges[j])
-        }
-      }
+      // and adj chunks
+      this.try_load_adj_chunks(curr_chunk.copy())
     }
 
     // init rays update
