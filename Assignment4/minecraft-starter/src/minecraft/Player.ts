@@ -136,47 +136,6 @@ export class Player
         this.aabb.pos = this.pos.copy().subtract(new Vec3([0,Utils.PLAYER_HEIGHT / 2,0]))
     }
 
-    public try_destroy_block(ray: Ray, chunk: Chunk): boolean
-    {
-        const cubes: CubeCollider[] = chunk.get_cube_colliders()
-        let near: CubeCollider[] = new Array<CubeCollider>()
-        let min_t: number = Number.MAX_VALUE
-        let hit_idx: number = -1;
-
-        // get all blocks within a certain range
-        for (let i = 0; i < cubes.length; i++)
-        {
-            if (Vec3.distance(cubes[i].get_pos(), this.get_pos()) <= Utils.PLAYER_REACH)
-            {
-                near.push(cubes[i])
-            }
-        }
-
-        console.log('near cubes: ' + near.length)
-
-        // check each near cube for ray intersection
-        for (let i = 0; i < near.length; i++)
-        {
-            const t = Utils.ray_cube_intersection(ray.copy(), near[i])
-            // console.log('t: ' + t + ', min_t: ' + min_t)
-
-            if (t < min_t && t > 0)
-            {
-                min_t = t
-                hit_idx = i;
-            }
-        }
-
-        // remove cube from chunk
-        if (hit_idx > -1 && min_t > -1)
-        {
-            chunk.remove_cube(near[hit_idx])
-            return true
-        }
-
-        return false
-    }
-
     public jump(): void
     {
         // determine if player on ground before jumping

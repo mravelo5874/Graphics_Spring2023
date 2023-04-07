@@ -60,7 +60,7 @@ class MinecraftAnimation extends CanvasAnimation {
         this.initBlankCube();
         // wire cube
         this.render_wire_cube = true;
-        this.wire_cube = new WireCube(new Vec3([0.0, 50, 0.0]), Utils.CUBE_LEN, 'red');
+        this.wire_cube = new WireCube(new Vec3([0.0, 46.0, 0.0]), Utils.CUBE_LEN, 'red');
         this.wire_cube_pass = new RenderPass(gl, ray_vertex_shader, ray_fragment_shader);
         this.init_wire_cube();
         // environment stuff
@@ -223,10 +223,26 @@ class MinecraftAnimation extends CanvasAnimation {
     }
     // send mouse raycast and chunk blocks to player
     try_destroy_block(ray) {
-        if (this.player.try_destroy_block(ray.copy(), this.current_chunk)) {
-            // update terrain
-            this.blankCubeRenderPass.updateAttributeBuffer("aOffset", this.get_all_cube_pos());
-            this.blankCubeRenderPass.drawInstanced(this.get_all_num_cubes());
+        const cubes = this.current_chunk.get_cube_colliders();
+        let near = new Array();
+        let min_t = Number.MAX_VALUE;
+        let hit_idx = -1;
+        // get all blocks within a certain range
+        for (let i = 0; i < cubes.length; i++) {
+            if (Vec3.distance(cubes[i].get_pos(), ray.get_origin()) <= Utils.PLAYER_REACH) {
+                near.push(cubes[i]);
+            }
+        }
+        console.log('near cubes: ' + near.length);
+        // check each near cube for ray intersection
+        for (let i = 0; i < near.length; i++) {
+            const t = Utils.ray_cube_intersection(ray.copy(), near[i]);
+        }
+        // find cube and hightlight
+        // TODO all this
+        // remove cube from chunk
+        if (hit_idx > -1 && min_t > -1) {
+            this.current_chunk.remove_cube(near[hit_idx]);
         }
     }
     /**
