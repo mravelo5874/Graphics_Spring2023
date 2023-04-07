@@ -1,7 +1,7 @@
 import { Vec3 } from "../lib/TSM.js";
 import { CubeCollider } from "./Colliders.js";
 import { Noise } from "./Noise.js";
-import { CubeFace, Utils } from "./Utils.js";
+import { Utils } from "./Utils.js";
 export class chunk_data {
     get_id() { return this.id.copy(); }
     get_cubes() {
@@ -11,17 +11,25 @@ export class chunk_data {
         }
         return cubes_copy;
     }
-    constructor(_id, _cubes) {
+    get_removed() {
+        let cubes_copy = new Array();
+        for (let i = 0; i < this.removed.length; i++) {
+            cubes_copy.push(this.removed[i].copy());
+        }
+        return cubes_copy;
+    }
+    constructor(_id, _cubes, _removed) {
         this.id = _id;
+        this.update(_cubes, _removed);
+    }
+    update(_cubes, _removed) {
         this.cubes = new Array();
         for (let i = 0; i < _cubes.length; i++) {
             this.cubes.push(_cubes[i].copy());
         }
-    }
-    update(_cubes) {
-        this.cubes = new Array();
-        for (let i = 0; i < _cubes.length; i++) {
-            this.cubes.push(_cubes[i].copy());
+        this.removed = new Array();
+        for (let i = 0; i < _removed.length; i++) {
+            this.removed.push(_removed[i].copy());
         }
     }
 }
@@ -46,9 +54,10 @@ export class Chunk {
         this.id = _coord.copy();
         this.pos = _coord.copy().scale(size);
     }
-    load_chunk(cubes) {
+    load_chunk(cubes, removed) {
         this.cubes = cubes.length;
         this.cube_pos = new Array();
+        this.removed_cubes = new Array();
         this.cube_colliders = new Array();
         this.edge_colliders = new Array();
         // add all cubes
@@ -60,6 +69,10 @@ export class Chunk {
             if (pos.x == 0 || pos.x == Utils.CHUNK_SIZE - 1 || pos.z == 0 || pos.z == Utils.CHUNK_SIZE - 1) {
                 this.edge_colliders.push(new CubeCollider(pos));
             }
+        }
+        // add all removed cubes
+        for (let i = 0; i < removed.length; i++) {
+            this.removed_cubes.push(removed[i].copy());
         }
         // create array f32 array
         this.cubePositionsF32 = new Float32Array(4 * this.cube_pos.length);
@@ -73,6 +86,7 @@ export class Chunk {
     generate_new_chunk(_noise_data) {
         this.cubes = this.size * this.size; // height cubes
         this.cube_pos = new Array();
+        this.removed_cubes = new Array();
         this.cube_colliders = new Array();
         this.edge_colliders = new Array();
         this.noise_data = _noise_data;
@@ -218,6 +232,30 @@ export class Chunk {
         }
     }
     remove_cube(cube, face) {
+        // add new cube(s) if required
+        // look at the 6 cubes which touched each face of removed cube
+        let face_cubes = new Array();
+        face_cubes.push(cube.copy().add(new Vec3([1, 0, 0]))); // pos x cube
+        face_cubes.push(cube.copy().add(new Vec3([-1, 0, 0]))); // neg x cube
+        face_cubes.push(cube.copy().add(new Vec3([0, 1, 0]))); // pos y cube
+        face_cubes.push(cube.copy().add(new Vec3([0, -1, 0]))); // neg y cube
+        face_cubes.push(cube.copy().add(new Vec3([0, 0, 1]))); // pos z cube
+        face_cubes.push(cube.copy().add(new Vec3([0, 0, -1]))); // neg z cube
+        // for all cubes in chunk
+        let add_list = new Array();
+        for (let i = 0; i < this.cube_pos.length; i++) {
+            // for all 6 face cubes
+            for (let j = 0; j < face_cubes.length; j++) {
+                // ignore if already in add list
+                if (add_list.find(x => x == j))
+                    continue;
+                // check if they share x and z coords AND if face cube's y is LESS than cube's y
+                if (this.cube_pos[i].x == face_cubes[j].x && this.cube_pos[i].z == face_cubes[j].z && this.cube_pos[i].y > face_cubes[j].y) {
+                    // add face cube to chunk
+                    add_list.push(j);
+                }
+            }
+        }
         // remove from cube_pos
         let index = -1;
         for (let i = 0; i < this.cube_pos.length; i++) {
@@ -226,44 +264,17 @@ export class Chunk {
                 break;
             }
         }
-        if (index > -1)
+        if (index > -1) {
             this.cube_pos.splice(index, 1);
-        // add new cube(s) if required
-        // look at the 6 cubes which touched each face of removed cube
-        // depends on which face you removed the block?
-        let opp_cube = cube.copy();
-        switch (face) {
-            case CubeFace.negX:
-                opp_cube.x += 1;
-                break;
-            case CubeFace.posX:
-                opp_cube.x -= 1;
-                break;
-            case CubeFace.negY:
-                opp_cube.y += 1;
-                break;
-            case CubeFace.posY:
-                opp_cube.y -= 1;
-                break;
-            case CubeFace.negZ:
-                opp_cube.z += 1;
-                break;
-            case CubeFace.posZ:
-                opp_cube.y -= 1;
-                break;
+            this.removed_cubes.push(cube);
         }
-        // look for opposite cube 
-        let found_cube = false;
-        for (let i = 0; i < this.cube_pos.length; i++) {
-            if (this.cube_pos[i].equals(opp_cube)) {
-                found_cube = true;
-                break;
+        // add all required cubes + colliders (if not already an existing cube OR it is a prev removed cube by the player)
+        for (let i = 0; i < add_list.length; i++) {
+            const new_cube = face_cubes[add_list[i]].copy();
+            if (!this.cube_pos.find(x => x.equals(new_cube)) && !this.removed_cubes.find(x => x.equals(new_cube))) {
+                this.cube_pos.push(new_cube.copy());
+                this.cube_colliders.push(new CubeCollider(new_cube));
             }
-        }
-        // if not found, add it to chunk
-        if (!found_cube) {
-            this.cube_pos.push(opp_cube.copy());
-            this.cube_colliders.push(new CubeCollider(opp_cube.copy()));
         }
         // create new array f32 array
         this.cubePositionsF32 = new Float32Array(4 * this.cube_pos.length);
@@ -312,6 +323,9 @@ export class Chunk {
     }
     get_id() {
         return this.id.copy();
+    }
+    get_removed_cubes() {
+        return this.removed_cubes;
     }
 }
 //# sourceMappingURL=Chunk.js.map

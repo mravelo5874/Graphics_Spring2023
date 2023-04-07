@@ -90,7 +90,7 @@ export class MinecraftAnimation extends CanvasAnimation
     this.current_chunk = new Chunk(0.0, 0.0, Utils.CHUNK_SIZE, this.player.get_chunk());
     this.current_chunk.generate_new_chunk(this.terrain_data)
     this.chunk_datas = new Array<chunk_data>()
-    this.chunk_datas.push(new chunk_data(this.current_chunk.get_id(), this.current_chunk.get_cube_pos()))
+    this.chunk_datas.push(new chunk_data(this.current_chunk.get_id(), this.current_chunk.get_cube_pos(), []))
     // and adjacent chunks
     this.try_load_adj_chunks(this.player.get_chunk())
       
@@ -204,7 +204,7 @@ export class MinecraftAnimation extends CanvasAnimation
     // generate chunks
     this.current_chunk = new Chunk(0.0, 0.0, Utils.CHUNK_SIZE, this.player.get_chunk());
     this.current_chunk.generate_new_chunk(this.terrain_data)
-    this.chunk_datas.push(new chunk_data(this.current_chunk.get_id(), this.current_chunk.get_cube_pos()))
+    this.chunk_datas.push(new chunk_data(this.current_chunk.get_id(), this.current_chunk.get_cube_pos(), []))
     // and adjacent chunks
     this.try_load_adj_chunks(this.player.get_chunk())
 
@@ -429,13 +429,13 @@ export class MinecraftAnimation extends CanvasAnimation
     // if found, load cubes into current chunk
     if (found_data)
     {
-      the_chunk.load_chunk(this.chunk_datas[idx].get_cubes())
+      the_chunk.load_chunk(this.chunk_datas[idx].get_cubes(), this.chunk_datas[idx].get_removed())
     }
     // else generate a new chunk and save data
     else
     {
       the_chunk.generate_new_chunk(this.terrain_data)
-      this.chunk_datas.push(new chunk_data(the_chunk.get_id(), the_chunk.get_cube_pos()))
+      this.chunk_datas.push(new chunk_data(the_chunk.get_id(), the_chunk.get_cube_pos(), []))
     }
 
     return [found_data, the_chunk]
@@ -495,7 +495,7 @@ export class MinecraftAnimation extends CanvasAnimation
       // update chunk data
       if (found_data)
       {
-        this.chunk_datas[idx].update(this.current_chunk.get_cube_pos())
+        this.chunk_datas[idx].update(this.current_chunk.get_cube_pos(), this.current_chunk.get_removed_cubes())
       }
     }
   }
