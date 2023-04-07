@@ -70,6 +70,7 @@ export class Utils
     public static CUBE_LEN: number = 1
     public static PLAYER_RADIUS: number = 0.1
     public static PLAYER_HEIGHT: number = 2
+    public static PLAYER_REACH: number = 4.0
     public static SQRT2: number = 1.41421356237
 
     // returns what chunk the player is in based of their position
@@ -279,7 +280,7 @@ export class Utils
         if (tzmin > tmin) tmin = tzmin
         if (tzmax < tmax) tmax = tzmax
 
-        console.log('hit! pos: ' + print.v3(pos) + ', tmin: ' + tmin + ', tmax: ' + tmax)
+        // console.log('hit! pos: ' + print.v3(pos) + ', tmin: ' + tmin + ', tmax: ' + tmax)
 
         return Math.abs(tmin)
     }

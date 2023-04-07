@@ -2,7 +2,7 @@ import { Debugger } from "../lib/webglutils/Debugging.js";
 import { CanvasAnimation } from "../lib/webglutils/CanvasAnimation.js";
 import { GUI } from "./Gui.js";
 import { blankCubeFSText, blankCubeVSText, ray_vertex_shader, ray_fragment_shader } from "./Shaders.js";
-import { Mat4, Vec4, Vec2 } from "../lib/TSM.js";
+import { Mat4, Vec4, Vec3, Vec2 } from "../lib/TSM.js";
 import { RenderPass } from "../lib/webglutils/RenderPass.js";
 import { Cube } from "./Cube.js";
 import { Chunk, noise_map_data } from "./Chunk.js";
@@ -11,10 +11,12 @@ import { Utils } from "./Utils.js";
 import { Player } from "./Player.js";
 import { Noise } from "./Noise.js";
 import { RaycastRenderer } from "./RaycastRenderer.js";
+import { WireCube } from "./WireCube.js";
 class MinecraftAnimation extends CanvasAnimation {
     constructor(canvas) {
         super(canvas);
         this.cube_texture_size = 32;
+        this.render_wire_cube = false;
         // render pass for rendering rays
         this.prev_ray_length = 0;
         this.canvas2d = document.getElementById("textCanvas");
@@ -56,6 +58,12 @@ class MinecraftAnimation extends CanvasAnimation {
         this.blankCubeRenderPass = new RenderPass(gl, blankCubeVSText, blankCubeFSText);
         this.cubeGeometry = new Cube();
         this.initBlankCube();
+        // wire cube
+        this.render_wire_cube = true;
+        this.wire_cube = new WireCube(new Vec3([0.0, 50, 0.0]), Utils.CUBE_LEN, 'red');
+        this.wire_cube_pass = new RenderPass(gl, ray_vertex_shader, ray_fragment_shader);
+        this.init_wire_cube();
+        // environment stuff
         this.lightPosition = new Vec4([-1000, 1000, -1000, 1]);
         this.backgroundColor = new Vec4([0.470588, 0.756863, 0.890196, 1.0]);
     }
@@ -127,6 +135,48 @@ class MinecraftAnimation extends CanvasAnimation {
         this.mode_ui = this.player.get_creative_mode();
         this.update_ui();
     }
+    init_rays() {
+        // index buffer ray is ray indices
+        this.ray_render_pass.setIndexBufferData(this.rr.get_ray_indices());
+        // vertex positions
+        this.ray_render_pass.addAttribute("vertex_pos", 3, this.ctx.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.rr.get_ray_positions());
+        // vertex colors
+        this.ray_render_pass.addAttribute("vertex_color", 3, this.ctx.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.rr.get_ray_colors());
+        // add matricies
+        this.ray_render_pass.addUniform("world_mat", (gl, loc) => {
+            gl.uniformMatrix4fv(loc, false, new Float32Array(Mat4.identity.all()));
+        });
+        this.ray_render_pass.addUniform("proj_mat", (gl, loc) => {
+            gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.projMatrix().all()));
+        });
+        this.ray_render_pass.addUniform("view_mat", (gl, loc) => {
+            gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.viewMatrix().all()));
+        });
+        this.ray_render_pass.setDrawData(this.ctx.LINES, this.rr.get_ray_indices().length, this.ctx.UNSIGNED_INT, 0);
+        this.ray_render_pass.setup();
+    }
+    init_wire_cube() {
+        // reset render pass
+        this.wire_cube_pass = new RenderPass(this.ctx, ray_vertex_shader, ray_fragment_shader);
+        // index buffer ray is ray indices
+        this.wire_cube_pass.setIndexBufferData(this.wire_cube.get_indices());
+        // vertex positions
+        this.wire_cube_pass.addAttribute("vertex_pos", 3, this.ctx.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.wire_cube.get_positions());
+        // vertex colors
+        this.wire_cube_pass.addAttribute("vertex_color", 3, this.ctx.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.wire_cube.get_colors());
+        // add matricies
+        this.wire_cube_pass.addUniform("world_mat", (gl, loc) => {
+            gl.uniformMatrix4fv(loc, false, new Float32Array(Mat4.identity.all()));
+        });
+        this.wire_cube_pass.addUniform("proj_mat", (gl, loc) => {
+            gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.projMatrix().all()));
+        });
+        this.wire_cube_pass.addUniform("view_mat", (gl, loc) => {
+            gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.viewMatrix().all()));
+        });
+        this.wire_cube_pass.setDrawData(this.ctx.LINES, this.wire_cube.get_indices().length, this.ctx.UNSIGNED_INT, 0);
+        this.wire_cube_pass.setup();
+    }
     /**
      * Sets up the blank cube drawing
      */
@@ -148,31 +198,6 @@ class MinecraftAnimation extends CanvasAnimation {
         });
         this.blankCubeRenderPass.setDrawData(this.ctx.TRIANGLES, this.cubeGeometry.indicesFlat().length, this.ctx.UNSIGNED_INT, 0);
         this.blankCubeRenderPass.setup();
-    }
-    init_rays() {
-        // index buffer ray is ray indices
-        this.ray_render_pass.setIndexBufferData(this.rr.get_ray_indices());
-        // vertex positions
-        this.ray_render_pass.addAttribute("vertex_pos", 3, this.ctx.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.rr.get_ray_positions());
-        // vertex colors
-        this.ray_render_pass.addAttribute("vertex_color", 3, this.ctx.FLOAT, false, 3 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.rr.get_ray_colors());
-        // add matricies
-        this.ray_render_pass.addUniform("world_mat", (gl, loc) => {
-            gl.uniformMatrix4fv(loc, false, new Float32Array(Mat4.identity.all()));
-        });
-        this.ray_render_pass.addUniform("proj_mat", (gl, loc) => {
-            gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.projMatrix().all()));
-        });
-        this.ray_render_pass.addUniform("view_mat", (gl, loc) => {
-            gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.viewMatrix().all()));
-        });
-        this.ray_render_pass.setDrawData(this.ctx.LINES, this.rr.get_ray_indices().length, this.ctx.UNSIGNED_INT, 0);
-        this.ray_render_pass.setup();
-        /*
-        console.log('ray.init:\n\tray_indices: ' + this.scene.rr.get_ray_indices().length +
-        '\n\tray_pos: ' + this.scene.rr.get_ray_positions().length +
-        '\n\tray_color: ' + this.scene.rr.get_ray_colors().length)
-        */
     }
     // used to update chunks after terrain change has been made 
     update_terrain() {
@@ -198,7 +223,11 @@ class MinecraftAnimation extends CanvasAnimation {
     }
     // send mouse raycast and chunk blocks to player
     try_destroy_block(ray) {
-        this.player.try_destroy_block(ray.copy(), this.current_chunk);
+        if (this.player.try_destroy_block(ray.copy(), this.current_chunk)) {
+            // update terrain
+            this.blankCubeRenderPass.updateAttributeBuffer("aOffset", this.get_all_cube_pos());
+            this.blankCubeRenderPass.drawInstanced(this.get_all_num_cubes());
+        }
     }
     /**
      * Draws a single frame
@@ -232,7 +261,12 @@ class MinecraftAnimation extends CanvasAnimation {
         if (this.prev_ray_length < this.rr.get_rays().length) {
             this.prev_ray_length = this.rr.get_rays().length;
             this.init_rays();
-            //console.log('init rays')
+        }
+        // init hex updates
+        if (this.wire_cube.get_update()) {
+            this.render_wire_cube = true;
+            this.init_wire_cube();
+            this.wire_cube.got_update();
         }
         // set the player's current position
         this.gui.getCamera().setPos(this.player.get_pos());
@@ -261,6 +295,12 @@ class MinecraftAnimation extends CanvasAnimation {
         // draw rays
         if (this.prev_ray_length > 0) {
             this.ray_render_pass.draw();
+        }
+        // draw wire cube
+        if (this.render_wire_cube) {
+            gl.disable(gl.DEPTH_TEST);
+            this.wire_cube_pass.draw();
+            gl.enable(gl.DEPTH_TEST);
         }
     }
     get_all_cube_pos() {

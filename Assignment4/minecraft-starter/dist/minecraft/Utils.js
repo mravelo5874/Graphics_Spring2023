@@ -163,6 +163,7 @@ class Utils {
     }
     // thanks to: https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection.html
     static ray_cube_intersection(ray, cube) {
+        // TODO fix this using slab method !!!
         const pos = cube.get_pos();
         const r_dir = ray.get_direction();
         const r_ori = ray.get_origin();
@@ -207,7 +208,7 @@ class Utils {
             tmin = tzmin;
         if (tzmax < tmax)
             tmax = tzmax;
-        console.log('hit! pos: ' + print.v3(pos) + ', tmin: ' + tmin + ', tmax: ' + tmax);
+        // console.log('hit! pos: ' + print.v3(pos) + ', tmin: ' + tmin + ', tmax: ' + tmax)
         return Math.abs(tmin);
     }
     static aabb_collision(a, b) {
@@ -250,6 +251,7 @@ Utils.GRAVITY = new Vec3([0.0, -9.8, 0.0]);
 Utils.CUBE_LEN = 1;
 Utils.PLAYER_RADIUS = 0.1;
 Utils.PLAYER_HEIGHT = 2;
+Utils.PLAYER_REACH = 4.0;
 Utils.SQRT2 = 1.41421356237;
 export { Utils };
 //# sourceMappingURL=Utils.js.map

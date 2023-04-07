@@ -86,6 +86,7 @@ export class Chunk {
                         // add cube to pos and collider arrays
                         this.cubes++;
                         this.cube_pos.push(new Vec3([my_x, my_y - i, my_z]));
+                        this.cube_colliders.push(new CubeCollider(new Vec3([my_x, my_y - i, my_z])));
                     }
                     continue;
                 }
@@ -167,8 +168,22 @@ export class Chunk {
         }
     }
     remove_cube(cube) {
-        // TODO this!!!
-        console.log('hit block: ' + print.v3(cube.get_pos()));
+        // remove from cube_pos
+        const index = this.cube_pos.indexOf(cube.get_pos());
+        if (index > -1)
+            this.cube_pos.splice(index, 1);
+        else
+            return false;
+        // create new array f32 array
+        this.cubePositionsF32 = new Float32Array(4 * this.cube_pos.length);
+        for (let i = 0; i < this.cube_pos.length; i++) {
+            this.cubePositionsF32[(4 * i) + 0] = this.cube_pos[i].x;
+            this.cubePositionsF32[(4 * i) + 1] = this.cube_pos[i].y;
+            this.cubePositionsF32[(4 * i) + 2] = this.cube_pos[i].z;
+            this.cubePositionsF32[(4 * i) + 3] = 0;
+        }
+        console.log('removed cube: ' + index + ', @ ' + print.v3(cube.get_pos()));
+        return true;
     }
     get_cube_from_pos(pos) {
         // check each cube to see if pos.xz are in cube.xz
