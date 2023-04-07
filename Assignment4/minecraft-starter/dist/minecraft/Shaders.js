@@ -174,7 +174,7 @@ export const blankCubeFSText = `
     {
         float seed = 42.0;
         vec3 kd = vec3(0.0, 0.0, 0.0);
-        vec3 ka = vec3(0.0, 0.0, 0.0);
+        vec3 ka = vec3(0.1, 0.1, 0.1);
 
         // set block noise based on height (offset.y) 
         float level_01 = inverse_lerp(-height, height, offset.y);

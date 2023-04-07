@@ -268,7 +268,7 @@ export class Chunk {
             this.cube_pos.splice(index, 1);
             this.removed_cubes.push(cube);
         }
-        // add all required cubes + colliders (if not already an existing cube OR it is a prev removed cube by the player)
+        // add all required cubes + colliders (if not already an existing cube AND it is a prev removed cube by the player)
         for (let i = 0; i < add_list.length; i++) {
             const new_cube = face_cubes[add_list[i]].copy();
             if (!this.cube_pos.find(x => x.equals(new_cube)) && !this.removed_cubes.find(x => x.equals(new_cube))) {
