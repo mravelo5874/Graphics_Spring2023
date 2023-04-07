@@ -233,12 +233,19 @@ export class Chunk
     }
 
 
-    public remove_cube(cube: CubeCollider) : boolean
+    public remove_cube(cube: Vec3) : void
     {
         // remove from cube_pos
-        const index: number = this.cube_pos.indexOf(cube.get_pos())
+        let index: number = -1
+        for (let i = 0; i < this.cube_pos.length; i++)
+        {
+            if (this.cube_pos[i].equals(cube))
+            {
+                index = i
+                break
+            }
+        }
         if (index > -1) this.cube_pos.splice(index, 1)
-        else return false
          
         // create new array f32 array
         this.cubePositionsF32 = new Float32Array(4 * this.cube_pos.length);
@@ -250,8 +257,19 @@ export class Chunk
             this.cubePositionsF32[(4*i) + 3] = 0
         }
 
-        console.log('removed cube: ' + index + ', @ ' + print.v3(cube.get_pos()))
-        return true
+        // remove cube collider
+        for (let i = 0; i < this.cube_colliders.length; i++)
+        {
+            if (this.cube_colliders[i].get_pos().equals(cube))
+            {
+                index = i
+                break
+            }
+        }
+        if (index > -1) this.cube_colliders.splice(index, 1)
+
+        // TODO add new cube(s) if required
+        
     }
 
     public get_cube_from_pos(pos: Vec3): CubeCollider | null

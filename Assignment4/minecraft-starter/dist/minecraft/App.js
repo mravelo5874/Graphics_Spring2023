@@ -9,13 +9,11 @@ import { Chunk, noise_map_data } from "./Chunk.js";
 // custom imports
 import { Utils } from "./Utils.js";
 import { Player } from "./Player.js";
-import { Noise } from "./Noise.js";
 import { RaycastRenderer } from "./RaycastRenderer.js";
 import { WireCube } from "./WireCube.js";
 class MinecraftAnimation extends CanvasAnimation {
     constructor(canvas) {
         super(canvas);
-        this.cube_texture_size = 32;
         this.render_wire_cube = false;
         // render pass for rendering rays
         this.prev_ray_length = 0;
@@ -50,10 +48,6 @@ class MinecraftAnimation extends CanvasAnimation {
                 this.edge_colliders.push(edges[j]);
             }
         }
-        // generate cube textures
-        this.cube_texture_size = 32;
-        this.cube_noise_map = new noise_map_data();
-        this.cube_texture = Noise.generate_noise_map(this.cube_texture_size, this.cube_noise_map, Vec2.zero.copy(), true);
         // blank cube
         this.blankCubeRenderPass = new RenderPass(gl, blankCubeVSText, blankCubeFSText);
         this.cubeGeometry = new Cube();
@@ -122,7 +116,6 @@ class MinecraftAnimation extends CanvasAnimation {
             }
         }
         // reset rays
-        this.prev_ray_length = 0;
         this.rr.clear_rays();
         this.init_rays();
         // update ui
@@ -233,16 +226,20 @@ class MinecraftAnimation extends CanvasAnimation {
                 near.push(cubes[i]);
             }
         }
-        console.log('near cubes: ' + near.length);
         // check each near cube for ray intersection
         for (let i = 0; i < near.length; i++) {
             const t = Utils.ray_cube_intersection(ray.copy(), near[i]);
+            if (t > -1 && t < min_t) {
+                min_t = t;
+                hit_idx = i;
+            }
         }
         // find cube and hightlight
-        // TODO all this
-        // remove cube from chunk
         if (hit_idx > -1 && min_t > -1) {
-            this.current_chunk.remove_cube(near[hit_idx]);
+            this.wire_cube.set_positions(near[hit_idx].get_pos(), Utils.CUBE_LEN);
+            // remove cube from chunk
+            if (this.current_chunk.remove_cube(near[hit_idx].get_pos())) {
+            }
         }
     }
     /**
@@ -309,7 +306,7 @@ class MinecraftAnimation extends CanvasAnimation {
         this.blankCubeRenderPass.updateAttributeBuffer("aOffset", this.get_all_cube_pos());
         this.blankCubeRenderPass.drawInstanced(this.get_all_num_cubes());
         // draw rays
-        if (this.prev_ray_length > 0) {
+        if (this.rr.get_rays().length > 0) {
             this.ray_render_pass.draw();
         }
         // draw wire cube

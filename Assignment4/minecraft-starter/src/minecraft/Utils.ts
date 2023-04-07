@@ -31,14 +31,23 @@ export class Ray
 {
     private origin : Vec3
     private direction : Vec3
+    private inverse: Vec3
 
     public get_origin() : Vec3 { return new Vec3(this.origin.xyz) }
     public get_direction() : Vec3 { return new Vec3(this.direction.xyz).normalize() }
+    public get_inverse() : Vec3 { return new Vec3(this.inverse.xyz).normalize() }
 
     constructor(_origin : Vec3, _direction : Vec3)
     {
         this.origin = _origin.copy()
         this.direction = _direction.copy()
+
+        // create inverse dir
+        let inv: Vec3 = this.get_direction();
+        inv.x = 1 / inv.x
+        inv.y = 1 / inv.y
+        inv.z = 1 / inv.z
+        this.inverse = inv.copy()
     }
 
     public copy()
@@ -49,15 +58,6 @@ export class Ray
     public print()
     {
         return '{origin: ' + print.v3(this.origin, 3) + ', direction: ' + print.v3(this.direction, 3) + '}'
-    }
-
-    public inverse(): Vec3
-    {
-        let inv: Vec3 = this.get_direction();
-        inv.x = inv.x / 1
-        inv.y = inv.y / 1
-        inv.z = inv.z / 1
-        return inv.copy()
     }
 }
 
@@ -70,7 +70,7 @@ export class Utils
     public static CUBE_LEN: number = 1
     public static PLAYER_RADIUS: number = 0.1
     public static PLAYER_HEIGHT: number = 2
-    public static PLAYER_REACH: number = 4.0
+    public static PLAYER_REACH: number = 8.0
     public static SQRT2: number = 1.41421356237
 
     // returns what chunk the player is in based of their position
@@ -223,66 +223,31 @@ export class Utils
         return false
     }
 
-    // thanks to: https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection.html
     public static ray_cube_intersection(ray: Ray, cube: CubeCollider): number
     {
-        // TODO fix this using slab method !!!
         const pos: Vec3 = cube.get_pos()
-        const r_dir: Vec3 = ray.get_direction()
+        const r_inv: Vec3 = ray.get_inverse().normalize()
         const r_ori: Vec3 = ray.get_origin()
 
         const min_bb: Vec3 = new Vec3([pos.x - 0.5, pos.y - 0.5, pos.z - 0.5])
         const max_bb: Vec3 = new Vec3([pos.x + 0.5, pos.y + 0.5, pos.z + 0.5])
 
-        let tmin, tmax = 0
-        if (r_dir.x >= 0)
-        {
-            tmin = (min_bb.x - r_ori.x) * r_dir.x
-            tmax = (max_bb.x - r_ori.x) * r_dir.x
-        }
-        else
-        {
-            tmin = (max_bb.x - r_ori.x) * r_dir.x
-            tmax = (min_bb.x - r_ori.x) * r_dir.x
-        }
-        
-        let tymin, tymax = 0
-        if (r_dir.y >= 0)
-        {
-            tymin = (min_bb.y - r_ori.y) * r_dir.y 
-            tymax = (max_bb.y - r_ori.y) * r_dir.y
-        }
-        else
-        {
-            tymin = (max_bb.y - r_ori.y) * r_dir.y 
-            tymax = (min_bb.y - r_ori.y) * r_dir.y
-        }
-        
+        let t_min_x = (min_bb.x - r_ori.x) * r_inv.x
+        let t_max_x = (max_bb.x - r_ori.x) * r_inv.x
+        let t_min_y = (min_bb.y - r_ori.y) * r_inv.y
+        let t_max_y = (max_bb.y - r_ori.y) * r_inv.y
+        let t_min_z = (min_bb.z - r_ori.z) * r_inv.z
+        let t_max_z = (max_bb.z - r_ori.z) * r_inv.z
 
-        if ((tmin > tymax) || (tymin > tmax)) return -1
-        if (tymin > tmin) tmin = tymin
-        if (tymax < tmax) tmax = tymax
+        // Find the minimum and maximum t-values for the entry and exit points
+        let t_min = Math.max(Math.min(t_min_x, t_max_x), Math.min(t_min_y, t_max_y), Math.min(t_min_z, t_max_z))
+        let t_max = Math.min(Math.max(t_min_x, t_max_x), Math.max(t_min_y, t_max_y), Math.max(t_min_z, t_max_z))
 
-        let tzmin, tzmax = 0
-        if (r_dir.z >= 0)
-        {
-            tzmin = (min_bb.z - r_ori.z) * r_dir.z
-            tzmax = (max_bb.z - r_ori.z) * r_dir.z
-        }
-        else
-        {
-            tzmin = (max_bb.z - r_ori.z) * r_dir.z
-            tzmax = (min_bb.z - r_ori.z) * r_dir.z
-        }
-        
+        // If the minimum t-value for the exit point is greater than the maximum t-value for the entry point,
+        // there is no intersection
+        if (t_min > t_max) return -1
 
-        if ((tmin > tzmax) || (tzmin > tmax)) return -1
-        if (tzmin > tmin) tmin = tzmin
-        if (tzmax < tmax) tmax = tzmax
-
-        // console.log('hit! pos: ' + print.v3(pos) + ', tmin: ' + tmin + ', tmax: ' + tmax)
-
-        return Math.abs(tmin)
+        return Math.abs(t_min)
     }
 
     public static aabb_collision(a: AABB, b: AABB): boolean

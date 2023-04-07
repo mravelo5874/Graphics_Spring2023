@@ -169,7 +169,13 @@ export class Chunk {
     }
     remove_cube(cube) {
         // remove from cube_pos
-        const index = this.cube_pos.indexOf(cube.get_pos());
+        let index = -1;
+        for (let i = 0; i < this.cube_pos.length; i++) {
+            if (this.cube_pos[i].equals(cube)) {
+                index = i;
+                break;
+            }
+        }
         if (index > -1)
             this.cube_pos.splice(index, 1);
         else
@@ -182,7 +188,17 @@ export class Chunk {
             this.cubePositionsF32[(4 * i) + 2] = this.cube_pos[i].z;
             this.cubePositionsF32[(4 * i) + 3] = 0;
         }
-        console.log('removed cube: ' + index + ', @ ' + print.v3(cube.get_pos()));
+        // remove cube collider
+        for (let i = 0; i < this.cube_colliders.length; i++) {
+            if (this.cube_colliders[i].get_pos().equals(cube)) {
+                index = i;
+                break;
+            }
+        }
+        if (index > -1)
+            this.cube_colliders.splice(index, 1);
+        // add new cube(s) if required
+        console.log('removed cube: ' + index + ', @ ' + print.v3(cube.copy()));
         return true;
     }
     get_cube_from_pos(pos) {

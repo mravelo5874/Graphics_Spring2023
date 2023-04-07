@@ -19,22 +19,22 @@ export class Line {
 export class Ray {
     get_origin() { return new Vec3(this.origin.xyz); }
     get_direction() { return new Vec3(this.direction.xyz).normalize(); }
+    get_inverse() { return new Vec3(this.inverse.xyz).normalize(); }
     constructor(_origin, _direction) {
         this.origin = _origin.copy();
         this.direction = _direction.copy();
+        // create inverse dir
+        let inv = this.get_direction();
+        inv.x = 1 / inv.x;
+        inv.y = 1 / inv.y;
+        inv.z = 1 / inv.z;
+        this.inverse = inv.copy();
     }
     copy() {
         return new Ray(this.origin.copy(), this.direction.copy());
     }
     print() {
         return '{origin: ' + print.v3(this.origin, 3) + ', direction: ' + print.v3(this.direction, 3) + '}';
-    }
-    inverse() {
-        let inv = this.get_direction();
-        inv.x = inv.x / 1;
-        inv.y = inv.y / 1;
-        inv.z = inv.z / 1;
-        return inv.copy();
     }
 }
 class Utils {
@@ -161,55 +161,26 @@ class Utils {
         // no offset
         return false;
     }
-    // thanks to: https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection.html
     static ray_cube_intersection(ray, cube) {
-        // TODO fix this using slab method !!!
         const pos = cube.get_pos();
-        const r_dir = ray.get_direction();
+        const r_inv = ray.get_inverse().normalize();
         const r_ori = ray.get_origin();
         const min_bb = new Vec3([pos.x - 0.5, pos.y - 0.5, pos.z - 0.5]);
         const max_bb = new Vec3([pos.x + 0.5, pos.y + 0.5, pos.z + 0.5]);
-        let tmin, tmax = 0;
-        if (r_dir.x >= 0) {
-            tmin = (min_bb.x - r_ori.x) * r_dir.x;
-            tmax = (max_bb.x - r_ori.x) * r_dir.x;
-        }
-        else {
-            tmin = (max_bb.x - r_ori.x) * r_dir.x;
-            tmax = (min_bb.x - r_ori.x) * r_dir.x;
-        }
-        let tymin, tymax = 0;
-        if (r_dir.y >= 0) {
-            tymin = (min_bb.y - r_ori.y) * r_dir.y;
-            tymax = (max_bb.y - r_ori.y) * r_dir.y;
-        }
-        else {
-            tymin = (max_bb.y - r_ori.y) * r_dir.y;
-            tymax = (min_bb.y - r_ori.y) * r_dir.y;
-        }
-        if ((tmin > tymax) || (tymin > tmax))
+        let t_min_x = (min_bb.x - r_ori.x) * r_inv.x;
+        let t_max_x = (max_bb.x - r_ori.x) * r_inv.x;
+        let t_min_y = (min_bb.y - r_ori.y) * r_inv.y;
+        let t_max_y = (max_bb.y - r_ori.y) * r_inv.y;
+        let t_min_z = (min_bb.z - r_ori.z) * r_inv.z;
+        let t_max_z = (max_bb.z - r_ori.z) * r_inv.z;
+        // Find the minimum and maximum t-values for the entry and exit points
+        let t_min = Math.max(Math.min(t_min_x, t_max_x), Math.min(t_min_y, t_max_y), Math.min(t_min_z, t_max_z));
+        let t_max = Math.min(Math.max(t_min_x, t_max_x), Math.max(t_min_y, t_max_y), Math.max(t_min_z, t_max_z));
+        // If the minimum t-value for the exit point is greater than the maximum t-value for the entry point,
+        // there is no intersection
+        if (t_min > t_max)
             return -1;
-        if (tymin > tmin)
-            tmin = tymin;
-        if (tymax < tmax)
-            tmax = tymax;
-        let tzmin, tzmax = 0;
-        if (r_dir.z >= 0) {
-            tzmin = (min_bb.z - r_ori.z) * r_dir.z;
-            tzmax = (max_bb.z - r_ori.z) * r_dir.z;
-        }
-        else {
-            tzmin = (max_bb.z - r_ori.z) * r_dir.z;
-            tzmax = (min_bb.z - r_ori.z) * r_dir.z;
-        }
-        if ((tmin > tzmax) || (tzmin > tmax))
-            return -1;
-        if (tzmin > tmin)
-            tmin = tzmin;
-        if (tzmax < tmax)
-            tmax = tzmax;
-        // console.log('hit! pos: ' + print.v3(pos) + ', tmin: ' + tmin + ', tmax: ' + tmax)
-        return Math.abs(tmin);
+        return Math.abs(t_min);
     }
     static aabb_collision(a, b) {
         return (a.min.x + a.pos.x <= b.max.x + b.pos.x &&
@@ -251,7 +222,7 @@ Utils.GRAVITY = new Vec3([0.0, -9.8, 0.0]);
 Utils.CUBE_LEN = 1;
 Utils.PLAYER_RADIUS = 0.1;
 Utils.PLAYER_HEIGHT = 2;
-Utils.PLAYER_REACH = 4.0;
+Utils.PLAYER_REACH = 8.0;
 Utils.SQRT2 = 1.41421356237;
 export { Utils };
 //# sourceMappingURL=Utils.js.map

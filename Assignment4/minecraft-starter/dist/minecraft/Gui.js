@@ -58,7 +58,6 @@ class GUI {
                 {
                     // send raycast from mouse pos
                     this.animation.try_destroy_block(this.mouse_ray);
-                    this.animation.rr.add_ray(this.mouse_ray, "green");
                     break;
                 }
         }
