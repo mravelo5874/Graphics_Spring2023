@@ -115,19 +115,17 @@ export class GUI implements IGUI
     return this.camera;
   }
   
-  public dragStart(mouse: MouseEvent): void {
+  public dragStart(mouse: MouseEvent): void 
+  {
     this.prevX = mouse.screenX;
     this.prevY = mouse.screenY;
     this.dragging = true;
 
-    switch (mouse.buttons) 
+    // try mining block
+    if (mouse.buttons == 2)
     {
-      case 2: 
-        {
-          // send raycast from mouse pos
-          this.animation.try_destroy_block()
-          break
-        }
+      // send raycast from mouse pos
+      this.animation.try_destroy_block()
     }
   }
   public dragEnd(mouse: MouseEvent): void 
@@ -164,6 +162,12 @@ export class GUI implements IGUI
           // move camera
           this.camera.pitch(y_mov, y_mov > 0)
           this.camera.rotate(Vec3.up, -x_move)
+          break
+        }
+        case 2: 
+        {
+          // send raycast from mouse pos
+          this.animation.try_destroy_block()
           break
         }
       }

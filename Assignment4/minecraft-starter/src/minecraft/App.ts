@@ -55,7 +55,7 @@ export class MinecraftAnimation extends CanvasAnimation
   public mining_block = false;
   public current_block: CubeCollider;
   private start_mine: number;
-  private block_mine_time: number = 200;
+  private block_mine_time: number = 250;
 
   // render pass for rendering rays
   private prev_ray_length : number = 0;
@@ -498,7 +498,7 @@ export class MinecraftAnimation extends CanvasAnimation
   private mine_block(): void
   {
     let res = Utils.ray_cube_intersection(this.gui.mouse_ray, this.current_block)
-    if (res[0] < -1)
+    if (res[0] == -1)
     {
       // reset mine bool 
       this.mining_block = false
@@ -529,6 +529,8 @@ export class MinecraftAnimation extends CanvasAnimation
       }
       // change wire color
       this.wire_cube.set_color('green')
+      this.mining_block = false
+      this.render_wire_cube = false
     }
   }
 

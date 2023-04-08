@@ -16,7 +16,7 @@ class MinecraftAnimation extends CanvasAnimation {
         super(canvas);
         this.render_wire_cube = false;
         this.mining_block = false;
-        this.block_mine_time = 200;
+        this.block_mine_time = 250;
         // render pass for rendering rays
         this.prev_ray_length = 0;
         this.canvas2d = document.getElementById("textCanvas");
@@ -284,7 +284,7 @@ class MinecraftAnimation extends CanvasAnimation {
     }
     mine_block() {
         let res = Utils.ray_cube_intersection(this.gui.mouse_ray, this.current_block);
-        if (res[0] < -1) {
+        if (res[0] == -1) {
             // reset mine bool 
             this.mining_block = false;
             this.render_wire_cube = false;
@@ -310,6 +310,8 @@ class MinecraftAnimation extends CanvasAnimation {
             }
             // change wire color
             this.wire_cube.set_color('green');
+            this.mining_block = false;
+            this.render_wire_cube = false;
         }
     }
     /**

@@ -53,13 +53,10 @@ class GUI {
         this.prevX = mouse.screenX;
         this.prevY = mouse.screenY;
         this.dragging = true;
-        switch (mouse.buttons) {
-            case 2:
-                {
-                    // send raycast from mouse pos
-                    this.animation.try_destroy_block();
-                    break;
-                }
+        // try mining block
+        if (mouse.buttons == 2) {
+            // send raycast from mouse pos
+            this.animation.try_destroy_block();
         }
     }
     dragEnd(mouse) {
@@ -90,6 +87,12 @@ class GUI {
                         // move camera
                         this.camera.pitch(y_mov, y_mov > 0);
                         this.camera.rotate(Vec3.up, -x_move);
+                        break;
+                    }
+                case 2:
+                    {
+                        // send raycast from mouse pos
+                        this.animation.try_destroy_block();
                         break;
                     }
             }
