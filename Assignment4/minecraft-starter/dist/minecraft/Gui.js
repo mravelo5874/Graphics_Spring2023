@@ -57,13 +57,15 @@ class GUI {
             case 2:
                 {
                     // send raycast from mouse pos
-                    this.animation.try_destroy_block(this.mouse_ray);
+                    this.animation.try_destroy_block();
                     break;
                 }
         }
     }
     dragEnd(mouse) {
         this.dragging = false;
+        this.animation.mining_block = false;
+        this.animation.render_wire_cube = false;
     }
     /**
      * The callback function for a drag event.

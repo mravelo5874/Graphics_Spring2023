@@ -45,7 +45,7 @@ export class GUI implements IGUI
   private go_down: boolean;
 
   private alt_pressed: boolean;
-  private mouse_ray : Ray;
+  public mouse_ray : Ray;
 
   /**
    *
@@ -125,13 +125,16 @@ export class GUI implements IGUI
       case 2: 
         {
           // send raycast from mouse pos
-          this.animation.try_destroy_block(this.mouse_ray)
+          this.animation.try_destroy_block()
           break
         }
     }
   }
-  public dragEnd(mouse: MouseEvent): void {
-      this.dragging = false;
+  public dragEnd(mouse: MouseEvent): void 
+  {
+    this.dragging = false;
+    this.animation.mining_block = false;
+    this.animation.render_wire_cube = false;
   }
   
   /**

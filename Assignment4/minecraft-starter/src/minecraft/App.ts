@@ -43,7 +43,7 @@ export class MinecraftAnimation extends CanvasAnimation
   // wire cube
   private wire_cube: WireCube
   private wire_cube_pass: RenderPass
-  private render_wire_cube: boolean = false
+  public render_wire_cube: boolean = false
 
   /* Global Rendering Info */
   private lightPosition: Vec4;
@@ -52,6 +52,10 @@ export class MinecraftAnimation extends CanvasAnimation
   
   private canvas2d: HTMLCanvasElement;
   public player: Player;
+  public mining_block = false;
+  public current_block: CubeCollider;
+  private start_mine: number;
+  private block_mine_time: number = 200;
 
   // render pass for rendering rays
   private prev_ray_length : number = 0;
@@ -100,7 +104,7 @@ export class MinecraftAnimation extends CanvasAnimation
     this.initBlankCube();
     
     // wire cube
-    this.render_wire_cube = true
+    this.render_wire_cube = false
     this.wire_cube = new WireCube(new Vec3([0.0, 46.0, 0.0]), Utils.CUBE_LEN, 'red')
     this.wire_cube_pass = new RenderPass(gl, ray_vertex_shader, ray_fragment_shader)
     this.init_wire_cube()
@@ -442,20 +446,21 @@ export class MinecraftAnimation extends CanvasAnimation
   }
 
   // send mouse raycast and chunk blocks to player
-  public try_destroy_block(ray: Ray): void
+  public try_destroy_block(): void
   {
     const cubes: CubeCollider[] = this.current_chunk.get_cube_colliders()
     let near: CubeCollider[] = new Array<CubeCollider>()
     let min_t: number = Number.MAX_VALUE
     let hit_idx: number = -1;
     let face: CubeFace = CubeFace.negX
+    let ray: Ray = this.gui.mouse_ray
 
     // get all blocks within a certain range
     for (let i = 0; i < cubes.length; i++)
     {
       if (Vec3.distance(cubes[i].get_pos(), ray.get_origin()) <= Utils.PLAYER_REACH)
       {
-          near.push(cubes[i])
+        near.push(cubes[i])
       }
     }
 
@@ -475,10 +480,35 @@ export class MinecraftAnimation extends CanvasAnimation
     // if hit a cube
     if (hit_idx > -1 && min_t > -1)
     {
-      // find cube and hightlight
-      this.wire_cube.set_positions(near[hit_idx].get_pos(), Utils.CUBE_LEN)
+      // start mining
+      if (!this.mining_block)
+      {
+        this.mining_block = true
+        this.start_mine = Date.now()
+        this.current_block = near[hit_idx]
+
+        // hightlight cube
+        this.wire_cube.set_color('red')
+        this.wire_cube.set_positions(near[hit_idx].get_pos(), Utils.CUBE_LEN)
+        this.render_wire_cube = true
+      }
+    }
+  }
+
+  private mine_block(): void
+  {
+    let res = Utils.ray_cube_intersection(this.gui.mouse_ray, this.current_block)
+    if (res[0] < -1)
+    {
+      // reset mine bool 
+      this.mining_block = false
+      this.render_wire_cube = false
+    }
+    // check if mine 
+    if (Date.now() - this.start_mine >= this.block_mine_time)
+    {
       // remove cube from chunk
-      this.current_chunk.remove_cube(near[hit_idx].get_pos(), face)
+      this.current_chunk.remove_cube(this.current_block.get_pos(), CubeFace.negX)
       // search for chunk in chunk datas
       const chunk: Vec2 = this.player.get_chunk()
       let found_data: boolean = false
@@ -497,6 +527,8 @@ export class MinecraftAnimation extends CanvasAnimation
       {
         this.chunk_datas[idx].update(this.current_chunk.get_cube_pos(), this.current_chunk.get_removed_cubes())
       }
+      // change wire color
+      this.wire_cube.set_color('green')
     }
   }
 
@@ -513,6 +545,12 @@ export class MinecraftAnimation extends CanvasAnimation
 
     // apply physics to player rigid body
     this.player.update(move_dir, this.current_chunk, this.edge_colliders, this.get_delta_time())
+
+    // mine block
+    if (this.mining_block)
+    {
+      this.mine_block()
+    }
     
     // set player's current chunk
     const curr_chunk: Vec2 = Utils.pos_to_chunck(this.player.get_pos())
