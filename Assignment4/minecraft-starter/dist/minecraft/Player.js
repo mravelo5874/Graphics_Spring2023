@@ -1,4 +1,4 @@
-import { Utils } from "./Utils.js";
+import { Utils, Ray } from "./Utils.js";
 import { Vec3 } from "../lib/TSM.js";
 import { CylinderCollider, AABB } from "./Colliders.js";
 export class Player {
@@ -66,15 +66,11 @@ export class Player {
         // calc displacement
         const disp = this.vel.copy().scale(delta_time);
         this.pos.add(disp.copy());
-        // update collider
-        this.collider.start = this.pos.copy();
-        this.collider.end = this.pos.copy().subtract(new Vec3([0, Utils.PLAYER_HEIGHT, 0]));
-        this.aabb.pos = this.pos.copy();
         // return if player in creative mode
         if (this.creative_mode) {
             return;
         }
-        // detect collisions with chunk blocks
+        // detect vertical collisions with chunk blocks
         const cubes = _chunk.get_cube_colliders();
         for (let i = 0; i < cubes.length; i++) {
             // check for vertical collision
@@ -85,8 +81,6 @@ export class Player {
                 // apply offset
                 this.pos = new Vec3([this.pos.x, cubes[i].get_pos().y + (Utils.CUBE_LEN / 2) + this.collider.height, this.pos.z]);
                 this.vel.y = 0;
-                this.collider.start = this.pos.copy();
-                this.collider.end = this.pos.copy().subtract(new Vec3([0, Utils.PLAYER_HEIGHT, 0]));
             }
         }
         // detect collisions with edge blocks
@@ -99,10 +93,29 @@ export class Player {
                 // apply offset
                 this.pos = new Vec3([this.pos.x, _edges[i].get_pos().y + (Utils.CUBE_LEN / 2) + this.collider.height, this.pos.z]);
                 this.vel.y = 0;
-                this.collider.start = this.pos.copy();
-                this.collider.end = this.pos.copy().subtract(new Vec3([0, Utils.PLAYER_HEIGHT, 0]));
             }
         }
+        // generate ray from player displacement vector
+        const vec = new Vec3([disp.x, 0, disp.z]).normalize();
+        const ray = new Ray(this.collider.end.copy(), vec.copy());
+        // detect vertical collisions with chunk blocks
+        // for (let i = 0; i < cubes.length; i++)
+        // {
+        //     // check for vertical collision
+        //     const res = Utils.ray_cube_intersection(ray, cubes[i])
+        //     const i_pos_v3 = ray.get_origin().add(ray.get_direction().scale(res[0]))
+        //     const i_pos_v2 = new Vec2([i_pos_v3.x, i_pos_v3.z])
+        //     const p_pos_v2 = new Vec2([this.pos.x, this.pos.z])
+        //     if (Vec2.distance(i_pos_v2, p_pos_v2) <= Utils.PLAYER_RADIUS)
+        //     {
+        //         console.log('vert collision detected!')
+        //         // determine offset
+        //         const offset = i_pos_v3.add(ray.get_inverse().scale(Utils.PLAYER_RADIUS))
+        //         // TODO update xz velocity
+        //         // apply offset
+        //         this.pos.add(offset)
+        //     }
+        // }
         // get the top-most cube in the player's position
         const my_cube = _chunk.get_cube_from_pos(this.pos);
         if (my_cube) {

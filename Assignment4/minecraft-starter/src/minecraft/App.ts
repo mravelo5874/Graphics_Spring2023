@@ -9,21 +9,23 @@ import {
   blankCubeVSText,
 
   ray_vertex_shader,
-  ray_fragment_shader
+  ray_fragment_shader,
+
+  water_vertex_shader,
+  water_fragment_shader
 } from "./Shaders.js";
 import { Mat4, Vec4, Vec3, Vec2 } from "../lib/TSM.js";
 import { RenderPass } from "../lib/webglutils/RenderPass.js";
-import { Camera } from "../lib/webglutils/Camera.js";
 import { Cube } from "./Cube.js";
 import { Chunk, noise_map_data, chunk_data } from "./Chunk.js";
 
 // custom imports
 import { Utils, Ray, print, CubeFace } from "./Utils.js";
 import { Player } from "./Player.js";
-import { Noise } from "./Noise.js";
 import { CubeCollider } from "./Colliders.js";
 import { RaycastRenderer } from "./RaycastRenderer.js";
 import { WireCube } from "./WireCube.js";
+import { Water } from "./Water.js";
 
 export class MinecraftAnimation extends CanvasAnimation
 {
@@ -39,6 +41,10 @@ export class MinecraftAnimation extends CanvasAnimation
   /*  Cube Rendering */
   private cubeGeometry: Cube;
   private blankCubeRenderPass: RenderPass;
+
+  /* water rendering */
+  private water: Water;
+  private water_render_pass: RenderPass;
 
   // wire cube
   private wire_cube: WireCube
@@ -102,6 +108,10 @@ export class MinecraftAnimation extends CanvasAnimation
     this.blankCubeRenderPass = new RenderPass(gl, blankCubeVSText, blankCubeFSText);
     this.cubeGeometry = new Cube();
     this.initBlankCube();
+
+    // water
+    this.water = new Water(this.player.get_chunk())
+    this.water_render_pass = new RenderPass(gl, water_vertex_shader, water_fragment_shader)
     
     // wire cube
     this.render_wire_cube = false
