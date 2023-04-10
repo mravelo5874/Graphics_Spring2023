@@ -270,5 +270,6 @@ Utils.PLAYER_RADIUS = 0.1;
 Utils.PLAYER_HEIGHT = 2;
 Utils.PLAYER_REACH = 8.0;
 Utils.SQRT2 = 1.41421356237;
+Utils.WATER_LEVEL = -30;
 export { Utils };
 //# sourceMappingURL=Utils.js.map

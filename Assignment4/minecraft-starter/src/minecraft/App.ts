@@ -112,6 +112,7 @@ export class MinecraftAnimation extends CanvasAnimation
     // water
     this.water = new Water(this.player.get_chunk())
     this.water_render_pass = new RenderPass(gl, water_vertex_shader, water_fragment_shader)
+    this.init_water()
     
     // wire cube
     this.render_wire_cube = false
@@ -402,6 +403,38 @@ export class MinecraftAnimation extends CanvasAnimation
     this.blankCubeRenderPass.setup();    
   }
 
+  // init water rendering
+  private init_water(): void 
+  {
+    this.water_render_pass.setIndexBufferData(this.water.get_indices());
+    this.water_render_pass.addAttribute("vertex_pos",
+      4,
+      this.ctx.FLOAT,
+      false,
+      4 * Float32Array.BYTES_PER_ELEMENT,
+      0,
+      undefined,
+      this.water.get_positions()
+    );
+    
+    // add matricies
+    this.water_render_pass.addUniform("world_mat",
+    (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+      gl.uniformMatrix4fv(loc, false, new Float32Array(Mat4.identity.all()));
+    });
+    this.water_render_pass.addUniform("proj_mat",
+      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+        gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.projMatrix().all()));
+    });
+    this.water_render_pass.addUniform("view_mat",
+      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+        gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.viewMatrix().all()));
+    });
+    
+    this.water_render_pass.setDrawData(this.ctx.TRIANGLES, this.water.get_indices().length, this.ctx.UNSIGNED_INT, 0);
+    this.water_render_pass.setup();    
+  }
+
   // used to update chunks after terrain change has been made 
   public update_terrain(): void
   {
@@ -579,6 +612,10 @@ export class MinecraftAnimation extends CanvasAnimation
 
       // and adj chunks
       this.try_load_adj_chunks(curr_chunk.copy())
+
+      // update water
+      this.water.update_chunk(this.player.get_chunk())
+      this.init_water()
     }
 
     // init rays update
@@ -640,6 +677,9 @@ export class MinecraftAnimation extends CanvasAnimation
       this.wire_cube_pass.draw();
       gl.enable(gl.DEPTH_TEST);
     }
+
+    // draw water
+    this.water_render_pass.draw()
   }
 
   private get_all_cube_pos(): Float32Array

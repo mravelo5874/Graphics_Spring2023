@@ -77,6 +77,7 @@ export class Utils
     public static PLAYER_HEIGHT: number = 2
     public static PLAYER_REACH: number = 8.0
     public static SQRT2: number = 1.41421356237
+    public static WATER_LEVEL: number = -30
 
     // returns what chunk the player is in based of their position
     public static pos_to_chunck(pos: Vec3): Vec2

@@ -54,6 +54,7 @@ class MinecraftAnimation extends CanvasAnimation {
         // water
         this.water = new Water(this.player.get_chunk());
         this.water_render_pass = new RenderPass(gl, water_vertex_shader, water_fragment_shader);
+        this.init_water();
         // wire cube
         this.render_wire_cube = false;
         this.wire_cube = new WireCube(new Vec3([0.0, 46.0, 0.0]), Utils.CUBE_LEN, 'red');
@@ -208,6 +209,23 @@ class MinecraftAnimation extends CanvasAnimation {
         this.blankCubeRenderPass.setDrawData(this.ctx.TRIANGLES, this.cubeGeometry.indicesFlat().length, this.ctx.UNSIGNED_INT, 0);
         this.blankCubeRenderPass.setup();
     }
+    // init water rendering
+    init_water() {
+        this.water_render_pass.setIndexBufferData(this.water.get_indices());
+        this.water_render_pass.addAttribute("vertex_pos", 4, this.ctx.FLOAT, false, 4 * Float32Array.BYTES_PER_ELEMENT, 0, undefined, this.water.get_positions());
+        // add matricies
+        this.water_render_pass.addUniform("world_mat", (gl, loc) => {
+            gl.uniformMatrix4fv(loc, false, new Float32Array(Mat4.identity.all()));
+        });
+        this.water_render_pass.addUniform("proj_mat", (gl, loc) => {
+            gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.projMatrix().all()));
+        });
+        this.water_render_pass.addUniform("view_mat", (gl, loc) => {
+            gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.viewMatrix().all()));
+        });
+        this.water_render_pass.setDrawData(this.ctx.TRIANGLES, this.water.get_indices().length, this.ctx.UNSIGNED_INT, 0);
+        this.water_render_pass.setup();
+    }
     // used to update chunks after terrain change has been made 
     update_terrain() {
         this.scale_ui = this.terrain_data.scale;
@@ -345,6 +363,9 @@ class MinecraftAnimation extends CanvasAnimation {
             this.current_chunk = res[1];
             // and adj chunks
             this.try_load_adj_chunks(curr_chunk.copy());
+            // update water
+            this.water.update_chunk(this.player.get_chunk());
+            this.init_water();
         }
         // init rays update
         if (this.prev_ray_length < this.rr.get_rays().length) {
@@ -391,6 +412,8 @@ class MinecraftAnimation extends CanvasAnimation {
             this.wire_cube_pass.draw();
             gl.enable(gl.DEPTH_TEST);
         }
+        // draw water
+        this.water_render_pass.draw();
     }
     get_all_cube_pos() {
         let float_array = new Array();

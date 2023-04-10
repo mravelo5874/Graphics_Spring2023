@@ -28,7 +28,7 @@ export const ray_fragment_shader = `
     }
 `;
 //  WATER SHADERS //
-export const water_fragment_shader = `
+export const water_vertex_shader = `
     precision mediump float;
 
     uniform mat4 world_mat;
@@ -39,13 +39,13 @@ export const water_fragment_shader = `
 
     void main()
     {
-        gl_Position = proj_mat * view_mat * world_mat * vec4(vertex_pos, 1.0);
+        gl_Position = proj_mat * view_mat * world_mat * vertex_pos;
     }
 `;
-export const water_vertex_shader = `
+export const water_fragment_shader = `
     precision mediump float;
 
-    void main() 
+    void main()
     {
         gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);
     }

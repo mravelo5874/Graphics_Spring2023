@@ -1,6 +1,7 @@
 //  RAY SHADERS //
 
-export const ray_vertex_shader = `
+export const ray_vertex_shader = 
+`
     precision mediump float;
 
     attribute vec3 vertex_pos;
@@ -19,7 +20,8 @@ export const ray_vertex_shader = `
     }
 `;
 
-export const ray_fragment_shader = `
+export const ray_fragment_shader = 
+`
     precision mediump float;
 
     varying vec3 ray_color;
@@ -32,7 +34,7 @@ export const ray_fragment_shader = `
 
 //  WATER SHADERS //
 
-export const water_fragment_shader = 
+export const water_vertex_shader = 
 `
     precision mediump float;
 
@@ -44,14 +46,15 @@ export const water_fragment_shader =
 
     void main()
     {
-        gl_Position = proj_mat * view_mat * world_mat * vec4(vertex_pos, 1.0);
+        gl_Position = proj_mat * view_mat * world_mat * vertex_pos;
     }
 `;
 
-export const water_vertex_shader = `
+export const water_fragment_shader = 
+`
     precision mediump float;
 
-    void main() 
+    void main()
     {
         gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);
     }
