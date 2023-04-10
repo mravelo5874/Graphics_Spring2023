@@ -56,7 +56,7 @@ export const water_fragment_shader =
 
     void main()
     {
-        gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);
+        gl_FragColor = vec4(0.086, 0.505, 0.792, 0.5);
     }
 `;
 

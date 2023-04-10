@@ -53,8 +53,16 @@ export class Player
         // apply physics
         // w/ some help from: https://catlikecoding.com/unity/tutorials/movement/sliding-a-sphere/
         
-        // apply gravity
-        if (!this.creative_mode) { this.acc = Utils.GRAVITY.copy() }
+        // accelerations to apply if not in creative mode
+        if (!this.creative_mode)
+        {
+            // apply gravity 
+            if (this.pos.y > Utils.WATER_LEVEL) { this.acc = Utils.GRAVITY.copy() }
+
+            // bouyancy if in water
+            if (this.pos.y < Utils.WATER_LEVEL && this.pos.y > Utils.WATER_LEVEL + (Utils.PLAYER_HEIGHT * 0.5)) this.acc = new Vec3([0.0, -0.04, 0.0])
+            else if (this.pos.y < Utils.WATER_LEVEL + (Utils.PLAYER_HEIGHT * 0.5) ) this.acc = new Vec3([0.0, 0.04, 0.0])
+        }
 
         // calculate velocity
 		let des_vel: Vec3 = dir.copy().add(this.acc.copy().scale(delta_time)).scale(this.speed)

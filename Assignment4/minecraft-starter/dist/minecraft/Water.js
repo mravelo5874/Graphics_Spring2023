@@ -4,7 +4,8 @@ export class Water {
     get_indices() { return this.indices_u32; }
     get_positions() { return this.vertex_f32; }
     constructor(init_chunk) {
-        this.indices = [0, 1, 2, 2, 3, 0];
+        this.indices = [0, 1, 2, 2, 3, 0,
+            0, 3, 2, 2, 1, 0];
         this.indices_u32 = new Uint32Array(this.indices);
         this.update_chunk(init_chunk.copy());
     }
@@ -27,6 +28,18 @@ export class Water {
             this.vertex_pos.push(corner_1.at(i));
         for (let i = 0; i < 4; i++)
             this.vertex_pos.push(corner_2.at(i));
+        for (let i = 0; i < 4; i++)
+            this.vertex_pos.push(corner_0.at(i));
+        for (let i = 0; i < 4; i++)
+            this.vertex_pos.push(corner_0.at(i));
+        for (let i = 0; i < 4; i++)
+            this.vertex_pos.push(corner_2.at(i));
+        for (let i = 0; i < 4; i++)
+            this.vertex_pos.push(corner_1.at(i));
+        for (let i = 0; i < 4; i++)
+            this.vertex_pos.push(corner_2.at(i));
+        for (let i = 0; i < 4; i++)
+            this.vertex_pos.push(corner_3.at(i));
         for (let i = 0; i < 4; i++)
             this.vertex_pos.push(corner_0.at(i));
         this.vertex_f32 = new Float32Array(this.vertex_pos);

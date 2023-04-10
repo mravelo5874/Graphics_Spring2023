@@ -658,6 +658,7 @@ export class MinecraftAnimation extends CanvasAnimation
   private drawScene(x: number, y: number, width: number, height: number): void 
   {
     const gl: WebGLRenderingContext = this.ctx;
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.viewport(x, y, width, height);
 
     // Render multiple chunks around the player, using Perlin noise shaders
@@ -679,7 +680,12 @@ export class MinecraftAnimation extends CanvasAnimation
     }
 
     // draw water
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_CONSTANT_ALPHA);
+    gl.enable(gl.BLEND);
+    //gl.disable(gl.DEPTH_TEST);
     this.water_render_pass.draw()
+    //gl.enable(gl.DEPTH_TEST);
+    gl.disable(gl.BLEND);
   }
 
   private get_all_cube_pos(): Float32Array

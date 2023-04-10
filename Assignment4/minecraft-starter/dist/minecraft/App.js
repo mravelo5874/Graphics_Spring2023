@@ -398,6 +398,7 @@ class MinecraftAnimation extends CanvasAnimation {
     }
     drawScene(x, y, width, height) {
         const gl = this.ctx;
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.viewport(x, y, width, height);
         // Render multiple chunks around the player, using Perlin noise shaders
         this.blankCubeRenderPass.updateAttributeBuffer("aOffset", this.get_all_cube_pos());
@@ -413,7 +414,12 @@ class MinecraftAnimation extends CanvasAnimation {
             gl.enable(gl.DEPTH_TEST);
         }
         // draw water
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_CONSTANT_ALPHA);
+        gl.enable(gl.BLEND);
+        //gl.disable(gl.DEPTH_TEST);
         this.water_render_pass.draw();
+        //gl.enable(gl.DEPTH_TEST);
+        gl.disable(gl.BLEND);
     }
     get_all_cube_pos() {
         let float_array = new Array();

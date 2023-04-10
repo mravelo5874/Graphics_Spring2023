@@ -31,9 +31,17 @@ export class Player {
     update(dir, _chunk, _edges, delta_time) {
         // apply physics
         // w/ some help from: https://catlikecoding.com/unity/tutorials/movement/sliding-a-sphere/
-        // apply gravity
+        // accelerations to apply if not in creative mode
         if (!this.creative_mode) {
-            this.acc = Utils.GRAVITY.copy();
+            // apply gravity 
+            if (this.pos.y > Utils.WATER_LEVEL) {
+                this.acc = Utils.GRAVITY.copy();
+            }
+            // bouyancy if in water
+            if (this.pos.y < Utils.WATER_LEVEL && this.pos.y > Utils.WATER_LEVEL + (Utils.PLAYER_HEIGHT * 0.5))
+                this.acc = new Vec3([0.0, -0.04, 0.0]);
+            else if (this.pos.y < Utils.WATER_LEVEL + (Utils.PLAYER_HEIGHT * 0.5))
+                this.acc = new Vec3([0.0, 0.04, 0.0]);
         }
         // calculate velocity
         let des_vel = dir.copy().add(this.acc.copy().scale(delta_time)).scale(this.speed);
