@@ -90,6 +90,13 @@ export class RenderPass {
     drawInstanced(instances) {
         this.drawHelper(instances);
     }
+    get_uniform_location(u_name) {
+        for (let [key, value] of this.uniforms) {
+            if (key == u_name)
+                return value.location;
+        }
+        return this.uniforms[0].location;
+    }
     drawHelper(instances) {
         let gl = this.ctx;
         gl.useProgram(this.shaderProgram);

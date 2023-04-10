@@ -27,8 +27,8 @@ export const ray_fragment_shader = `
         gl_FragColor = vec4(ray_color, 1.0);
     }
 `;
-//  WATER SHADERS //
-export const water_vertex_shader = `
+//  WATER 1 SHADERS //
+export const water_1_vertex_shader = `
     precision mediump float;
 
     uniform mat4 world_mat;
@@ -36,18 +36,325 @@ export const water_vertex_shader = `
     uniform mat4 view_mat;
 
     attribute vec4 vertex_pos;
+    attribute vec2 a_uv;
+    attribute float a_time;
+
+    varying vec2 uv;
+    varying vec4 ws_pos;
 
     void main()
     {
         gl_Position = proj_mat * view_mat * world_mat * vertex_pos;
+        uv = a_uv;
+        ws_pos = vertex_pos;
     }
 `;
-export const water_fragment_shader = `
+export const water_1_fragment_shader = `
     precision mediump float;
+
+    uniform vec4 light_pos;
+    uniform float time;
+
+    varying vec2 uv;
+    varying vec4 ws_pos;
+
+    float inverse_lerp(float p0, float p1, float val)
+    {
+        // clamp value to range if outside
+        if (val > p1) return 1.0;
+        else if (val < p0) return 0.0;
+        // return t value
+        return (val - p0) / (p1 - p0);
+    }
+
+    float smoothmix(float a0, float a1, float w) 
+    {
+        return (a1 - a0) * (3.0 - w * 2.0) * w * w + a0;
+    }
+
+    // return a random float value between 0 and 1 (i think ???)
+    float random (vec2 pt, float seed) 
+    {
+        return fract(sin((seed + dot(pt.xy, vec2(12.9898,78.233))))*43758.5453123);
+    }
+
+    float not_as_random(vec2 pt, float seed)
+    {
+        return fract(sin((seed + dot(pt.xy, vec2(12.9898,12.233))))*0.7);
+    }
+
+    // returns a random unit vector
+    vec2 rand_unit_vec(vec2 xy, float seed) 
+    {
+        float theta = 6.28318530718*random(xy, seed);
+        return vec2(cos(theta), sin(theta));
+    }
+
+    // linearly interpolate between two numbers
+    float interpolate(float a0, float a1, float t)
+    {
+        if (0.0 > t) return a0;
+        if (1.0 < t) return a1;
+
+        return smoothmix(a0, a1, t);
+    }
+
+    // compute the dot product of the distance and grad vectors
+    float dot_grid_grad(int ix, int iy, float x, float y, float seed)
+    {
+        // get the gradient from integer coords
+        vec2 pos = vec2(float(ix), float(iy));
+        vec2 grad = rand_unit_vec(pos, seed);
+
+        // compute distance vector
+        float dx = x - float(ix);
+        float dy = y - float(iy);
+
+        // compute and return dot product
+        return (dx*grad.x + dy*grad.y);
+    }
+
+    float perlin_2d(float x, float y, float seed)
+    {
+        // determine grid cell coords
+        int x0 = int(floor(x));
+        int x1 = x0 + 1;
+        int y0 = int(floor(y));
+        int y1 = y0 + 1;
+
+        // determine interpolation weights
+        float sx = x - float(x0);
+        float sy = y - float(y0);
+
+        // interpolate between grid values
+        float n0, n1, ix0, ix1, value;
+
+        n0 = dot_grid_grad(x0, y0, x, y, seed);
+        n1 = dot_grid_grad(x1, y0, x, y, seed);
+        ix0 = interpolate(n0, n1, sx);
+
+        n0 = dot_grid_grad(x0, y1, x, y, seed);
+        n1 = dot_grid_grad(x1, y1, x, y, seed);
+        ix1 = interpolate(n0, n1, sx);
+
+        value = interpolate(ix0, ix1, sy);
+        return value;
+    }
+
+    float perlin(vec2 pos, float seed, float scale, float persistance, float lacunarity, vec3 _offset)
+    {
+        float amplitude = 1.0;
+        float frequency = 1.0;
+        float noise_height = 0.0;
+
+        const int octs = 4;
+        for (int i = 0; i < octs; i++)
+        {
+            float x = (pos.x + _offset.x + (_offset.y * 4.0)) / scale * frequency;
+            float y = (pos.y + _offset.z + (_offset.y * 4.0)) / scale * frequency;
+            float p = perlin_2d(x, y, seed) * 2.0 + 0.5;
+
+            noise_height += p * amplitude;
+            amplitude *= persistance;
+            frequency *= lacunarity;
+        }
+
+        return noise_height;
+    }
 
     void main()
     {
-        gl_FragColor = vec4(0.086, 0.505, 0.792, 0.5);
+        float seed = 42.0;
+        float scale = 0.04;
+        float persistance = (sin(time * 0.001) * 0.1) + 0.5;
+
+        float lacunarity = (cos(time * 0.00003) + 10.0);
+        vec3 offset = vec3(0.0, 0.0, 0.0);
+        
+        vec3 kd = vec3(0.086, 0.505, 0.792);
+        float sample = perlin(uv, seed, scale, persistance, lacunarity, offset);
+        if (sample >= 2.0)
+        {
+            kd = vec3(1.0, 1.0, 1.0);
+        }
+        else if (sample < 2.0 && sample > 1.6)
+        {
+            kd = vec3(0.718, 1.0, 0.984);
+        }
+        else if (sample < 1.6 && sample > 1.0)
+        {
+            kd = vec3(0.086, 0.505, 0.792);
+        }
+        
+        vec3 ka = vec3(0.0, 0.0, 0.0);
+        vec4 lightDirection = light_pos - ws_pos;
+        vec4 normal = vec4(0.0, 1.0, 0.0, 0.0);
+        float dot_nl = dot(normalize(lightDirection), normalize(normal));
+	    dot_nl = clamp(dot_nl, 0.0, 1.0);
+        gl_FragColor = vec4(clamp(ka + dot_nl * kd, 0.0, 1.0), 0.6);
+    }
+`;
+//  WATER 2 SHADERS //
+export const water_2_vertex_shader = `
+    precision mediump float;
+
+    uniform mat4 world_mat;
+    uniform mat4 proj_mat;
+    uniform mat4 view_mat;
+
+    attribute vec4 vertex_pos;
+    attribute vec2 a_uv;
+    attribute float a_time;
+
+    varying vec2 uv;
+    varying vec4 ws_pos;
+
+    void main()
+    {
+        gl_Position = proj_mat * view_mat * world_mat * vertex_pos;
+        uv = a_uv;
+        ws_pos = vertex_pos;
+    }
+`;
+export const water_2_fragment_shader = `
+    precision mediump float;
+
+    uniform vec4 light_pos;
+    uniform float time;
+
+    varying vec2 uv;
+    varying vec4 ws_pos;
+
+    float inverse_lerp(float p0, float p1, float val)
+    {
+        // clamp value to range if outside
+        if (val > p1) return 1.0;
+        else if (val < p0) return 0.0;
+        // return t value
+        return (val - p0) / (p1 - p0);
+    }
+
+    float smoothmix(float a0, float a1, float w) 
+    {
+        return (a1 - a0) * (3.0 - w * 2.0) * w * w + a0;
+    }
+
+    // return a random float value between 0 and 1 (i think ???)
+    float random (vec2 pt, float seed) 
+    {
+        return fract(sin((seed + dot(pt.xy, vec2(12.9898,78.233))))*43758.5453123);
+    }
+
+    float not_as_random(vec2 pt, float seed)
+    {
+        return fract(sin((seed + dot(pt.xy, vec2(12.9898,12.233))))*0.7);
+    }
+
+    // returns a random unit vector
+    vec2 rand_unit_vec(vec2 xy, float seed) 
+    {
+        float theta = 6.28318530718*random(xy, seed);
+        return vec2(cos(theta), sin(theta));
+    }
+
+    // linearly interpolate between two numbers
+    float interpolate(float a0, float a1, float t)
+    {
+        if (0.0 > t) return a0;
+        if (1.0 < t) return a1;
+
+        return smoothmix(a0, a1, t);
+    }
+
+    // compute the dot product of the distance and grad vectors
+    float dot_grid_grad(int ix, int iy, float x, float y, float seed)
+    {
+        // get the gradient from integer coords
+        vec2 pos = vec2(float(ix), float(iy));
+        vec2 grad = rand_unit_vec(pos, seed);
+
+        // compute distance vector
+        float dx = x - float(ix);
+        float dy = y - float(iy);
+
+        // compute and return dot product
+        return (dx*grad.x + dy*grad.y);
+    }
+
+    float perlin_2d(float x, float y, float seed)
+    {
+        // determine grid cell coords
+        int x0 = int(floor(x));
+        int x1 = x0 + 1;
+        int y0 = int(floor(y));
+        int y1 = y0 + 1;
+
+        // determine interpolation weights
+        float sx = x - float(x0);
+        float sy = y - float(y0);
+
+        // interpolate between grid values
+        float n0, n1, ix0, ix1, value;
+
+        n0 = dot_grid_grad(x0, y0, x, y, seed);
+        n1 = dot_grid_grad(x1, y0, x, y, seed);
+        ix0 = interpolate(n0, n1, sx);
+
+        n0 = dot_grid_grad(x0, y1, x, y, seed);
+        n1 = dot_grid_grad(x1, y1, x, y, seed);
+        ix1 = interpolate(n0, n1, sx);
+
+        value = interpolate(ix0, ix1, sy);
+        return value;
+    }
+
+    float perlin(vec2 pos, float seed, float scale, float persistance, float lacunarity, vec3 _offset)
+    {
+        float amplitude = 1.0;
+        float frequency = 1.0;
+        float noise_height = 0.0;
+
+        const int octs = 4;
+        for (int i = 0; i < octs; i++)
+        {
+            float x = (pos.x + _offset.x + (_offset.y * 4.0)) / scale * frequency;
+            float y = (pos.y + _offset.z + (_offset.y * 4.0)) / scale * frequency;
+            float p = perlin_2d(x, y, seed) * 2.0 + 0.5;
+
+            noise_height += p * amplitude;
+            amplitude *= persistance;
+            frequency *= lacunarity;
+        }
+
+        return noise_height;
+    }
+
+    void main()
+    {
+        float seed = 434.0;
+        float scale = 0.036;
+        float persistance = (cos(time * 0.0014) * 0.11) + 0.4;
+
+        float lacunarity = (sin(time * 0.00004) + 11.0);
+        vec3 offset = vec3(0.0, 0.0, 0.0);
+        
+        vec3 kd = vec3(0.086, 0.505, 0.792);
+        float sample = perlin(uv, seed, scale, persistance, lacunarity, offset);
+        if (sample >= 2.0)
+        {
+            kd = vec3(1.0, 1.0, 1.0);
+        }
+        else if (sample < 2.0 && sample > 1.6)
+        {
+            kd = vec3(0.718, 1.0, 0.984);
+        }
+        
+        vec3 ka = vec3(0.0, 0.0, 0.0);
+        vec4 lightDirection = light_pos - ws_pos;
+        vec4 normal = vec4(0.0, 1.0, 0.0, 0.0);
+        float dot_nl = dot(normalize(lightDirection), normalize(normal));
+	    dot_nl = clamp(dot_nl, 0.0, 1.0);
+        gl_FragColor = vec4(clamp(ka + dot_nl * kd, 0.0, 1.0), 0.7);
     }
 `;
 //  CUBE SHADERS //

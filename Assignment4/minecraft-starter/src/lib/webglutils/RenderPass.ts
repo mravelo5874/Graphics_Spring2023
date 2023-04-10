@@ -6,7 +6,7 @@ export class RenderPass {
   /* Shader information */
   private vShader: string;
   private fShader: string;
-  private shaderProgram: WebGLProgram;
+  public shaderProgram: WebGLProgram;
 
   /* Attributes and indices */
   private VAO: WebGLVertexArrayObject;
@@ -140,6 +140,15 @@ export class RenderPass {
   
   public drawInstanced(instances: number) {
     this.drawHelper(instances);
+  }
+
+  public get_uniform_location(u_name: string)
+  {
+    for (let [key, value] of this.uniforms) 
+    {
+      if (key == u_name) return value.location
+    }
+    return this.uniforms[0].location
   }
 
   private drawHelper(instances: number) {

@@ -11,8 +11,11 @@ import {
   ray_vertex_shader,
   ray_fragment_shader,
 
-  water_vertex_shader,
-  water_fragment_shader
+  water_1_vertex_shader,
+  water_1_fragment_shader,
+
+  water_2_vertex_shader,
+  water_2_fragment_shader
 } from "./Shaders.js";
 import { Mat4, Vec4, Vec3, Vec2 } from "../lib/TSM.js";
 import { RenderPass } from "../lib/webglutils/RenderPass.js";
@@ -43,8 +46,13 @@ export class MinecraftAnimation extends CanvasAnimation
   private blankCubeRenderPass: RenderPass;
 
   /* water rendering */
-  private water: Water;
-  private water_render_pass: RenderPass;
+  private water_1: Water;
+  private water_render_pass_1: RenderPass;
+  private water_time_location_1: WebGLUniformLocation
+
+  private water_2: Water;
+  private water_render_pass_2: RenderPass;
+  private water_time_location_2: WebGLUniformLocation
 
   // wire cube
   private wire_cube: WireCube
@@ -109,10 +117,15 @@ export class MinecraftAnimation extends CanvasAnimation
     this.cubeGeometry = new Cube();
     this.initBlankCube();
 
-    // water
-    this.water = new Water(this.player.get_chunk())
-    this.water_render_pass = new RenderPass(gl, water_vertex_shader, water_fragment_shader)
-    this.init_water()
+    // water 1
+    this.water_1 = new Water(this.player.get_chunk(), Utils.WATER_LEVEL)
+    this.water_render_pass_1 = new RenderPass(gl, water_1_vertex_shader, water_1_fragment_shader)
+    this.init_water_1()
+
+    // water 2
+    this.water_2 = new Water(this.player.get_chunk(), Utils.WATER_LEVEL - 0.1)
+    this.water_render_pass_2 = new RenderPass(gl, water_2_vertex_shader, water_2_fragment_shader)
+    this.init_water_2()
     
     // wire cube
     this.render_wire_cube = false
@@ -403,36 +416,122 @@ export class MinecraftAnimation extends CanvasAnimation
     this.blankCubeRenderPass.setup();    
   }
 
-  // init water rendering
-  private init_water(): void 
+  // init water 1 rendering
+  private init_water_1(): void 
   {
-    this.water_render_pass.setIndexBufferData(this.water.get_indices());
-    this.water_render_pass.addAttribute("vertex_pos",
+    this.water_render_pass_1.setIndexBufferData(this.water_1.get_indices());
+    this.water_render_pass_1.addAttribute("vertex_pos",
       4,
       this.ctx.FLOAT,
       false,
       4 * Float32Array.BYTES_PER_ELEMENT,
       0,
       undefined,
-      this.water.get_positions()
+      this.water_1.get_positions()
+    );
+    this.water_render_pass_1.addAttribute("a_uv",
+      2,
+      this.ctx.FLOAT,
+      false,
+      2 * Float32Array.BYTES_PER_ELEMENT,
+      0,
+      undefined,
+      this.water_1.get_uvs()
+    );
+    this.water_render_pass_1.addAttribute("a_time",
+      1,
+      this.ctx.FLOAT,
+      false,
+      1 * Float32Array.BYTES_PER_ELEMENT,
+      0,
+      undefined,
+      new Float32Array(this.get_elapsed_time())
     );
     
     // add matricies
-    this.water_render_pass.addUniform("world_mat",
+    this.water_render_pass_1.addUniform("world_mat",
     (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
       gl.uniformMatrix4fv(loc, false, new Float32Array(Mat4.identity.all()));
     });
-    this.water_render_pass.addUniform("proj_mat",
+    this.water_render_pass_1.addUniform("proj_mat",
       (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
         gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.projMatrix().all()));
     });
-    this.water_render_pass.addUniform("view_mat",
+    this.water_render_pass_1.addUniform("view_mat",
       (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
         gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.viewMatrix().all()));
     });
+    this.water_render_pass_1.addUniform("light_pos",
+      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+        gl.uniform4fv(loc, this.lightPosition.xyzw);
+    });
+    this.water_render_pass_1.addUniform("time",
+      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+        gl.uniform1f(loc, this.get_elapsed_time());
+    });
     
-    this.water_render_pass.setDrawData(this.ctx.TRIANGLES, this.water.get_indices().length, this.ctx.UNSIGNED_INT, 0);
-    this.water_render_pass.setup();    
+    this.water_render_pass_1.setDrawData(this.ctx.TRIANGLES, this.water_1.get_indices().length, this.ctx.UNSIGNED_INT, 0);
+    this.water_render_pass_1.setup();
+    this.water_time_location_1 = this.water_render_pass_1.get_uniform_location("time")
+  }
+
+  // init water 2 rendering
+  private init_water_2(): void 
+  {
+    this.water_render_pass_2.setIndexBufferData(this.water_2.get_indices());
+    this.water_render_pass_2.addAttribute("vertex_pos",
+      4,
+      this.ctx.FLOAT,
+      false,
+      4 * Float32Array.BYTES_PER_ELEMENT,
+      0,
+      undefined,
+      this.water_2.get_positions()
+    );
+    this.water_render_pass_2.addAttribute("a_uv",
+      2,
+      this.ctx.FLOAT,
+      false,
+      2 * Float32Array.BYTES_PER_ELEMENT,
+      0,
+      undefined,
+      this.water_2.get_uvs()
+    );
+    this.water_render_pass_2.addAttribute("a_time",
+      1,
+      this.ctx.FLOAT,
+      false,
+      1 * Float32Array.BYTES_PER_ELEMENT,
+      0,
+      undefined,
+      new Float32Array(this.get_elapsed_time())
+    );
+    
+    // add matricies
+    this.water_render_pass_2.addUniform("world_mat",
+    (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+      gl.uniformMatrix4fv(loc, false, new Float32Array(Mat4.identity.all()));
+    });
+    this.water_render_pass_2.addUniform("proj_mat",
+      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+        gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.projMatrix().all()));
+    });
+    this.water_render_pass_2.addUniform("view_mat",
+      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+        gl.uniformMatrix4fv(loc, false, new Float32Array(this.gui.viewMatrix().all()));
+    });
+    this.water_render_pass_2.addUniform("light_pos",
+      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+        gl.uniform4fv(loc, this.lightPosition.xyzw);
+    });
+    this.water_render_pass_2.addUniform("time",
+      (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => {
+        gl.uniform1f(loc, this.get_elapsed_time());
+    });
+    
+    this.water_render_pass_2.setDrawData(this.ctx.TRIANGLES, this.water_2.get_indices().length, this.ctx.UNSIGNED_INT, 0);
+    this.water_render_pass_2.setup();
+    this.water_time_location_2 = this.water_render_pass_2.get_uniform_location("time")
   }
 
   // used to update chunks after terrain change has been made 
@@ -613,9 +712,13 @@ export class MinecraftAnimation extends CanvasAnimation
       // and adj chunks
       this.try_load_adj_chunks(curr_chunk.copy())
 
-      // update water
-      this.water.update_chunk(this.player.get_chunk())
-      this.init_water()
+      // update water 1
+      this.water_1.update_chunk(this.player.get_chunk())
+      this.init_water_1()
+
+      // update water 2
+      this.water_2.update_chunk(this.player.get_chunk())
+      this.init_water_2()
     }
 
     // init rays update
@@ -679,12 +782,19 @@ export class MinecraftAnimation extends CanvasAnimation
       gl.enable(gl.DEPTH_TEST);
     }
 
-    // draw water
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_CONSTANT_ALPHA);
-    gl.enable(gl.BLEND);
-    //gl.disable(gl.DEPTH_TEST);
-    this.water_render_pass.draw()
-    //gl.enable(gl.DEPTH_TEST);
+    // update water delta time
+    const time = this.get_elapsed_time()
+    gl.useProgram(this.water_render_pass_1.shaderProgram)
+    gl.uniform1f(this.water_time_location_1, time);
+
+    gl.useProgram(this.water_render_pass_2.shaderProgram)
+    gl.uniform1f(this.water_time_location_2, time);
+
+    // draw waters
+    gl.enable(gl.BLEND)
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    this.water_render_pass_2.draw()
+    this.water_render_pass_1.draw()
     gl.disable(gl.BLEND);
   }
 
