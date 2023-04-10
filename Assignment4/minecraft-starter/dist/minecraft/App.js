@@ -1,7 +1,7 @@
 import { Debugger } from "../lib/webglutils/Debugging.js";
 import { CanvasAnimation } from "../lib/webglutils/CanvasAnimation.js";
 import { GUI } from "./Gui.js";
-import { blankCubeFSText, blankCubeVSText, ray_vertex_shader, ray_fragment_shader } from "./Shaders.js";
+import { blankCubeFSText, blankCubeVSText, ray_vertex_shader, ray_fragment_shader, water_vertex_shader, water_fragment_shader } from "./Shaders.js";
 import { Mat4, Vec4, Vec3, Vec2 } from "../lib/TSM.js";
 import { RenderPass } from "../lib/webglutils/RenderPass.js";
 import { Cube } from "./Cube.js";
@@ -11,6 +11,7 @@ import { Utils, CubeFace } from "./Utils.js";
 import { Player } from "./Player.js";
 import { RaycastRenderer } from "./RaycastRenderer.js";
 import { WireCube } from "./WireCube.js";
+import { Water } from "./Water.js";
 class MinecraftAnimation extends CanvasAnimation {
     constructor(canvas) {
         super(canvas);
@@ -50,6 +51,9 @@ class MinecraftAnimation extends CanvasAnimation {
         this.blankCubeRenderPass = new RenderPass(gl, blankCubeVSText, blankCubeFSText);
         this.cubeGeometry = new Cube();
         this.initBlankCube();
+        // water
+        this.water = new Water(this.player.get_chunk());
+        this.water_render_pass = new RenderPass(gl, water_vertex_shader, water_fragment_shader);
         // wire cube
         this.render_wire_cube = false;
         this.wire_cube = new WireCube(new Vec3([0.0, 46.0, 0.0]), Utils.CUBE_LEN, 'red');
@@ -211,9 +215,12 @@ class MinecraftAnimation extends CanvasAnimation {
         this.pers_ui = this.terrain_data.pers;
         this.lacu_ui = this.terrain_data.lacu;
         this.update_ui();
-        // load or generate new chunk
-        this.try_load_chunk(this.player.get_chunk().copy());
-        // and adj chunks
+        // delete old chunk data :,(
+        this.chunk_datas = new Array();
+        // generate new chunk
+        this.current_chunk.generate_new_chunk(this.terrain_data);
+        this.chunk_datas.push(new chunk_data(this.current_chunk.get_id(), this.current_chunk.get_cube_pos(), []));
+        // and adjacent chunks
         this.try_load_adj_chunks(this.player.get_chunk());
         // update current terrain_height
         this.blankCubeRenderPass.updateAttributeBuffer("terrain_height", new Float32Array(this.terrain_data.height));

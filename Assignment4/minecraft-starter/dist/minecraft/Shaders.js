@@ -1,3 +1,4 @@
+//  RAY SHADERS //
 export const ray_vertex_shader = `
     precision mediump float;
 
@@ -26,6 +27,30 @@ export const ray_fragment_shader = `
         gl_FragColor = vec4(ray_color, 1.0);
     }
 `;
+//  WATER SHADERS //
+export const water_fragment_shader = `
+    precision mediump float;
+
+    uniform mat4 world_mat;
+    uniform mat4 proj_mat;
+    uniform mat4 view_mat;
+
+    attribute vec4 vertex_pos;
+
+    void main()
+    {
+        gl_Position = proj_mat * view_mat * world_mat * vec4(vertex_pos, 1.0);
+    }
+`;
+export const water_vertex_shader = `
+    precision mediump float;
+
+    void main() 
+    {
+        gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);
+    }
+`;
+//  CUBE SHADERS //
 export const blankCubeVSText = `
     precision mediump float;
 

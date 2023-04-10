@@ -410,10 +410,14 @@ export class MinecraftAnimation extends CanvasAnimation
     this.pers_ui = this.terrain_data.pers
     this.lacu_ui = this.terrain_data.lacu
     this.update_ui()
+
+    // delete old chunk data :,(
+    this.chunk_datas = new Array<chunk_data>()
     
-    // load or generate new chunk
-    this.try_load_chunk(this.player.get_chunk().copy())
-    // and adj chunks
+    // generate new chunk
+    this.current_chunk.generate_new_chunk(this.terrain_data)
+    this.chunk_datas.push(new chunk_data(this.current_chunk.get_id(), this.current_chunk.get_cube_pos(), []))
+    // and adjacent chunks
     this.try_load_adj_chunks(this.player.get_chunk())
 
     // update current terrain_height
