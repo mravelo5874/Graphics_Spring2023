@@ -6,8 +6,11 @@ export class Water {
     get_uvs() { return this.uv_f32; }
     constructor(init_chunk, _level) {
         this.level = _level;
-        this.indices = [0, 1, 2, 2, 3, 0,
-            0, 3, 2, 2, 1, 0];
+        this.indices = [
+            /* layer 1 */
+            0, 1, 2, 2, 3, 0,
+            0, 3, 2, 2, 1, 0
+        ];
         this.indices_u32 = new Uint32Array(this.indices);
         this.uvs = [
             /* Top */
@@ -32,10 +35,10 @@ export class Water {
         this.vertex_pos = new Array();
         // get chunk center
         const center = Utils.get_chunk_center(this.current_chunk.x, this.current_chunk.y);
-        const corner_0 = new Vec4([center.x - (Utils.CHUNK_SIZE * 1.5), this.level, center.y - (Utils.CHUNK_SIZE * 1.5), 1]);
-        const corner_1 = new Vec4([center.x + (Utils.CHUNK_SIZE * 1.5), this.level, center.y - (Utils.CHUNK_SIZE * 1.5), 1]);
-        const corner_2 = new Vec4([center.x + (Utils.CHUNK_SIZE * 1.5), this.level, center.y + (Utils.CHUNK_SIZE * 1.5), 1]);
-        const corner_3 = new Vec4([center.x - (Utils.CHUNK_SIZE * 1.5), this.level, center.y + (Utils.CHUNK_SIZE * 1.5), 1]);
+        let corner_0 = new Vec4([center.x - (Utils.CHUNK_SIZE * 1.5), this.level, center.y - (Utils.CHUNK_SIZE * 1.5), 1]);
+        let corner_1 = new Vec4([center.x + (Utils.CHUNK_SIZE * 1.5), this.level, center.y - (Utils.CHUNK_SIZE * 1.5), 1]);
+        let corner_2 = new Vec4([center.x + (Utils.CHUNK_SIZE * 1.5), this.level, center.y + (Utils.CHUNK_SIZE * 1.5), 1]);
+        let corner_3 = new Vec4([center.x - (Utils.CHUNK_SIZE * 1.5), this.level, center.y + (Utils.CHUNK_SIZE * 1.5), 1]);
         for (let i = 0; i < 4; i++)
             this.vertex_pos.push(corner_0.at(i));
         for (let i = 0; i < 4; i++)

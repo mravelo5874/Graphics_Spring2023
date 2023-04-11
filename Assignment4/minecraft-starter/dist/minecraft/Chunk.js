@@ -66,7 +66,7 @@ export class Chunk {
             this.cube_pos.push(pos);
             this.cube_colliders.push(new CubeCollider(pos));
             // add to edge colliders if at chunk edge
-            if (pos.x == 0 || pos.x == Utils.CHUNK_SIZE - 1 || pos.z == 0 || pos.z == Utils.CHUNK_SIZE - 1) {
+            if (pos.x <= 1 || pos.x >= Utils.CHUNK_SIZE - 2 || pos.z <= 1 || pos.z >= Utils.CHUNK_SIZE - 2) {
                 this.edge_colliders.push(new CubeCollider(pos));
             }
         }
@@ -125,7 +125,7 @@ export class Chunk {
                 this.cube_pos.push(new Vec3([x, y, z]));
                 this.cube_colliders.push(new CubeCollider(new Vec3([x, y, z])));
                 // add to edge colliders if at chunk edge
-                if (i == 0 || i == Utils.CHUNK_SIZE - 1 || j == 0 || j == Utils.CHUNK_SIZE - 1) {
+                if (i <= 1 || i >= Utils.CHUNK_SIZE - 2 || j <= 1 || j >= Utils.CHUNK_SIZE - 2) {
                     this.edge_colliders.push(new CubeCollider(new Vec3([x, y, z])));
                 }
             }
@@ -215,8 +215,7 @@ export class Chunk {
                         min_height = y;
                 }
                 if (i == 0 || i == Utils.CHUNK_SIZE - 1 || j == 0 || j == Utils.CHUNK_SIZE - 1) {
-                    if (my_y - min_height > 4)
-                        console.log('pos: ' + j + ', ' + i + ', cube_y: ' + my_y + ', min_y: ' + min_height);
+                    //if (my_y - min_height > 4) console.log('pos: ' + j + ', ' + i + ', cube_y: ' + my_y + ', min_y: ' + min_height)
                 }
                 // add fill cubes if needed
                 if (min_height < my_y) {

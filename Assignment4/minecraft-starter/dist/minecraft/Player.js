@@ -16,7 +16,7 @@ export class Player {
         this.speed = 0.01; // default = 0.005
         this.creative_speedup = 4;
         this.sense = 0.25; // default = 0.25
-        this.jump_vel = 0.008; // default = 0.008
+        this.jump_vel = 0.015; // default = 0.008
         // init in normal model
         this.creative_mode = false;
         // set pos vel acc
@@ -79,27 +79,41 @@ export class Player {
             return;
         }
         // detect vertical collisions with chunk blocks
-        const cubes = _chunk.get_cube_colliders();
-        for (let i = 0; i < cubes.length; i++) {
+        const _cubes = _chunk.get_cube_colliders();
+        let near = new Array();
+        // get all blocks within a certain range
+        for (let i = 0; i < _cubes.length; i++) {
+            if (Vec3.distance(_cubes[i].get_pos(), this.collider.end.copy()) <= Utils.PLAYER_REACH) {
+                near.push(_cubes[i]);
+            }
+        }
+        for (let i = 0; i < near.length; i++) {
             // check for vertical collision
-            if (Utils.simple_vert_collision(cubes[i], this.collider)) {
+            if (Utils.simple_vert_collision(near[i], this.collider)) {
                 // do not apply vertical offset if going up
                 if (this.vel.y > 0)
                     break;
                 // apply offset
-                this.pos = new Vec3([this.pos.x, cubes[i].get_pos().y + (Utils.CUBE_LEN / 2) + this.collider.height, this.pos.z]);
+                this.pos = new Vec3([this.pos.x, near[i].get_pos().y + (Utils.CUBE_LEN / 2) + this.collider.height, this.pos.z]);
                 this.vel.y = 0;
             }
         }
-        // detect collisions with edge blocks
+        near = new Array();
+        // get all blocks within a certain range
         for (let i = 0; i < _edges.length; i++) {
+            if (Vec3.distance(_edges[i].get_pos(), this.collider.end.copy()) <= Utils.PLAYER_REACH) {
+                near.push(_edges[i]);
+            }
+        }
+        // detect collisions with edge blocks
+        for (let i = 0; i < near.length; i++) {
             // check for vertical collision
-            if (Utils.simple_vert_collision(_edges[i], this.collider)) {
+            if (Utils.simple_vert_collision(near[i], this.collider)) {
                 // do not apply vertical offset if going up
                 if (this.vel.y > 0)
                     break;
                 // apply offset
-                this.pos = new Vec3([this.pos.x, _edges[i].get_pos().y + (Utils.CUBE_LEN / 2) + this.collider.height, this.pos.z]);
+                this.pos = new Vec3([this.pos.x, near[i].get_pos().y + (Utils.CUBE_LEN / 2) + this.collider.height, this.pos.z]);
                 this.vel.y = 0;
             }
         }
