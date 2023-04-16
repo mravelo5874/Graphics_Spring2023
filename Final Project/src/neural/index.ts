@@ -1,2 +1,2 @@
-import { initializeCanvas } from "./App.js";
-initializeCanvas();
+import { init_canvas } from "./App.js";
+init_canvas();

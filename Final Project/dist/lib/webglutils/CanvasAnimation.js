@@ -68,54 +68,16 @@ export class WebGLUtilities {
  * animation class.
  */
 export class CanvasAnimation {
-    get_delta_time() { return this.curr_delta_time; }
-    get_elapsed_time() { return Date.now() - this.start_time; }
     constructor(canvas, debugMode = false, stopOnError = false, glErrorCallback = Debugger.throwOnError, glCallback = Debugger.throwErrorOnUndefinedArg) {
-        this.frame_count = 0;
         // Create webgl rendering context
-        this.c = canvas;
-        this.ctx = WebGLUtilities.requestWebGLContext(this.c);
-        // set current time
-        this.start_time = Date.now();
-        this.prev_time = Date.now();
-        this.prev_fps_time = Date.now();
-        this.curr_delta_time = 0;
-        this.fps = 0;
-        if (debugMode) {
-            this.ctx = Debugger.makeDebugContext(this.ctx, glErrorCallback, glCallback);
-        }
-        // add fps text element to screen
-        const fps_element = document.querySelector("#fps");
-        this.fps_node = document.createTextNode("");
-        fps_element === null || fps_element === void 0 ? void 0 : fps_element.appendChild(this.fps_node);
-        this.fps_node.nodeValue = this.fps.toFixed(0); // no decimal place
-    }
-    /**
-     * Draws and then requests a draw for the next frame.
-     */
-    drawLoop() {
-        // calculate current delta time
-        const curr_time = Date.now();
-        this.curr_delta_time = (curr_time - this.prev_time);
-        this.prev_time = curr_time;
-        // draw to screen
-        this.draw();
-        this.frame_count++;
-        // calculate fps
-        if (Date.now() - this.prev_fps_time >= 1000) {
-            this.fps = this.frame_count;
-            this.frame_count = 0;
-            this.prev_fps_time = Date.now();
-            this.fps_node.nodeValue = this.fps.toFixed(0);
-        }
-        // request next frame to be drawn
-        window.requestAnimationFrame(() => this.drawLoop());
+        this.canvas = canvas;
+        this.contex = WebGLUtilities.requestWebGLContext(this.canvas);
     }
     /**
      * Starts the draw loop of the animation
      */
     start() {
-        window.requestAnimationFrame(() => this.drawLoop());
+        window.requestAnimationFrame(() => this.draw_loop());
     }
 }
 //# sourceMappingURL=CanvasAnimation.js.map

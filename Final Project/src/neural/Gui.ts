@@ -6,7 +6,8 @@ import { Ray } from "./Utils.js"
 /**
  * Might be useful for designing any animation GUI
  */
-interface IGUI {
+interface IGUI 
+{
   viewMatrix(): Mat4;
   projMatrix(): Mat4;
   dragStart(me: MouseEvent): void;
@@ -35,16 +36,7 @@ export class GUI implements IGUI
   private height: number;
   private width: number;
 
-  private animation: NeuralAnimation;
-  
-  private Adown: boolean;
-  private Wdown: boolean;
-  private Sdown: boolean;
-  private Ddown: boolean;
-  private go_up: boolean;
-  private go_down: boolean;
-
-  private alt_pressed: boolean;
+  private neural: NeuralAnimation;
   public mouse_ray : Ray;
 
   /**
@@ -52,24 +44,24 @@ export class GUI implements IGUI
    * @param canvas required to get the width and height of the canvas
    * @param animation required as a back pointer for some of the controls
    */
-  constructor(canvas: HTMLCanvasElement, animation: NeuralAnimation) {
+  constructor(canvas: HTMLCanvasElement, animation: NeuralAnimation) 
+  {
     this.height = canvas.height;
     this.width = canvas.width;
     this.prevX = 0;
     this.prevY = 0;
     this.dragging = false;
     
-    this.animation = animation;
-    
+    this.neural = animation;
     this.reset();
-    
     this.registerEventListeners(canvas);
   }
 
   /**
    * Resets the state of the GUI
    */
-  public reset(): void {
+  public reset(): void 
+  {
     this.camera = new Camera(
       new Vec3([0, 100, 0]),
       new Vec3([0, 100, -1]),
@@ -78,7 +70,7 @@ export class GUI implements IGUI
       this.width / this.height,
       0.1,
       1000.0
-    );
+    )
   }
 
   /**
@@ -97,23 +89,10 @@ export class GUI implements IGUI
     this.camera = new Camera(pos, target, upDir, fov, aspect, zNear, zFar);
   }
 
-  /**
-   * Returns the view matrix of the camera
-   */
-  public viewMatrix(): Mat4 {
-    return this.camera.viewMatrix();
-  }
 
-  /**
-   * Returns the projection matrix of the camera
-   */
-  public projMatrix(): Mat4 {
-    return this.camera.projMatrix();
-  }
-  
-  public getCamera(): Camera {
-    return this.camera;
-  }
+  public viewMatrix(): Mat4 { return this.camera.viewMatrix() }
+  public projMatrix(): Mat4 { return this.camera.projMatrix() }
+  public getCamera(): Camera { return this.camera; }
   
   public dragStart(mouse: MouseEvent): void 
   {
@@ -177,63 +156,30 @@ export class GUI implements IGUI
    */
   public onKeydown(key: KeyboardEvent): void
   {
-    switch (key.code) {
-      case "KeyW": {
-        this.Wdown = true;
-        break;
-      }
-      case "KeyA": {
-        this.Adown = true;
-        break;
-      }
-      case "KeyS": {
-        this.Sdown = true;
-        break;
-      }
-      case "KeyD": {
-        this.Ddown = true;
-        break;
-      }
-      case "KeyR": {
-        this.animation.reset();
-        break;
-      }
-      default: {
-        console.log("Key : '", key.code, "' was pressed.");
-        break;
-      }
+    const width = this.neural.get_width()
+    const height = this.neural.get_height()
+
+    switch (key.code) 
+    {
+      case 'Equal':
+        this.neural.set_resolution(width + 1, height + 1)
+        break
+      case 'Minus':
+        this.neural.set_resolution(width - 1, height - 1)
+        break
+      default: 
+        console.log("Key : '", key.code, "' was pressed.")
+        break
     }
   }
   
-  public onKeyup(key: KeyboardEvent): void {
-    switch (key.code) {
-      case "KeyW": {
-        this.Wdown = false;
+  public onKeyup(key: KeyboardEvent): void 
+  {
+    switch (key.code) 
+    {
+      default: 
+        console.log("Key : '", key.code, "' was pressed.");
         break;
-      }
-      case "KeyA": {
-        this.Adown = false;
-        break;
-      }
-      case "KeyS": {
-        this.Sdown = false;
-        break;
-      }
-      case "KeyD": {
-        this.Ddown = false;
-        break;
-      }
-      case "Space": {
-        this.go_up = false;
-        break;
-      }
-      case "ShiftLeft": {
-        this.go_down = false;
-        break;
-      }
-      case "AltLeft": {
-        this.alt_pressed = false
-      }
     }
   }  
 
@@ -241,7 +187,8 @@ export class GUI implements IGUI
    * Registers all event listeners for the GUI
    * @param canvas The canvas being used
    */
-  private registerEventListeners(canvas: HTMLCanvasElement): void {
+  private registerEventListeners(canvas: HTMLCanvasElement): void 
+  {
     /* Event listener for key controls */
     window.addEventListener("keydown", (key: KeyboardEvent) =>
       this.onKeydown(key)

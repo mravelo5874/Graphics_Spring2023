@@ -114,24 +114,10 @@ export class WebGLUtilities {
  * An abstract class that defines the interface for any
  * animation class.
  */
-export abstract class CanvasAnimation {
-  protected c: HTMLCanvasElement;
-  protected ctx: WebGL2RenderingContext;
-
-  private start_time: number;
-  private prev_time: number;
-  private curr_delta_time: number;
-
-  // used to calculate fps
-  private fps: number;
-  private prev_fps_time: number;
-  private frame_count: number = 0;
-
-  // UI nodes
-  private fps_node: Text;
-
-  public get_delta_time(): number { return this.curr_delta_time }
-  public get_elapsed_time(): number { return Date.now() - this.start_time }
+export abstract class CanvasAnimation 
+{
+  protected canvas: HTMLCanvasElement;
+  protected contex: WebGL2RenderingContext;
 
   constructor(canvas: HTMLCanvasElement,
     debugMode : boolean = false,
@@ -140,25 +126,8 @@ export abstract class CanvasAnimation {
     glCallback: GLCallback = Debugger.throwErrorOnUndefinedArg
     ) {
     // Create webgl rendering context
-    this.c = canvas;
-    this.ctx = WebGLUtilities.requestWebGLContext(this.c);
-
-    // set current time
-    this.start_time = Date.now()
-    this.prev_time = Date.now()
-    this.prev_fps_time = Date.now()
-    this.curr_delta_time = 0
-    this.fps = 0
-  
-    if (debugMode) {
-      this.ctx = Debugger.makeDebugContext(this.ctx, glErrorCallback, glCallback);
-    }
-
-    // add fps text element to screen
-    const fps_element = document.querySelector("#fps");
-    this.fps_node = document.createTextNode("");
-    fps_element?.appendChild(this.fps_node);
-    this.fps_node.nodeValue = this.fps.toFixed(0);  // no decimal place
+    this.canvas = canvas;
+    this.contex = WebGLUtilities.requestWebGLContext(this.canvas);
   }
 
   /**
@@ -174,34 +143,13 @@ export abstract class CanvasAnimation {
   /**
    * Draws and then requests a draw for the next frame.
    */
-  public drawLoop(): void
-  {
-    // calculate current delta time
-    const curr_time: number = Date.now()
-    this.curr_delta_time = (curr_time - this.prev_time)
-    this.prev_time = curr_time
-
-    // draw to screen
-    this.draw();
-    this.frame_count++
-
-    // calculate fps
-    if (Date.now() - this.prev_fps_time >= 1000)
-    {
-      this.fps = this.frame_count
-      this.frame_count = 0
-      this.prev_fps_time = Date.now()
-      this.fps_node.nodeValue = this.fps.toFixed(0);
-    }
-
-    // request next frame to be drawn
-    window.requestAnimationFrame(() => this.drawLoop());
-  }
+  public abstract draw_loop(): void;
 
   /**
    * Starts the draw loop of the animation
    */
-  public start(): void {
-    window.requestAnimationFrame(() => this.drawLoop());
+  public start(): void 
+  {
+    window.requestAnimationFrame(() => this.draw_loop());
   }
 }

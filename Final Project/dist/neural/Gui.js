@@ -17,7 +17,7 @@ class GUI {
         this.prevX = 0;
         this.prevY = 0;
         this.dragging = false;
-        this.animation = animation;
+        this.neural = animation;
         this.reset();
         this.registerEventListeners(canvas);
     }
@@ -34,21 +34,9 @@ class GUI {
     setCamera(pos, target, upDir, fov, aspect, zNear, zFar) {
         this.camera = new Camera(pos, target, upDir, fov, aspect, zNear, zFar);
     }
-    /**
-     * Returns the view matrix of the camera
-     */
-    viewMatrix() {
-        return this.camera.viewMatrix();
-    }
-    /**
-     * Returns the projection matrix of the camera
-     */
-    projMatrix() {
-        return this.camera.projMatrix();
-    }
-    getCamera() {
-        return this.camera;
-    }
+    viewMatrix() { return this.camera.viewMatrix(); }
+    projMatrix() { return this.camera.projMatrix(); }
+    getCamera() { return this.camera; }
     dragStart(mouse) {
         this.prevX = mouse.screenX;
         this.prevY = mouse.screenY;
@@ -98,62 +86,25 @@ class GUI {
      * @param key
      */
     onKeydown(key) {
+        const width = this.neural.get_width();
+        const height = this.neural.get_height();
         switch (key.code) {
-            case "KeyW": {
-                this.Wdown = true;
+            case 'Equal':
+                this.neural.set_resolution(width + 1, height + 1);
                 break;
-            }
-            case "KeyA": {
-                this.Adown = true;
+            case 'Minus':
+                this.neural.set_resolution(width - 1, height - 1);
                 break;
-            }
-            case "KeyS": {
-                this.Sdown = true;
-                break;
-            }
-            case "KeyD": {
-                this.Ddown = true;
-                break;
-            }
-            case "KeyR": {
-                this.animation.reset();
-                break;
-            }
-            default: {
+            default:
                 console.log("Key : '", key.code, "' was pressed.");
                 break;
-            }
         }
     }
     onKeyup(key) {
         switch (key.code) {
-            case "KeyW": {
-                this.Wdown = false;
+            default:
+                console.log("Key : '", key.code, "' was pressed.");
                 break;
-            }
-            case "KeyA": {
-                this.Adown = false;
-                break;
-            }
-            case "KeyS": {
-                this.Sdown = false;
-                break;
-            }
-            case "KeyD": {
-                this.Ddown = false;
-                break;
-            }
-            case "Space": {
-                this.go_up = false;
-                break;
-            }
-            case "ShiftLeft": {
-                this.go_down = false;
-                break;
-            }
-            case "AltLeft": {
-                this.alt_pressed = false;
-            }
         }
     }
     /**

@@ -1,64 +1,107 @@
 import { Debugger } from "../lib/webglutils/Debugging.js";
-import {
-  CanvasAnimation,
-} from "../lib/webglutils/CanvasAnimation.js";
+import { CanvasAnimation } from "../lib/webglutils/CanvasAnimation.js";
 import { GUI } from "./Gui.js";
-import {
-  blankCubeFSText,
-  blankCubeVSText,
+import { Vec4 } from "../lib/TSM.js";
 
-  ray_vertex_shader,
-  ray_fragment_shader,
-
-  water_1_vertex_shader,
-  water_1_fragment_shader,
-} from "./Shaders.js";
-import { Mat4, Vec4, Vec3, Vec2 } from "../lib/TSM.js";
-
+// http-server dist -c-1
 
 export class NeuralAnimation extends CanvasAnimation
 {
-  private gui: GUI;
-  public getGUI(): GUI { return this.gui; }  
+  // gui vars
+  private gui: GUI
 
-  /* Global Rendering Info */
-  private lightPosition: Vec4;
-  private backgroundColor: Vec4;
-  private canvas2d: HTMLCanvasElement;
+  // canvas vars
+  private background_color: Vec4
+  private canvas2d: HTMLCanvasElement
+  private width: number = 64
+  private height: number = 64
+
+  // used to calculate fps
+  private start_time: number
+  private prev_time: number
+  private curr_delta_time: number = 0
+  private fps: number = 0
+  private prev_fps_time: number = 0
+  private frame_count: number = 0
+
+  // UI nodes
+  private fps_node: Text
+
+  // time variables
+  public get_delta_time(): number { return this.curr_delta_time }
+  public get_elapsed_time(): number { return Date.now() - this.start_time }
+
+  public get_width(): number { return this.width }
+  public get_height(): number { return this.height }
+
+  public set_resolution(_width: number, _height: number)
+  {
+    if (_width <= 0 || _height <= 0)
+    {
+      console.log('[WARNING] Invalid resolution: ' + _width + 'x' + _height)
+      return
+    }
+    this.width = _width
+    this.height = _height
+    console.log('set res: ' + this.width + 'x' + this.height)
+  }
   
   constructor(canvas: HTMLCanvasElement) 
   {
+    // init
     super(canvas);
     this.canvas2d = document.getElementById("textCanvas") as HTMLCanvasElement;
-    this.ctx = Debugger.makeDebugContext(this.ctx);
-    let gl = this.ctx;
-    this.gui = new GUI(this.canvas2d, this);
+    this.contex = Debugger.makeDebugContext(this.contex);
+    this.background_color = new Vec4([0.3, 0.2, 0.6, 1.0])
 
-    // environment stuff
-    this.lightPosition = new Vec4([-1000, 1000, -1000, 1]);
-    this.backgroundColor = new Vec4([1.0, 1.0, 1.0, 1.0]);
+    // set current time
+    this.start_time = Date.now()
+    this.prev_time = Date.now()
+    this.prev_fps_time = Date.now()
+  
+    // add fps text element to screen
+    const fps_element = document.querySelector("#fps");
+    this.fps_node = document.createTextNode("");
+    fps_element?.appendChild(this.fps_node);
+    this.fps_node.nodeValue = this.fps.toFixed(0);
+
+    this.gui = new GUI(canvas, this)
   }
 
-
-  /**
-   * Setup the simulation. This can be called again to reset the program.
-   */
   public reset(): void 
   {    
-    // reset gui
-    this.gui.reset();
+    this.gui.reset()
   }
 
+  public draw_loop(): void
+  {
+    // calculate current delta time
+    const curr_time: number = Date.now()
+    this.curr_delta_time = (curr_time - this.prev_time)
+    this.prev_time = curr_time
 
-  /**
-   * Draws a single frame
-   *
-   */
+    // draw to screen
+    this.draw()
+    this.frame_count++
+
+    // calculate fps
+    if (Date.now() - this.prev_fps_time >= 1000)
+    {
+      this.fps = this.frame_count
+      this.frame_count = 0
+      this.prev_fps_time = Date.now()
+      this.fps_node.nodeValue = this.fps.toFixed(0);
+    }
+
+    // request next frame to be drawn
+    window.requestAnimationFrame(() => this.draw_loop())
+  }
+
   public draw(): void 
   {
     // Drawing
-    const gl: WebGLRenderingContext = this.ctx;
-    const bg: Vec4 = this.backgroundColor;
+    const gl: WebGLRenderingContext = this.contex;
+    const bg: Vec4 = this.background_color;
     gl.clearColor(bg.r, bg.g, bg.b, bg.a);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.CULL_FACE);
@@ -67,21 +110,20 @@ export class NeuralAnimation extends CanvasAnimation
     gl.cullFace(gl.BACK);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null); // null is the default frame buffer
-    this.drawScene(0, 0, 1280, 960);        
+    this.draw_scene(0, 0, this.width, this.height);        
   }
 
-  private drawScene(x: number, y: number, width: number, height: number): void 
+  private draw_scene(x: number, y: number, width: number, height: number): void 
   {
-    const gl: WebGLRenderingContext = this.ctx;
+    const gl: WebGLRenderingContext = this.contex;
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.viewport(x, y, width, height);
   }
 }
 
-export function initializeCanvas(): void 
+export function init_canvas(): void 
 {
-  const canvas = document.getElementById("glCanvas") as HTMLCanvasElement;
-  /* Start drawing */
-  const canvasAnimation: NeuralAnimation = new NeuralAnimation(canvas);
-  canvasAnimation.start();  
+  const canvas = document.getElementById("glCanvas") as HTMLCanvasElement
+  const neural: NeuralAnimation = new NeuralAnimation(canvas)
+  neural.start()
 }
