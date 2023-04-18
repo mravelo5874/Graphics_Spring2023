@@ -7,19 +7,18 @@ export class app {
         this.frame_count = 0;
         this.canvas = _canvas;
         this.context = webgl_util.request_context(this.canvas);
-        console.log('context: ' + this.context);
         // setup GLSL program
         this.program = webgl_util.createProgram(this.context, neural_automata_vertex, neural_automata_fragment);
         this.context.useProgram(this.program);
         // vertex + uniform data
-        this.pos_attr = this.context.getAttribLocation(this.program, 'a_position');
+        this.pos_attr = this.context.getAttribLocation(this.program, 'a_pos');
         this.color_uni = this.context.getUniformLocation(this.program, 'u_color');
         this.matrix_uni = this.context.getUniformLocation(this.program, 'u_matrix');
         // bind position buffer
         this.pos_buffer = this.context.createBuffer();
         this.context.bindBuffer(this.context.ARRAY_BUFFER, this.pos_buffer);
         // handle canvas resize
-        this.canvas_to_disp_size = new Map([[this.canvas, [300, 150]]]);
+        app.canvas_to_disp_size = new Map([[this.canvas, [300, 150]]]);
         this.resize_observer = new ResizeObserver(this.on_resize);
         this.resize_observer.observe(this.canvas, { box: 'content-box' });
         // set current time
@@ -32,15 +31,21 @@ export class app {
         const fps_element = document.querySelector("#fps");
         this.fps_node = document.createTextNode("");
         fps_element === null || fps_element === void 0 ? void 0 : fps_element.appendChild(this.fps_node);
-        this.fps_node.nodeValue = this.fps.toFixed(0); // no decimal place
+        this.fps_node.nodeValue = '';
+        // add res text element to screen
+        const res_element = document.querySelector("#res");
+        this.res_node = document.createTextNode("");
+        res_element === null || res_element === void 0 ? void 0 : res_element.appendChild(this.res_node);
+        this.res_node.nodeValue = '';
     }
+    get_delta_time() { return this.curr_delta_time; }
+    get_elapsed_time() { return Date.now() - this.start_time; }
     start() {
         window.requestAnimationFrame(() => this.draw_loop());
     }
-    draw_scene(time) {
-        console.log('context: ' + this.context);
+    draw() {
         let gl = this.context;
-        time *= 0.001;
+        let time = this.get_elapsed_time() * 0.001;
         this.resize_canvas_to_display_size(this.canvas);
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         gl.clear(gl.COLOR_BUFFER_BIT);
@@ -64,7 +69,7 @@ export class app {
         this.set_geometry(gl, centerX + x, centerY + y, centerX - x, centerY - y);
         const proj_matrix = Mat3.projection(gl.canvas.width, gl.canvas.height);
         // Set the matrix.
-        gl.uniformMatrix3fv(this.matrix_uni, false, proj_matrix);
+        gl.uniformMatrix3fv(this.matrix_uni, false, proj_matrix.all());
         // Draw in red
         gl.uniform4fv(this.color_uni, [1, 0, 0, 1]);
         // Draw the geometry.
@@ -72,7 +77,6 @@ export class app {
         var offset = 0;
         var count = 2;
         gl.drawArrays(primitiveType, offset, count);
-        requestAnimationFrame(this.draw_scene);
     }
     set_geometry(gl, x1, y1, x2, y2) {
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
@@ -111,12 +115,13 @@ export class app {
             }
             const displayWidth = Math.round(width * dpr);
             const displayHeight = Math.round(height * dpr);
-            this.canvas_to_disp_size.set(entry.target, [displayWidth, displayHeight]);
+            app.canvas_to_disp_size.set(entry.target, [displayWidth, displayHeight]);
         }
     }
     resize_canvas_to_display_size(canvas) {
         // Get the size the browser is displaying the canvas in device pixels.
-        const [displayWidth, displayHeight] = this.canvas_to_disp_size.get(canvas);
+        const [displayWidth, displayHeight] = app.canvas_to_disp_size.get(canvas);
+        this.res_node.nodeValue = displayWidth + ' x ' + displayHeight;
         // Check if the canvas is not the same size.
         const needResize = canvas.width !== displayWidth ||
             canvas.height !== displayHeight;
@@ -126,9 +131,6 @@ export class app {
             canvas.height = displayHeight;
         }
         return needResize;
-    }
-    /* Draws a single frame */
-    draw() {
     }
     /* Draws and then requests a draw for the next frame */
     draw_loop() {

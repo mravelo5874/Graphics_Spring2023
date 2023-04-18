@@ -22,13 +22,13 @@ export class Mat3 {
     // Note: This matrix flips the Y axis so 0 is at the top.
     
     dst[0] = 2 / width;
-    dst[1] = 0;
-    dst[2] = 0;
     dst[3] = 0;
+    dst[6] = 0;
+    dst[1] = 0;
     dst[4] = -2 / height;
-    dst[5] = 0;
-    dst[6] = -1;
-    dst[7] = 1;
+    dst[7] = 0;
+    dst[2] = -1;
+    dst[5] = 1;
     dst[8] = 1;
 
     return dst;

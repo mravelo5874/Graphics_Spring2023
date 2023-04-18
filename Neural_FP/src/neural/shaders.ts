@@ -1,13 +1,13 @@
 export const neural_automata_vertex = 
 `
-attribute vec2 a_position;
+attribute vec2 a_pos;
 
 uniform mat3 u_matrix;
 
 void main() 
 {
   // Multiply the position by the matrix.
-  gl_Position = vec4((u_matrix * vec3(a_position, 1)).xy, 0, 1);
+  gl_Position = vec4((u_matrix * vec3(a_pos, 1)).xy, 0, 1);
 }
 `
 

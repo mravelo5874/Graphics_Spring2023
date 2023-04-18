@@ -2,20 +2,8 @@ body {
     margin: 0;
     background-color: white;
   }
-.container {
-    position: relative;
-}
 canvas {
   display: block;  /* prevents scrollbar */
   width: 100vw;
   height: 100vh;
-}
-#overlay {
-  position: absolute;
-  left: 10px;
-  bottom: 10px;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  font-family: monospace;
-  padding: 1em;
 }
