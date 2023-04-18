@@ -7,18 +7,18 @@ import { epsilon } from "./Constants.js";
  * A 3x3 Matrix of numbers.
  */
 class Mat3 {
-    static projection(width, height, dst) {
-        dst = dst || Mat3.identity.copy();
+    static projection(width, height) {
+        let dst = Mat3.identity.copy();
         // Note: This matrix flips the Y axis so 0 is at the top.
-        dst[0] = 2 / width;
-        dst[3] = 0;
-        dst[6] = 0;
-        dst[1] = 0;
-        dst[4] = -2 / height;
-        dst[7] = 0;
-        dst[2] = -1;
-        dst[5] = 1;
-        dst[8] = 1;
+        dst.values[0] = 2 / width;
+        dst.values[1] = 0;
+        dst.values[2] = 0;
+        dst.values[3] = 0;
+        dst.values[4] = -2 / height;
+        dst.values[5] = 0;
+        dst.values[6] = -1;
+        dst.values[7] = 1;
+        dst.values[8] = 1;
         return dst;
     }
     /**

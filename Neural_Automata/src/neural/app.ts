@@ -115,6 +115,7 @@ export class app
     this.set_geometry(gl, centerX + x, centerY + y, centerX - x, centerY - y);
       
     const proj_matrix: Mat3 = Mat3.projection(gl.canvas.width, gl.canvas.height)
+    
     // Set the matrix.
     gl.uniformMatrix3fv(this.matrix_uni, false, proj_matrix.all());
 
