@@ -1,6 +1,5 @@
-
-export class webgl_util {
-
+export class webgl_util 
+{
     /**
      * Creates and compiles a WebGL Shader from given source
      * @param ctx a WebGL rendering context. This has methods for compiling the shader.
