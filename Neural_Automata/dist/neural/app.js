@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { utils } from './utils.js';
 import { simple_vertex, simple_fragment } from './shaders/simple_shader.js';
 import { webgl_util } from './webgl_util.js';
@@ -189,10 +198,12 @@ export class app {
         gl.viewport(0, 0, w, h);
         // update canvas size
         if (app.update_canvas) {
-            //console.log('updating canvas...')
             app.update_canvas = false;
             this.resize_canvas_to_display_size(this.canvas);
-            this.reset(this.curr_automata);
+            (() => __awaiter(this, void 0, void 0, function* () {
+                yield utils.delay(1);
+                this.reset(this.curr_automata);
+            }))();
         }
         // create vertices buffer
         const buffer = gl.createBuffer();

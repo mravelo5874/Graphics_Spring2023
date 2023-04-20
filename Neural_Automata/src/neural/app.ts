@@ -255,11 +255,13 @@ export class app
     // update canvas size
     if (app.update_canvas)
     {
-      //console.log('updating canvas...')
-      app.update_canvas = false
+      app.update_canvas = false;
+      this.resize_canvas_to_display_size(this.canvas);
 
-      this.resize_canvas_to_display_size(this.canvas)
-      this.reset(this.curr_automata)
+      (async () => { 
+        await utils.delay(1);
+        this.reset(this.curr_automata)
+      })();
     }
     
     // create vertices buffer

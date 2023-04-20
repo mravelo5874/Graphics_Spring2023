@@ -21,6 +21,8 @@ class utils {
         // return t value
         return (val - p0) / (p1 - p0);
     }
+    // must be used inside an async functions
+    static delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
     static generate_random_state(width, height) {
         let rng = new Rand((width * height).toString());
         let cells = new Uint8Array(height * width * 4);

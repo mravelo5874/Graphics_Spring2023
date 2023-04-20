@@ -25,6 +25,9 @@ export class utils
         return (val - p0) / (p1 - p0)
     }
 
+    // must be used inside an async functions
+    public static delay(ms: number) { return new Promise( resolve => setTimeout(resolve, ms))}
+
     public static generate_random_state(width, height)
     {
         let rng = new Rand((width * height).toString())
