@@ -33,6 +33,20 @@ class utils {
         }
         return cells;
     }
+    static generate_random_binary_state(width, height) {
+        let rng = new Rand((width * height).toString());
+        let cells = new Uint8Array(height * width * 4);
+        for (let i = 0; i < height * width * 4; i += 4) {
+            let r = 0;
+            if (rng.next() > 0.5)
+                r = 255;
+            cells[i] = r;
+            cells[i + 1] = r;
+            cells[i + 2] = r;
+            cells[i + 3] = 255;
+        }
+        return cells;
+    }
     static generate_random_kernel(min = -1, max = 1, h_symmetry = false, v_symmetry = false, full_symmetry = false) {
         let range = max - min;
         let kernel = new Float32Array(9);

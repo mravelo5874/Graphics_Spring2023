@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title addtitletodoc="false">Neural Automata</title>
+<title addtitletodoc="false">Convolutional Automata</title>
 <style>
   body {
     margin: 0;
@@ -17,8 +17,6 @@
   }
   #overlay {
     position: absolute;
-    left: 10px;
-    bottom: 10px;
     background-color: rgba(0, 0, 0, 0.7);
     color: white;
     font-family: monospace;
@@ -29,7 +27,14 @@
 
 <body>
 <canvas id="canvas"></canvas>
-<div id="overlay">
+<div id="overlay" style="left:10px;top:10px">
+  <div style="color:coral">automata types: </div>
+  <div>(1) worms</div>
+  <div>(2) waves</div>
+  <div>(3) paths</div>
+  <div>(4) game of life</div>
+</div>
+<div id="overlay" style="left:10px;bottom:10px">
   <div>automata: <span id="auto" style="color: lime"></span></div>
   <div>res: <span id="res" style="color: hotpink"></span></div>
   <div>fps: <span id="fps" style="color: cyan"></span></div>

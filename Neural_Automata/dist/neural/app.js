@@ -10,6 +10,7 @@ export var automata;
     automata[automata["worms"] = 0] = "worms";
     automata[automata["waves"] = 1] = "waves";
     automata[automata["paths"] = 2] = "paths";
+    automata[automata["gol"] = 3] = "gol";
 })(automata || (automata = {}));
 export class app {
     constructor(_canvas) {
@@ -65,6 +66,10 @@ export class app {
             case automata.paths:
                 frag = frag.replace('[AF]', activations.paths_activation());
                 this.auto_node.nodeValue = 'paths';
+                break;
+            case automata.gol:
+                frag = frag.replace('[AF]', activations.gol_activation());
+                this.auto_node.nodeValue = 'game of life';
                 break;
         }
         // create shaders
@@ -126,8 +131,14 @@ export class app {
         // Fill the texture with random states
         const w = this.canvas.width;
         const h = this.canvas.height;
-        let pixels = utils.generate_random_state(w, h);
-        console.log('init wxh: ' + w + ', ' + h + ', init pixels: ' + pixels.length);
+        // generate state based on automata
+        let pixels = new Uint8Array(0);
+        if (auto == automata.gol) {
+            pixels = utils.generate_random_binary_state(w, h);
+        }
+        else {
+            pixels = utils.generate_random_state(w, h);
+        }
         this.prev_pixels = pixels;
         //console.log('pixels.length: ' + pixels.length + ', wxhx4: ' + w * h * 4)
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
@@ -149,12 +160,14 @@ export class app {
             case automata.paths:
                 kernel = kernels.paths_kernel();
                 break;
+            case automata.gol:
+                kernel = kernels.gol_kernel();
+                break;
         }
         gl.uniform1fv(kernel_loc, kernel);
         // set resolution uniform
         const res_loc = gl.getUniformLocation(program, "u_res");
         let res = new Float32Array([w, h]);
-        console.log('res: ' + res);
         gl.uniform2fv(res_loc, res);
         // set position attribute
         const pos_loc = gl.getAttribLocation(program, 'a_pos');
@@ -176,7 +189,7 @@ export class app {
         gl.viewport(0, 0, w, h);
         // update canvas size
         if (app.update_canvas) {
-            console.log('updating canvas...');
+            //console.log('updating canvas...')
             app.update_canvas = false;
             this.resize_canvas_to_display_size(this.canvas);
             this.reset(this.curr_automata);
@@ -293,8 +306,8 @@ export class app {
         for (let i = y_pos - brush_size; i < y_pos + brush_size; i++) {
             for (let j = x_pos - brush_size; j < x_pos + brush_size; j++) {
                 // mod values so we dont go out of bounds
-                i = i % w;
-                j = j % h;
+                i = i % h;
+                j = j % w;
                 // access pixel at (x, y) by using (y * width) + (x * 4)
                 const idx = (i * w) + (j * 4);
                 pixels[idx] = 255;

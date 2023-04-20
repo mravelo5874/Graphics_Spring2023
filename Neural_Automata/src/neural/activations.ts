@@ -14,4 +14,9 @@ export class activations
     {
         return 'return 1.0/pow(2.0,(pow(x-3.5, 2.0)));'
     }
+
+    public static gol_activation(): string
+    {
+        return 'if(x == 3.0||x == 11.0||x == 12.0){return 1.0;}return 0.0;'
+    }
 }

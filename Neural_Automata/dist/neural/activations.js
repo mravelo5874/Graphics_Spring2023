@@ -8,5 +8,8 @@ export class activations {
     static paths_activation() {
         return 'return 1.0/pow(2.0,(pow(x-3.5, 2.0)));';
     }
+    static gol_activation() {
+        return 'if(x == 3.0||x == 11.0||x == 12.0){return 1.0;}return 0.0;';
+    }
 }
 //# sourceMappingURL=activations.js.map

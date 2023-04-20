@@ -53,4 +53,22 @@ export class kernels
         kernel[8] =  0.0
         return kernel
     }
+
+    public static gol_kernel(): Float32Array
+    {
+        let kernel = new Float32Array(9)
+        // 0 1 2
+        kernel[0] =  1.0
+        kernel[1] =  1.0
+        kernel[2] =  1.0
+        // 3 4 5
+        kernel[3] =  1.0
+        kernel[4] =  9.0
+        kernel[5] =  1.0
+        // 6 7 8
+        kernel[6] =  1.0
+        kernel[7] =  1.0
+        kernel[8] =  1.0
+        return kernel
+    }
 }

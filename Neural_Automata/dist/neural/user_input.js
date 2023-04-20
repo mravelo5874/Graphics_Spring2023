@@ -24,6 +24,9 @@ export class user_input {
             case 'Digit3':
                 this.app.reset(automata.paths);
                 break;
+            case 'Digit4':
+                this.app.reset(automata.gol);
+                break;
             case 'KeyR':
                 this.app.reset(this.app.curr_automata);
                 break;
