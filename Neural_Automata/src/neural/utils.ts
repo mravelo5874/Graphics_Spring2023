@@ -34,7 +34,7 @@ export class utils
             cells[i] = r;
             cells[i+1] = r;
             cells[i+2] = r;
-            cells[i+3] = r;
+            cells[i+3] = 255;
         }
         return cells;
     }
@@ -59,5 +59,23 @@ export class utils
 		// 		kernel = this.vSymmetry(kernel);
 		// }
         return kernel;
+    }
+
+    public static worms_kernel(): Float32Array
+    {
+        let kernel = new Float32Array(9)
+        kernel[0] =  0.68
+        kernel[1] = -0.90
+        kernel[2] =  0.68
+
+        kernel[3] = -0.90
+        kernel[4] = -0.66
+        kernel[5] = -0.90
+
+        kernel[6] =  0.68
+        kernel[7] = -0.90
+        kernel[8] =  0.68
+
+        return kernel
     }
 }

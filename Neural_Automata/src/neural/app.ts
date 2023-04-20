@@ -13,8 +13,8 @@ export class app
   private context: WebGL2RenderingContext
   private simple_program: WebGLProgram
   private vertices: Float32Array
-
-  //private renderer: neural_renderer
+  private texture: WebGLTexture
+  private prev_pixels: Uint8Array
 
   // used to calculate fps
   private fps: number;
@@ -23,6 +23,10 @@ export class app
   private curr_delta_time: number;
   private prev_fps_time: number;
   private frame_count: number = 0;
+
+  // used to cap fps
+  private fps_cap: number = 30
+  private frame_time: number
 
   // used for canvas resize
   private resize_observer: ResizeObserver
@@ -58,6 +62,7 @@ export class app
 
     this.canvas = _canvas;
     this.context = webgl_util.request_context(this.canvas);
+    this.frame_time = 1000 / this.fps_cap
 
     // set current time
     this.start_time = Date.now()
@@ -79,9 +84,9 @@ export class app
     this.res_node.nodeValue = ''
 
     // handle canvas resize
-    app.canvas_to_disp_size = new Map([[this.canvas, [500, 500]]]);
-    this.resize_observer = new ResizeObserver(this.on_resize);
-    this.resize_observer.observe(this.canvas, { box: 'content-box' });
+    app.canvas_to_disp_size = new Map([[this.canvas, [512, 512]]]);
+    // this.resize_observer = new ResizeObserver(this.on_resize);
+    // this.resize_observer.observe(this.canvas, { box: 'content-box' });
   }
 
   public get_delta_time(): number { return this.curr_delta_time }
@@ -89,7 +94,7 @@ export class app
 
   public start(): void
   {
-    //this.renderer.start_render();
+    this.resize_canvas_to_display_size(this.canvas)
     let gl = this.context
 
     // create shaders
@@ -120,78 +125,175 @@ export class app
     // two triangles fill the window
     this.vertices = new Float32Array([
       // lower triangle
-      -0.9,-0.9,
-      -0.9, 0.9,
-       0.9,-0.9,
+      -1.0,-1.0,
+      -1.0, 1.0,
+        1.0,-1.0,
       // upper triangle
-       0.9,-0.9,
-      -0.9, 0.9,
-       0.9, 0.9
+        1.0,-1.0,
+      -1.0, 1.0,
+        1.0, 1.0
     ])
 
+    // // lower triangle
+    // -0.9,-0.9,
+    // -0.9, 0.9,
+    // 0.9,-0.9,
+    // // upper triangle
+    // 0.9,-0.9,
+    // -0.9, 0.9,
+    // 0.9, 0.9
+    
     // create vertices buffer
     const buffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
     gl.bufferData(gl.ARRAY_BUFFER, this.vertices, gl.STATIC_DRAW)
 
-    // set color uniform
+    // use program !!!
     gl.useProgram(program)
-    const color_loc = gl.getUniformLocation(program, 'color')
+
+    // set color uniform
+    const color_loc = gl.getUniformLocation(program, 'u_color')
     gl.uniform4fv(color_loc, [0.914, 0.855, 0.949, 1.0])
 
+    // set texture uniform
+    const texture_loc = gl.getUniformLocation(program, 'u_texture');
+    this.texture = gl.createTexture() as WebGLTexture
+    gl.bindTexture(gl.TEXTURE_2D, this.texture)
+    // Fill the texture with random states
+    const w = this.canvas.width
+    const h = this.canvas.height
+    let pixels: Uint8Array = utils.generate_random_state(w, h)
+    console.log('init wxh: ' + w + ', ' + h + ', init pixels: ' + pixels.length)
+    this.prev_pixels = pixels
+    //console.log('pixels.length: ' + pixels.length + ', wxhx4: ' + w * h * 4)
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+    // Tell the shader to use texture unit 0 for u_texture
+    gl.uniform1i(texture_loc, 0)
+
+    // set kernel array uniform
+    const kernel_loc = gl.getUniformLocation(program, 'u_kernel[0]')
+    let kernel: Float32Array = utils.worms_kernel()
+    gl.uniform1fv(kernel_loc, kernel)
+
+    // set one pixel uniform
+    const one_pixel_loc = gl.getUniformLocation(program, "u_one_pixel")
+    gl.uniform2f(one_pixel_loc, 1/w, 1/h)
+
+    // set resolution uniform
+    const res_loc = gl.getUniformLocation(program, "u_res")
+    let res: Float32Array = new Float32Array([w, h])
+    console.log('res: ' + res)
+    gl.uniform2fv(res_loc, res)
+
     // set position attribute
-    const pos_loc = gl.getAttribLocation(program, 'pos')
+    const pos_loc = gl.getAttribLocation(program, 'a_pos')
     gl.enableVertexAttribArray(pos_loc)
     gl.vertexAttribPointer(pos_loc, 2, gl.FLOAT, false, 0, 0)
 
+    // draw !!!
     gl.drawArrays(gl.TRIANGLES, 0, this.vertices.length / 2)
-
-    window.requestAnimationFrame(() => this.draw_loop());
+    // start animation
+    window.requestAnimationFrame(() => this.draw_loop())
   }
 
   private draw(): void
   {
+    let gl = this.context
+    let w = this.canvas.width
+    let h = this.canvas.height
+
+    gl.clearColor(0.914, 0.855, 0.949, 1.0)
+    gl.clear(gl.COLOR_BUFFER_BIT)
+    gl.viewport(0, 0, w, h)
+
     // update canvas size
     if (app.update_canvas)
     {
+      console.log('updating canvas...')
       app.update_canvas = false
       this.resize_canvas_to_display_size(this.canvas)
+
+      // set texture uniform
+      const texture_loc = gl.getUniformLocation(this.simple_program, 'u_texture');
+      // Fill the texture with random states
+      const w = this.canvas.width
+      const h = this.canvas.height
+      let pixels: Uint8Array = utils.generate_random_state(w, h)
+      console.log('update wxh: ' + w + ', ' + h + ', update pixels: ' + pixels.length)
+      this.prev_pixels = pixels
+      //console.log('pixels.length: ' + pixels.length + ', wxhx4: ' + w * h * 4)
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
+      gl.generateMipmap(gl.TEXTURE_2D)
+      // Tell the shader to use texture unit 0 for u_texture
+      gl.uniform1i(texture_loc, 0)
+
+      // set one pixel uniform
+      const one_pixel_loc = gl.getUniformLocation(this.simple_program, "u_one_pixel")
+      gl.uniform2f(one_pixel_loc, 1/w, 1/h);
+
+      // set resolution uniform
+      const res_loc = gl.getUniformLocation(this.simple_program, "u_res")
+      let res: Float32Array = new Float32Array([w, h])
+      gl.uniform2fv(res_loc, res);
     }
+    
+    // create vertices buffer
+    const buffer = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
+    gl.bufferData(gl.ARRAY_BUFFER, this.vertices, gl.STATIC_DRAW)
 
+    // use program !!!
+    gl.useProgram(this.simple_program)
+
+    // // set color uniform
+    // const color_loc = gl.getUniformLocation(this.simple_program, 'u_color')
+    // gl.uniform4fv(color_loc, [0.914, 0.855, 0.949, 1.0])
+
+    // set texture uniform
+    const texture_loc = gl.getUniformLocation(this.simple_program, 'u_texture');
+    //console.log('pixels.length: ' + pixels.length + ', wxhx4: ' + w * h * 4)
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.prev_pixels)
+    gl.generateMipmap(gl.TEXTURE_2D)
+    // Tell the shader to use texture unit 0 for u_texture
+    gl.uniform1i(texture_loc, 0)
+
+    // set position attribute
+    const pos_loc = gl.getAttribLocation(this.simple_program, 'a_pos')
+    gl.enableVertexAttribArray(pos_loc)
+    gl.vertexAttribPointer(pos_loc, 2, gl.FLOAT, false, 0, 0)
+
+    // draw !!!
+    gl.drawArrays(gl.TRIANGLES, 0, this.vertices.length / 2)
+  }
+
+  private read(): void
+  {
     let gl = this.context
-    gl.clearColor(0.522, 0.514, 0.62, 1.0)
-    gl.clear(gl.COLOR_BUFFER_BIT)
-    gl.viewport(0, 0, this.canvas.width, this.canvas.height)
-
-   // create vertices buffer
-   const buffer = gl.createBuffer()
-   gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
-   gl.bufferData(gl.ARRAY_BUFFER, this.vertices, gl.STATIC_DRAW)
-
-   // set color uniform
-   gl.useProgram(this.simple_program)
-   const color_loc = gl.getUniformLocation(this.simple_program, 'color')
-   gl.uniform4fv(color_loc, [0.922, 0.765, 0.345, 1.0])
-
-   // set position attribute
-   const pos_loc = gl.getAttribLocation(this.simple_program, 'pos')
-   gl.enableVertexAttribArray(pos_loc)
-   gl.vertexAttribPointer(pos_loc, 2, gl.FLOAT, false, 0, 0)
-
-   gl.drawArrays(gl.TRIANGLES, 0, this.vertices.length / 2)
+    let w = this.canvas.width
+    let h = this.canvas.height
+    // set texture uniform as pixels
+    const texture_loc = gl.getUniformLocation(this.simple_program, 'u_texture')
+    let pixels: Uint8Array = new Uint8Array(w * h * 4)
+    gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
+    this.prev_pixels = pixels
+    // console.log('curr wxh: ' + w + ', ' + h + ', curr pixels: ' + pixels.length)
+    // console.log('prev pixels: ' + pixels)
   }
 
   /* Draws and then requests a draw for the next frame */
   public draw_loop(): void
   {
+    // draw to screen
+    this.draw()
+    this.read()
+    this.frame_count++
+
     // calculate current delta time
     const curr_time: number = Date.now()
     this.curr_delta_time = (curr_time - this.prev_time)
     this.prev_time = curr_time
-
-    // draw to screen
-    this.draw();
-    this.frame_count++
 
     // calculate fps
     if (Date.now() - this.prev_fps_time >= 1000)
@@ -201,34 +303,43 @@ export class app
       this.prev_fps_time = Date.now()
       this.fps_node.nodeValue = this.fps.toFixed(0)
     }
-
+  
     // request next frame to be drawn
     window.requestAnimationFrame(() => this.draw_loop())
   }
 
   private on_resize(entries) 
   {
-    for (const entry of entries) {
+    for (const entry of entries) 
+    {
       let width;
       let height;
       let dpr = window.devicePixelRatio;
-      if (entry.devicePixelContentBoxSize) {
+      if (entry.devicePixelContentBoxSize) 
+      {
         // NOTE: Only this path gives the correct answer
         // The other 2 paths are an imperfect fallback
         // for browsers that don't provide anyway to do this
         width = entry.devicePixelContentBoxSize[0].inlineSize;
         height = entry.devicePixelContentBoxSize[0].blockSize;
         dpr = 1; // it's already in width and height
-      } else if (entry.contentBoxSize) {
-        if (entry.contentBoxSize[0]) {
+      } 
+      else if (entry.contentBoxSize) 
+      {
+        if (entry.contentBoxSize[0]) 
+        {
           width = entry.contentBoxSize[0].inlineSize;
           height = entry.contentBoxSize[0].blockSize;
-        } else {
+        } 
+        else 
+        {
           // legacy
           width = entry.contentBoxSize.inlineSize;
           height = entry.contentBoxSize.blockSize;
         }
-      } else {
+      } 
+      else 
+      {
         // legacy
         width = entry.contentRect.width;
         height = entry.contentRect.height;
