@@ -16,11 +16,9 @@ uniform float u_kernel[9];
 uniform vec2 u_res;
 varying vec2 v_pos;
 
-float activation(float x)\n{\n\treturn x;\n}
-
-float inverse_gaussian(float x)
+float activation(float x)
 {
-    return -1.0/pow(2.0, (0.6*pow(x, 2.0))) + 1.0;
+    [AF]
 }
 
 void main()
@@ -38,7 +36,7 @@ void main()
         + texture2D(u_texture, (gl_FragCoord.xy + vec2( 0.0,  1.0)) / u_res.xy).r * u_kernel[7]
         + texture2D(u_texture, (gl_FragCoord.xy + vec2(-1.0,  1.0)) / u_res.xy).r * u_kernel[8];
     
-    float x = inverse_gaussian(sum);
+    float x = activation(sum);
     gl_FragColor = vec4(x, x, x, 1.0);
 
     //gl_FragColor =  texture2D(u_texture, position);

@@ -1,33 +1,24 @@
 import { utils } from './utils.js';
 import { simple_vertex, simple_fragment } from './shaders/simple_shader.js';
 import { webgl_util } from './webgl_util.js';
+import { user_input } from './user_input.js';
+import { kernels } from './kernels.js';
+import { activations } from './activations.js';
 // http-server dist -c-1
+export var automata;
+(function (automata) {
+    automata[automata["worms"] = 0] = "worms";
+    automata[automata["waves"] = 1] = "waves";
+    automata[automata["paths"] = 2] = "paths";
+})(automata || (automata = {}));
 export class app {
     constructor(_canvas) {
-        // window.onresize = () => {
-        // 	if (window.innerWidth === this.renderer.width && window.innerHeight === this.renderer.height)
-        // 		return;
-        // 	this.renderer.stop_render();
-        // 	this.renderer.canvas.height = window.innerHeight;
-        // 	this.renderer.canvas.width = window.innerWidth;
-        // 	this.renderer.height = window.innerHeight;
-        // 	this.renderer.width = window.innerWidth;
-        // 	this.renderer.gl.viewport(0, 0, this.renderer.width, this.renderer.height);
-        // 	this.renderer.set_state(utils.generate_random_state(this.renderer.width, this.renderer.height));
-        //   this.renderer.start_render();
-        // }
         this.frame_count = 0;
         // used to cap fps
         this.fps_cap = 30;
-        // // set up renderer with canvas
-        // this.renderer = new neural_renderer(_canvas)
-        // this.renderer.set_activation(utils.DEFAULT_ACTIVATION)
-        // this.renderer.set_kernel(utils.generate_random_kernel())
-        // this.renderer.compile_shaders(neural_automata_vertex, neural_automata_fragment)
-        // this.renderer.set_color(new Vec3([0.4, 0.2, 0.6]));
-        // this.renderer.set_state(utils.generate_random_state(this.renderer.width, this.renderer.height));
         this.canvas = _canvas;
         this.context = webgl_util.request_context(this.canvas);
+        this.user_input = new user_input(_canvas, this);
         this.frame_time = 1000 / this.fps_cap;
         // set current time
         this.start_time = Date.now();
@@ -35,6 +26,11 @@ export class app {
         this.prev_fps_time = Date.now();
         this.curr_delta_time = 0;
         this.fps = 0;
+        // add automata text element to screen
+        const auto_element = document.querySelector("#auto");
+        this.auto_node = document.createTextNode("");
+        auto_element === null || auto_element === void 0 ? void 0 : auto_element.appendChild(this.auto_node);
+        this.auto_node.nodeValue = '';
         // add fps text element to screen
         const fps_element = document.querySelector("#fps");
         this.fps_node = document.createTextNode("");
@@ -52,14 +48,31 @@ export class app {
     }
     get_delta_time() { return this.curr_delta_time; }
     get_elapsed_time() { return Date.now() - this.start_time; }
-    reset() {
+    reset(auto) {
+        this.curr_automata = auto;
         let gl = this.context;
+        let frag = simple_fragment;
+        switch (auto) {
+            default:
+            case automata.worms:
+                frag = frag.replace('[AF]', activations.worms_activation());
+                this.auto_node.nodeValue = 'worms';
+                break;
+            case automata.waves:
+                frag = frag.replace('[AF]', activations.waves_activation());
+                this.auto_node.nodeValue = 'waves';
+                break;
+            case automata.paths:
+                frag = frag.replace('[AF]', activations.paths_activation());
+                this.auto_node.nodeValue = 'paths';
+                break;
+        }
         // create shaders
         const vertex_shader = gl.createShader(gl.VERTEX_SHADER);
         const fragment_shader = gl.createShader(gl.FRAGMENT_SHADER);
         gl.shaderSource(vertex_shader, simple_vertex);
         gl.compileShader(vertex_shader);
-        gl.shaderSource(fragment_shader, simple_fragment);
+        gl.shaderSource(fragment_shader, frag);
         gl.compileShader(fragment_shader);
         // used for debugging shaders
         const vertex_log = gl.getShaderInfoLog(vertex_shader);
@@ -124,7 +137,19 @@ export class app {
         gl.uniform1i(texture_loc, 0);
         // set kernel array uniform
         const kernel_loc = gl.getUniformLocation(program, 'u_kernel[0]');
-        let kernel = utils.worms_kernel();
+        let kernel = new Float32Array(9);
+        switch (auto) {
+            default:
+            case automata.worms:
+                kernel = kernels.worms_kernel();
+                break;
+            case automata.waves:
+                kernel = kernels.waves_kernel();
+                break;
+            case automata.paths:
+                kernel = kernels.paths_kernel();
+                break;
+        }
         gl.uniform1fv(kernel_loc, kernel);
         // set resolution uniform
         const res_loc = gl.getUniformLocation(program, "u_res");
@@ -139,8 +164,7 @@ export class app {
         gl.drawArrays(gl.TRIANGLES, 0, this.vertices.length / 2);
     }
     start() {
-        this.reset();
-        // start animation
+        this.reset(automata.worms);
         window.requestAnimationFrame(() => this.draw_loop());
     }
     draw() {
@@ -155,24 +179,7 @@ export class app {
             console.log('updating canvas...');
             app.update_canvas = false;
             this.resize_canvas_to_display_size(this.canvas);
-            this.reset();
-            // // set texture uniform
-            // const texture_loc = gl.getUniformLocation(this.simple_program, 'u_texture');
-            // // Fill the texture with random states
-            // const w = this.canvas.width
-            // const h = this.canvas.height
-            // let pixels: Uint8Array = utils.generate_random_state(w, h)
-            // console.log('update wxh: ' + w + ', ' + h + ', update pixels: ' + pixels.length)
-            // this.prev_pixels = pixels
-            // //console.log('pixels.length: ' + pixels.length + ', wxhx4: ' + w * h * 4)
-            // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
-            // gl.generateMipmap(gl.TEXTURE_2D)
-            // // Tell the shader to use texture unit 0 for u_texture
-            // gl.uniform1i(texture_loc, 0)
-            // // set resolution uniform
-            // const res_loc = gl.getUniformLocation(this.simple_program, "u_res")
-            // let res: Float32Array = new Float32Array([w, h])
-            // gl.uniform2fv(res_loc, res)
+            this.reset(this.curr_automata);
         }
         // create vertices buffer
         const buffer = gl.createBuffer();
@@ -202,16 +209,13 @@ export class app {
         let w = this.canvas.width;
         let h = this.canvas.height;
         // set texture uniform as pixels
-        const texture_loc = gl.getUniformLocation(this.simple_program, 'u_texture');
         let pixels = new Uint8Array(w * h * 4);
         gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
         this.prev_pixels = pixels;
-        // console.log('curr wxh: ' + w + ', ' + h + ', curr pixels: ' + pixels.length)
-        // console.log('prev pixels: ' + pixels)
     }
     /* Draws and then requests a draw for the next frame */
     draw_loop() {
-        // draw to screen
+        // draw to screen and read pixels twice to skip every other frame
         this.draw();
         this.read();
         this.draw();
@@ -279,6 +283,29 @@ export class app {
             canvas.height = displayHeight;
         }
         return needResize;
+    }
+    mouse_draw(x_pos, y_pos, brush_size) {
+        console.log('mouse draw!');
+        let pixels = this.prev_pixels;
+        let w = this.canvas.width;
+        let h = this.canvas.height;
+        // fill in pixels
+        for (let i = y_pos - brush_size; i < y_pos + brush_size; i++) {
+            for (let j = x_pos - brush_size; j < x_pos + brush_size; j++) {
+                // mod values so we dont go out of bounds
+                i = i % w;
+                j = j % h;
+                // access pixel at (x, y) by using (y * width) + (x * 4)
+                const idx = (i * w) + (j * 4);
+                pixels[idx] = 255;
+                pixels[idx + 1] = 255;
+                pixels[idx + 2] = 255;
+            }
+        }
+        // set prev pixels to display
+        this.prev_pixels = pixels;
+    }
+    mouse_erase(x_pos, y_pos, brush_size) {
     }
 }
 export function init_app() {
