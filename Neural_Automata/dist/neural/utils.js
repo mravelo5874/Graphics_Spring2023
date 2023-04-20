@@ -1,3 +1,4 @@
+import Rand from "../lib/rand-seed/Rand.js";
 class utils {
     // thanks to chatgpt: 'create a function that interpolates between two numbers given a t value' 
     static lerp(p0, p1, t) {
@@ -21,9 +22,10 @@ class utils {
         return (val - p0) / (p1 - p0);
     }
     static generate_random_state(width, height) {
+        let rng = new Rand((width * height).toString());
         let cells = new Uint8Array(height * width * 4);
         for (let i = 0; i < height * width * 4; i += 4) {
-            let r = Math.floor(255 * Math.random());
+            let r = Math.floor(255 * rng.next());
             cells[i] = r;
             cells[i + 1] = r;
             cells[i + 2] = r;

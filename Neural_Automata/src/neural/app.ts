@@ -72,29 +72,28 @@ export class app
     this.fps = 0
 
     // add fps text element to screen
-    const fps_element = document.querySelector("#fps");
-    this.fps_node = document.createTextNode("");
-    fps_element?.appendChild(this.fps_node);
+    const fps_element = document.querySelector("#fps")
+    this.fps_node = document.createTextNode("")
+    fps_element?.appendChild(this.fps_node)
     this.fps_node.nodeValue = ''
 
     // add res text element to screen
-    const res_element = document.querySelector("#res");
-    this.res_node = document.createTextNode("");
-    res_element?.appendChild(this.res_node);
+    const res_element = document.querySelector("#res")
+    this.res_node = document.createTextNode("")
+    res_element?.appendChild(this.res_node)
     this.res_node.nodeValue = ''
 
     // handle canvas resize
-    app.canvas_to_disp_size = new Map([[this.canvas, [512, 512]]]);
-    // this.resize_observer = new ResizeObserver(this.on_resize);
-    // this.resize_observer.observe(this.canvas, { box: 'content-box' });
+    app.canvas_to_disp_size = new Map([[this.canvas, [512, 512]]])
+    this.resize_observer = new ResizeObserver(this.on_resize)
+    this.resize_observer.observe(this.canvas, { box: 'content-box' })
   }
 
   public get_delta_time(): number { return this.curr_delta_time }
   public get_elapsed_time(): number { return Date.now() - this.start_time }
 
-  public start(): void
+  public reset(): void 
   {
-    this.resize_canvas_to_display_size(this.canvas)
     let gl = this.context
 
     // create shaders
@@ -177,10 +176,6 @@ export class app
     let kernel: Float32Array = utils.worms_kernel()
     gl.uniform1fv(kernel_loc, kernel)
 
-    // set one pixel uniform
-    const one_pixel_loc = gl.getUniformLocation(program, "u_one_pixel")
-    gl.uniform2f(one_pixel_loc, 1/w, 1/h)
-
     // set resolution uniform
     const res_loc = gl.getUniformLocation(program, "u_res")
     let res: Float32Array = new Float32Array([w, h])
@@ -194,6 +189,11 @@ export class app
 
     // draw !!!
     gl.drawArrays(gl.TRIANGLES, 0, this.vertices.length / 2)
+  }
+
+  public start(): void
+  { 
+    this.reset()
     // start animation
     window.requestAnimationFrame(() => this.draw_loop())
   }
@@ -213,30 +213,28 @@ export class app
     {
       console.log('updating canvas...')
       app.update_canvas = false
+
       this.resize_canvas_to_display_size(this.canvas)
+      this.reset()
 
-      // set texture uniform
-      const texture_loc = gl.getUniformLocation(this.simple_program, 'u_texture');
-      // Fill the texture with random states
-      const w = this.canvas.width
-      const h = this.canvas.height
-      let pixels: Uint8Array = utils.generate_random_state(w, h)
-      console.log('update wxh: ' + w + ', ' + h + ', update pixels: ' + pixels.length)
-      this.prev_pixels = pixels
-      //console.log('pixels.length: ' + pixels.length + ', wxhx4: ' + w * h * 4)
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
-      gl.generateMipmap(gl.TEXTURE_2D)
-      // Tell the shader to use texture unit 0 for u_texture
-      gl.uniform1i(texture_loc, 0)
+      // // set texture uniform
+      // const texture_loc = gl.getUniformLocation(this.simple_program, 'u_texture');
+      // // Fill the texture with random states
+      // const w = this.canvas.width
+      // const h = this.canvas.height
+      // let pixels: Uint8Array = utils.generate_random_state(w, h)
+      // console.log('update wxh: ' + w + ', ' + h + ', update pixels: ' + pixels.length)
+      // this.prev_pixels = pixels
+      // //console.log('pixels.length: ' + pixels.length + ', wxhx4: ' + w * h * 4)
+      // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
+      // gl.generateMipmap(gl.TEXTURE_2D)
+      // // Tell the shader to use texture unit 0 for u_texture
+      // gl.uniform1i(texture_loc, 0)
 
-      // set one pixel uniform
-      const one_pixel_loc = gl.getUniformLocation(this.simple_program, "u_one_pixel")
-      gl.uniform2f(one_pixel_loc, 1/w, 1/h);
-
-      // set resolution uniform
-      const res_loc = gl.getUniformLocation(this.simple_program, "u_res")
-      let res: Float32Array = new Float32Array([w, h])
-      gl.uniform2fv(res_loc, res);
+      // // set resolution uniform
+      // const res_loc = gl.getUniformLocation(this.simple_program, "u_res")
+      // let res: Float32Array = new Float32Array([w, h])
+      // gl.uniform2fv(res_loc, res)
     }
     
     // create vertices buffer

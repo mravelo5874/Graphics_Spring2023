@@ -13,7 +13,6 @@ precision mediump float;
 uniform vec4 u_color;
 uniform sampler2D u_texture;
 uniform float u_kernel[9];
-uniform vec2 u_one_pixel;
 uniform vec2 u_res;
 varying vec2 v_pos;
 
@@ -22,11 +21,6 @@ float activation(float x)\n{\n\treturn x;\n}
 float inverse_gaussian(float x)
 {
     return -1.0/pow(2.0, (0.6*pow(x, 2.0))) + 1.0;
-}
-
-vec2 get_coords(vec2 coord, vec2 offset)
-{
-    return mod(coord + u_one_pixel * offset, 1.0);
 }
 
 void main()

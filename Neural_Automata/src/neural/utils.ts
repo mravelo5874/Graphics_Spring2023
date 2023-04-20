@@ -1,4 +1,4 @@
-import { Mat3 } from "../lib/TSM.js"
+import  Rand  from "../lib/rand-seed/Rand.js"
 
 export class utils
 {
@@ -27,14 +27,15 @@ export class utils
 
     public static generate_random_state(width, height)
     {
-        let cells = new Uint8Array(height * width * 4);
+        let rng = new Rand((width * height).toString())
+        let cells = new Uint8Array(height * width * 4)
         for(let i = 0; i < height*width*4; i+=4)
         {
-            let r =  Math.floor(255 * Math.random());
-            cells[i] = r;
-            cells[i+1] = r;
-            cells[i+2] = r;
-            cells[i+3] = 255;
+            let r =  Math.floor(255 * rng.next())
+            cells[i] = r
+            cells[i+1] = r
+            cells[i+2] = r
+            cells[i+3] = 255
         }
         return cells;
     }
