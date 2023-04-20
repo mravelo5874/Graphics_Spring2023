@@ -132,7 +132,7 @@ export class app {
         gl.useProgram(program);
         // set color uniform
         const color_loc = gl.getUniformLocation(program, 'u_color');
-        gl.uniform4fv(color_loc, [0.914, 0.855, 0.949, 1.0]);
+        gl.uniform4fv(color_loc, [1.0, 0.0, 0.0, 0.0]);
         // set texture uniform
         const texture_loc = gl.getUniformLocation(program, 'u_texture');
         this.texture = gl.createTexture();
@@ -186,6 +186,7 @@ export class app {
         gl.drawArrays(gl.TRIANGLES, 0, this.vertices.length / 2);
     }
     start() {
+        app.update_canvas = true;
         this.reset(automata.worms);
         window.requestAnimationFrame(() => this.draw_loop());
     }
@@ -193,7 +194,7 @@ export class app {
         let gl = this.context;
         let w = this.canvas.width;
         let h = this.canvas.height;
-        gl.clearColor(0.914, 0.855, 0.949, 1.0);
+        gl.clearColor(1.0, 1.0, 1.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.viewport(0, 0, w, h);
         // update canvas size
@@ -211,9 +212,9 @@ export class app {
         gl.bufferData(gl.ARRAY_BUFFER, this.vertices, gl.STATIC_DRAW);
         // use program !!!
         gl.useProgram(this.simple_program);
-        // // set color uniform
-        // const color_loc = gl.getUniformLocation(this.simple_program, 'u_color')
-        // gl.uniform4fv(color_loc, [0.914, 0.855, 0.949, 1.0])
+        // set color uniform
+        const color_loc = gl.getUniformLocation(this.simple_program, 'u_color');
+        gl.uniform4fv(color_loc, [1.0, 0.0, 0.0, 0.0]);
         // set texture uniform
         const texture_loc = gl.getUniformLocation(this.simple_program, 'u_texture');
         //console.log('pixels.length: ' + pixels.length + ', wxhx4: ' + w * h * 4)

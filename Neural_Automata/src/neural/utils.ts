@@ -35,10 +35,10 @@ export class utils
         for(let i = 0; i < height*width*4; i+=4)
         {
             let r =  Math.floor(255 * rng.next())
-            cells[i] = r
-            cells[i+1] = r
-            cells[i+2] = r
-            cells[i+3] = 255
+            cells[i] = 0
+            cells[i+1] = 0
+            cells[i+2] = 0
+            cells[i+3] = r
         }
         return cells;
     }
@@ -51,10 +51,10 @@ export class utils
         {
             let r = 0
             if (rng.next() > 0.5) r = 255
-            cells[i] = r
-            cells[i+1] = r
-            cells[i+2] = r
-            cells[i+3] = 255
+            cells[i] = 0
+            cells[i+1] = 0
+            cells[i+2] = 0
+            cells[i+3] = r
         }
         return cells;
     }

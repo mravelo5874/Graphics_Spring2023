@@ -172,7 +172,7 @@ export class app
 
     // set color uniform
     const color_loc = gl.getUniformLocation(program, 'u_color')
-    gl.uniform4fv(color_loc, [0.914, 0.855, 0.949, 1.0])
+    gl.uniform4fv(color_loc, [1.0, 0.0, 0.0, 0.0])
 
     // set texture uniform
     const texture_loc = gl.getUniformLocation(program, 'u_texture');
@@ -238,6 +238,7 @@ export class app
 
   public start(): void
   { 
+    app.update_canvas = true
     this.reset(automata.worms)
     window.requestAnimationFrame(() => this.draw_loop())
   }
@@ -248,7 +249,7 @@ export class app
     let w = this.canvas.width
     let h = this.canvas.height
 
-    gl.clearColor(0.914, 0.855, 0.949, 1.0)
+    gl.clearColor(1.0, 1.0, 1.0, 1.0)
     gl.clear(gl.COLOR_BUFFER_BIT)
     gl.viewport(0, 0, w, h)
 
@@ -272,9 +273,9 @@ export class app
     // use program !!!
     gl.useProgram(this.simple_program)
 
-    // // set color uniform
-    // const color_loc = gl.getUniformLocation(this.simple_program, 'u_color')
-    // gl.uniform4fv(color_loc, [0.914, 0.855, 0.949, 1.0])
+    // set color uniform
+    const color_loc = gl.getUniformLocation(this.simple_program, 'u_color')
+    gl.uniform4fv(color_loc, [1.0, 0.0, 0.0, 0.0])
 
     // set texture uniform
     const texture_loc = gl.getUniformLocation(this.simple_program, 'u_texture');
