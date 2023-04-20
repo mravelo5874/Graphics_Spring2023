@@ -286,6 +286,8 @@ export class app
     // draw to screen
     this.draw()
     this.read()
+    this.draw()
+    this.read()
     this.frame_count++
 
     // calculate current delta time
