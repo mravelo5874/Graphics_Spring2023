@@ -57,19 +57,10 @@ export class user_input
     private mouse_start(mouse: MouseEvent)
     {
         this.mouse_down = true
-        this.prev_x = mouse.screenX
-        this.prev_y = mouse.screenY
     }
 
     private mouse_drag(mouse: MouseEvent)
     {
-        let x = mouse.offsetX;
-        let y = mouse.offsetY;
-        const dx = mouse.screenX - this.prev_x;
-        const dy = mouse.screenY - this.prev_y;
-        this.prev_x = mouse.screenX;
-        this.prev_y = mouse.screenY;
-
         if (this.mouse_down)
         {
             //console.log('mouse pos (offset): ' + x + ', ' + y)
@@ -79,7 +70,7 @@ export class user_input
             {
                 case 1:
                 {
-                    this.app.mouse_draw(this.prev_x, this.prev_y, 25)
+                    this.app.mouse_draw(mouse.x ,mouse.y, 64)
                     break
                 }
                 case 2:

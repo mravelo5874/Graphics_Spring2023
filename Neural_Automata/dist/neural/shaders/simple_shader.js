@@ -38,8 +38,6 @@ void main()
     
     float x = activation(sum);
     gl_FragColor = vec4(0.0, 0.0, 0.0, x) + u_color;
-
-    //gl_FragColor =  texture2D(u_texture, position);
 }
 `;
 //# sourceMappingURL=simple_shader.js.map

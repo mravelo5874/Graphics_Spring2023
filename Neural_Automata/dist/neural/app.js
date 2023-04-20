@@ -132,7 +132,7 @@ export class app {
         gl.useProgram(program);
         // set color uniform
         const color_loc = gl.getUniformLocation(program, 'u_color');
-        gl.uniform4fv(color_loc, [1.0, 0.0, 0.0, 0.0]);
+        gl.uniform4fv(color_loc, [0.0, 0.0, 0.0, 0.0]);
         // set texture uniform
         const texture_loc = gl.getUniformLocation(program, 'u_texture');
         this.texture = gl.createTexture();
@@ -194,7 +194,7 @@ export class app {
         let gl = this.context;
         let w = this.canvas.width;
         let h = this.canvas.height;
-        gl.clearColor(1.0, 1.0, 1.0, 1.0);
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.viewport(0, 0, w, h);
         // update canvas size
@@ -214,7 +214,7 @@ export class app {
         gl.useProgram(this.simple_program);
         // set color uniform
         const color_loc = gl.getUniformLocation(this.simple_program, 'u_color');
-        gl.uniform4fv(color_loc, [1.0, 0.0, 0.0, 0.0]);
+        gl.uniform4fv(color_loc, [0.0, 0.0, 0.0, 0.0]);
         // set texture uniform
         const texture_loc = gl.getUniformLocation(this.simple_program, 'u_texture');
         //console.log('pixels.length: ' + pixels.length + ', wxhx4: ' + w * h * 4)
@@ -310,10 +310,13 @@ export class app {
         return needResize;
     }
     mouse_draw(x_pos, y_pos, brush_size) {
-        console.log('mouse draw!');
+        console.log('mouse pos: ' + x_pos + ', ' + y_pos);
         let pixels = this.prev_pixels;
         let w = this.canvas.width;
         let h = this.canvas.height;
+        y_pos = h - y_pos;
+        console.log('pixels: ' + pixels.length);
+        console.log('wxhx4: ' + w * h * 4);
         // fill in pixels
         for (let i = y_pos - brush_size; i < y_pos + brush_size; i++) {
             for (let j = x_pos - brush_size; j < x_pos + brush_size; j++) {
@@ -322,9 +325,8 @@ export class app {
                 j = j % w;
                 // access pixel at (x, y) by using (y * width) + (x * 4)
                 const idx = (i * w) + (j * 4);
-                pixels[idx] = 255;
-                pixels[idx + 1] = 255;
-                pixels[idx + 2] = 255;
+                if (idx < pixels.length)
+                    pixels[idx + 3] = 255;
             }
         }
         // set prev pixels to display

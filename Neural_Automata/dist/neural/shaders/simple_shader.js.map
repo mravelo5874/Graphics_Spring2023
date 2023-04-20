@@ -1,1 +1,1 @@
-{"version":3,"file":"simple_shader.js","sourceRoot":"","sources":["../../../src/neural/shaders/simple_shader.ts"],"names":[],"mappings":"AAAA,MAAM,CAAC,MAAM,aAAa,GAC1B;;;;;;;;;CASC,CAAA;AACD,MAAM,CAAC,MAAM,eAAe,GAC5B;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;CAiCC,CAAA"}
+{"version":3,"file":"simple_shader.js","sourceRoot":"","sources":["../../../src/neural/shaders/simple_shader.ts"],"names":[],"mappings":"AAAA,MAAM,CAAC,MAAM,aAAa,GAC1B;;;;;;;;;CASC,CAAA;AACD,MAAM,CAAC,MAAM,eAAe,GAC5B;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;CA+BC,CAAA"}
