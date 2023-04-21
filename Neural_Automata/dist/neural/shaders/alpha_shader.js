@@ -1,5 +1,4 @@
-export const simple_vertex = 
-`
+export const alpha_vertex = `
 precision mediump float;
 attribute vec2 a_pos;
 varying vec2 v_pos;
@@ -8,9 +7,8 @@ void main()
     gl_Position = vec4(a_pos, 0.0, 1.0);
     v_pos = a_pos;
 }
-`
-export const simple_fragment = 
-`
+`;
+export const alpha_fragment = `
 precision mediump float;
 uniform vec4 u_color;
 uniform sampler2D u_texture;
@@ -41,4 +39,5 @@ void main()
     float x = activation(sum);
     gl_FragColor = vec4(0.0, 0.0, 0.0, x) + u_color;
 }
-`
+`;
+//# sourceMappingURL=alpha_shader.js.map

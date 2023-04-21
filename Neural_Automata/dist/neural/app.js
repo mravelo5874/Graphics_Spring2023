@@ -9,7 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { utils } from './utils.js';
 import { Vec2 } from '../lib/TSM.js';
-import { simple_vertex, simple_fragment } from './shaders/simple_shader.js';
+import { alpha_vertex, alpha_fragment } from './shaders/alpha_shader.js';
+import { rgb_vertex, rgb_fragment } from './shaders/rgb_shader.js';
 import { webgl_util } from './webgl_util.js';
 import { user_input } from './user_input.js';
 import { kernels } from './kernels.js';
@@ -29,11 +30,17 @@ export var automata;
     automata[automata["cgol"] = 8] = "cgol";
     automata[automata["wolfy"] = 9] = "wolfy";
 })(automata || (automata = {}));
+export var shader_mode;
+(function (shader_mode) {
+    shader_mode[shader_mode["alpha"] = 0] = "alpha";
+    shader_mode[shader_mode["rgb"] = 1] = "rgb";
+})(shader_mode || (shader_mode = {}));
 export class app {
     constructor(_canvas) {
         this.frame_count = 0;
         // used to cap fps
         this.fps_cap = 30;
+        this.mode = shader_mode.alpha;
         this.canvas = _canvas;
         this.context = webgl_util.request_context(this.canvas);
         this.user_input = new user_input(_canvas, this);
@@ -49,6 +56,11 @@ export class app {
         this.auto_node = document.createTextNode("");
         auto_element === null || auto_element === void 0 ? void 0 : auto_element.appendChild(this.auto_node);
         this.auto_node.nodeValue = '';
+        // add mode text element to screen
+        const mode_element = document.querySelector("#mode");
+        this.mode_node = document.createTextNode("");
+        mode_element === null || mode_element === void 0 ? void 0 : mode_element.appendChild(this.mode_node);
+        this.mode_node.nodeValue = '';
         // add fps text element to screen
         const fps_element = document.querySelector("#fps");
         this.fps_node = document.createTextNode("");
@@ -66,10 +78,25 @@ export class app {
     }
     get_delta_time() { return this.curr_delta_time; }
     get_elapsed_time() { return Date.now() - this.start_time; }
-    reset(auto) {
-        this.curr_automata = auto;
+    reset(auto, mode) {
+        this.auto = auto;
+        this.mode = mode;
         let gl = this.context;
-        let frag = simple_fragment;
+        let frag = alpha_fragment;
+        let vert = alpha_vertex;
+        // set shader mode
+        switch (mode) {
+            default:
+            case shader_mode.alpha:
+                this.mode_node.nodeValue = 'alpha';
+                break;
+            case shader_mode.rgb:
+                this.mode_node.nodeValue = 'rgb';
+                frag = rgb_fragment;
+                vert = rgb_vertex;
+                break;
+        }
+        // set automata type
         switch (auto) {
             default:
             case automata.worms:
@@ -116,7 +143,7 @@ export class app {
         // create shaders
         const vertex_shader = gl.createShader(gl.VERTEX_SHADER);
         const fragment_shader = gl.createShader(gl.FRAGMENT_SHADER);
-        gl.shaderSource(vertex_shader, simple_vertex);
+        gl.shaderSource(vertex_shader, vert);
         gl.compileShader(vertex_shader);
         gl.shaderSource(fragment_shader, frag);
         gl.compileShader(fragment_shader);
@@ -174,14 +201,16 @@ export class app {
         const h = this.canvas.height;
         // generate state based on automata
         let pixels = new Uint8Array(0);
-        if (auto == automata.cgol) {
-            pixels = utils.generate_empty_state(w, h);
-        }
-        else if (auto == automata.wolfy) {
+        if (auto == automata.cgol || auto == automata.wolfy) {
             pixels = utils.generate_empty_state(w, h);
         }
         else {
-            pixels = utils.generate_random_state(w, h, this.get_elapsed_time().toString());
+            if (mode == shader_mode.alpha) {
+                pixels = utils.generate_random_state(w, h, this.get_elapsed_time().toString());
+            }
+            else if (mode == shader_mode.rgb) {
+                pixels = utils.generate_random_rgb_state(w, h, this.get_elapsed_time().toString());
+            }
         }
         this.prev_pixels = pixels;
         //console.log('pixels.length: ' + pixels.length + ', wxhx4: ' + w * h * 4)
@@ -240,7 +269,7 @@ export class app {
     }
     start() {
         app.update_canvas = true;
-        this.reset(automata.worms);
+        this.reset(automata.worms, shader_mode.rgb);
         window.requestAnimationFrame(() => this.draw_loop());
     }
     draw() {
@@ -256,7 +285,7 @@ export class app {
             this.resize_canvas_to_display_size(this.canvas);
             (() => __awaiter(this, void 0, void 0, function* () {
                 yield utils.delay(1);
-                this.reset(this.curr_automata);
+                this.reset(this.auto, this.mode);
             }))();
         }
         // create vertices buffer
@@ -373,22 +402,45 @@ export class app {
         // fill in pixels
         for (let i = y - brush_size; i < y + brush_size; i++) {
             for (let j = x - brush_size; j < x + brush_size; j++) {
-                // get new random value
-                let r = 0;
-                if (this.curr_automata == automata.cgol || this.curr_automata == automata.wolfy) {
-                    if (rng.next() > 0.5)
-                        r = 255;
-                }
-                else {
-                    r = Math.floor(255 * rng.next());
-                }
                 // access pixel at (x, y) by using (y * width) + (x * 4)
                 const idx = (i * w + j) * 4;
                 // make sure index is not out of range
                 if (idx < pixels.length && idx > -1) {
                     // used to draw a circle
                     if (Vec2.distance(new Vec2([x, y]), new Vec2([j, i])) <= brush_size) {
-                        pixels[idx + 3] = r;
+                        switch (this.mode) {
+                            case shader_mode.alpha:
+                                // get new random value
+                                let x = 0;
+                                if (this.auto == automata.cgol || this.auto == automata.wolfy)
+                                    if (rng.next() > 0.5)
+                                        x = 255;
+                                    else
+                                        x = Math.floor(255 * rng.next());
+                                pixels[idx + 3] = x;
+                                break;
+                            case shader_mode.rgb:
+                                // get 3 random values
+                                let r = 0;
+                                let g = 0;
+                                let b = 0;
+                                if (this.auto == automata.cgol || this.auto == automata.wolfy) {
+                                    if (rng.next() > 0.5)
+                                        r = 255;
+                                    if (rng.next() > 0.5)
+                                        g = 255;
+                                    if (rng.next() > 0.5)
+                                        b = 255;
+                                }
+                                else {
+                                    r = Math.floor(255 * rng.next());
+                                    g = Math.floor(255 * rng.next());
+                                    b = Math.floor(255 * rng.next());
+                                }
+                                pixels[idx] = r;
+                                pixels[idx + 1] = g;
+                                pixels[idx + 2] = b;
+                        }
                     }
                 }
             }
@@ -412,7 +464,16 @@ export class app {
                 if (idx < pixels.length && idx > -1) {
                     // used to draw a circle
                     if (Vec2.distance(new Vec2([x, y]), new Vec2([j, i])) <= brush_size) {
-                        pixels[idx + 3] = 0;
+                        switch (this.mode) {
+                            case shader_mode.alpha:
+                                pixels[idx + 3] = 0;
+                                break;
+                            case shader_mode.rgb:
+                                pixels[idx] = 0;
+                                pixels[idx + 1] = 0;
+                                pixels[idx + 2] = 0;
+                                break;
+                        }
                     }
                 }
             }

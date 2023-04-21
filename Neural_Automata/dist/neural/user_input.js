@@ -1,8 +1,8 @@
-import { automata } from './app.js';
+import { automata, shader_mode } from './app.js';
 export class user_input {
     constructor(canvas, neural_app) {
-        // mouse variables
         this.mouse_down = false;
+        this.key_lock = false;
         this.app = neural_app;
         // event listeners for keyboard input
         window.addEventListener("keydown", (key) => this.on_key_down(key));
@@ -14,39 +14,48 @@ export class user_input {
         canvas.addEventListener("contextmenu", (event) => event.preventDefault());
     }
     on_key_down(key) {
+        if (this.key_lock)
+            return;
+        this.key_lock = true;
         switch (key.code) {
+            case 'KeyQ':
+                this.app.reset(this.app.auto, shader_mode.rgb);
+                break;
+            case 'KeyW':
+                this.app.reset(this.app.auto, shader_mode.alpha);
+                break;
             case 'Digit1':
-                this.app.reset(automata.worms);
+                this.app.reset(automata.worms, this.app.mode);
                 break;
             case 'Digit2':
-                this.app.reset(automata.drops);
+                this.app.reset(automata.drops, this.app.mode);
                 break;
             case 'Digit3':
-                this.app.reset(automata.waves);
+                this.app.reset(automata.waves, this.app.mode);
                 break;
             case 'Digit4':
-                this.app.reset(automata.paths);
+                this.app.reset(automata.paths, this.app.mode);
                 break;
             case 'Digit5':
-                this.app.reset(automata.stars);
+                this.app.reset(automata.stars, this.app.mode);
                 break;
             case 'Digit6':
-                this.app.reset(automata.cells);
+                this.app.reset(automata.cells, this.app.mode);
                 break;
             case 'Digit7':
-                this.app.reset(automata.slime);
+                this.app.reset(automata.slime, this.app.mode);
                 break;
             case 'Digit8':
-                this.app.reset(automata.lands);
+                this.app.reset(automata.lands, this.app.mode);
                 break;
             case 'Digit9':
-                this.app.reset(automata.wolfy);
+                this.app.reset(automata.wolfy, this.app.mode);
                 break;
             case 'Digit0':
-                this.app.reset(automata.cgol);
+                this.app.reset(automata.cgol, this.app.mode);
                 break;
             case 'KeyR':
-                this.app.reset(this.app.curr_automata);
+                this.app.reset(this.app.auto, this.app.mode);
                 break;
             default:
                 console.log('Key : \'', key.code, '\' was pressed.');
@@ -54,6 +63,7 @@ export class user_input {
         }
     }
     on_key_up(key) {
+        this.key_lock = false;
     }
     mouse_start(mouse) {
         this.mouse_down = true;

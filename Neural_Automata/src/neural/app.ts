@@ -1,6 +1,7 @@
 import { utils } from './utils.js'
 import { Vec2, Vec3 } from '../lib/TSM.js'
-import { simple_vertex, simple_fragment } from './shaders/simple_shader.js' 
+import { alpha_vertex, alpha_fragment } from './shaders/alpha_shader.js' 
+import {  rgb_vertex, rgb_fragment } from './shaders/rgb_shader.js'
 import { webgl_util } from './webgl_util.js'
 import { user_input } from './user_input.js'
 import { kernels } from './kernels.js'
@@ -14,16 +15,23 @@ export enum automata
   worms, drops, slime, waves, paths, stars, cells, lands, cgol, wolfy
 }
 
+export enum shader_mode
+{
+  alpha, rgb
+}
+
 export class app
 {
   // neural program
   public canvas: HTMLCanvasElement
+  public mode: shader_mode
+  public auto: automata
   private context: WebGL2RenderingContext
   private simple_program: WebGLProgram
   private vertices: Float32Array
   private texture: WebGLTexture
   private prev_pixels: Uint8Array
-  public curr_automata: automata
+  
 
   // used to calculate fps
   private fps: number;
@@ -44,6 +52,7 @@ export class app
 
   // ui nodes
   private auto_node: Text;
+  private mode_node: Text;
   private fps_node: Text;
   private res_node: Text;
 
@@ -52,6 +61,7 @@ export class app
 
   constructor(_canvas: HTMLCanvasElement)
   {
+    this.mode = shader_mode.alpha
     this.canvas = _canvas;
     this.context = webgl_util.request_context(this.canvas)
     this.user_input = new user_input(_canvas, this)
@@ -69,6 +79,12 @@ export class app
     this.auto_node = document.createTextNode("")
     auto_element?.appendChild(this.auto_node)
     this.auto_node.nodeValue = ''
+
+    // add mode text element to screen
+    const mode_element = document.querySelector("#mode")
+    this.mode_node = document.createTextNode("")
+    mode_element?.appendChild(this.mode_node)
+    this.mode_node.nodeValue = ''
 
     // add fps text element to screen
     const fps_element = document.querySelector("#fps")
@@ -91,12 +107,30 @@ export class app
   public get_delta_time(): number { return this.curr_delta_time }
   public get_elapsed_time(): number { return Date.now() - this.start_time }
 
-  public reset(auto: automata): void 
+  public reset(auto: automata, mode: shader_mode): void 
   {
-    this.curr_automata = auto
+    this.auto = auto
+    this.mode = mode
     let gl = this.context
 
-    let frag = simple_fragment
+
+    let frag = alpha_fragment
+    let vert = alpha_vertex
+    // set shader mode
+    switch (mode)
+    {
+      default:
+      case shader_mode.alpha:
+        this.mode_node.nodeValue= 'alpha'
+        break;
+      case shader_mode.rgb:
+        this.mode_node.nodeValue= 'rgb'
+        frag = rgb_fragment
+        vert = rgb_vertex
+        break;
+    }
+
+    // set automata type
     switch (auto)
     {
       default:
@@ -145,7 +179,7 @@ export class app
     // create shaders
     const vertex_shader = gl.createShader(gl.VERTEX_SHADER) as WebGLShader;
     const fragment_shader = gl.createShader(gl.FRAGMENT_SHADER) as WebGLShader;
-    gl.shaderSource(vertex_shader, simple_vertex)
+    gl.shaderSource(vertex_shader, vert)
     gl.compileShader(vertex_shader)
     gl.shaderSource(fragment_shader, frag)
     gl.compileShader(fragment_shader)
@@ -210,17 +244,20 @@ export class app
 
     // generate state based on automata
     let pixels: Uint8Array = new Uint8Array(0)
-    if (auto == automata.cgol)
-    {
-      pixels = utils.generate_empty_state(w, h)
-    }
-    else if (auto == automata.wolfy)
+    if (auto == automata.cgol || auto == automata.wolfy)
     {
       pixels = utils.generate_empty_state(w, h)
     }
     else
     {
-      pixels = utils.generate_random_state(w, h, this.get_elapsed_time().toString())
+      if (mode == shader_mode.alpha)
+      {
+        pixels = utils.generate_random_state(w, h, this.get_elapsed_time().toString())
+      }
+      else if (mode == shader_mode.rgb)
+      {
+        pixels = utils.generate_random_rgb_state(w, h, this.get_elapsed_time().toString())
+      }
     }
 
     this.prev_pixels = pixels
@@ -287,7 +324,7 @@ export class app
   public start(): void
   { 
     app.update_canvas = true
-    this.reset(automata.worms)
+    this.reset(automata.worms, shader_mode.rgb)
     window.requestAnimationFrame(() => this.draw_loop())
   }
 
@@ -309,7 +346,7 @@ export class app
 
       (async () => { 
         await utils.delay(1);
-        this.reset(this.curr_automata)
+        this.reset(this.auto, this.mode)
       })();
     }
     
@@ -460,18 +497,7 @@ export class app
     for (let i = y - brush_size; i < y + brush_size; i++)
     {
       for (let j = x - brush_size; j < x + brush_size; j++)
-      { 
-        // get new random value
-        let r = 0
-        if (this.curr_automata == automata.cgol || this.curr_automata == automata.wolfy)
-        {
-          if (rng.next() > 0.5) r = 255
-        }
-        else
-        {
-          r = Math.floor(255 * rng.next())
-        }
-        
+      {  
         // access pixel at (x, y) by using (y * width) + (x * 4)
         const idx = (i * w + j) * 4
         // make sure index is not out of range
@@ -480,7 +506,36 @@ export class app
           // used to draw a circle
           if (Vec2.distance(new Vec2([x, y]), new Vec2([j, i])) <= brush_size)
           {
-            pixels[idx+3] = r
+            switch (this.mode)
+            {
+              case shader_mode.alpha:
+                // get new random value
+                let x = 0
+                if (this.auto == automata.cgol || this.auto == automata.wolfy) if (rng.next() > 0.5) x = 255
+                else x = Math.floor(255 * rng.next())
+                pixels[idx+3] = x
+                break
+              case shader_mode.rgb:
+                // get 3 random values
+                let r = 0
+                let g = 0
+                let b = 0
+                if (this.auto == automata.cgol || this.auto == automata.wolfy)
+                {
+                  if (rng.next() > 0.5) r = 255
+                  if (rng.next() > 0.5) g = 255
+                  if (rng.next() > 0.5) b = 255
+                } 
+                else
+                {
+                  r = Math.floor(255 * rng.next())
+                  g = Math.floor(255 * rng.next())
+                  b = Math.floor(255 * rng.next())
+                } 
+                pixels[idx] = r
+                pixels[idx+1] = g
+                pixels[idx+2] = b
+            }
           } 
         }
       }
@@ -512,7 +567,17 @@ export class app
           // used to draw a circle
           if (Vec2.distance(new Vec2([x, y]), new Vec2([j, i])) <= brush_size)
           {
-            pixels[idx+3] = 0
+            switch (this.mode)
+            {
+              case shader_mode.alpha:
+                pixels[idx+3] = 0
+                break
+              case shader_mode.rgb:
+                pixels[idx] = 0
+                pixels[idx+1] = 0
+                pixels[idx+2] = 0
+                break
+            }
           } 
         }
       }
