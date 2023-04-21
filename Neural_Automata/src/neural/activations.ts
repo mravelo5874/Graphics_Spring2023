@@ -19,4 +19,9 @@ export class activations
     {
         return 'if(x == 3.0||x == 11.0||x == 12.0){return 1.0;}return 0.0;'
     }
+
+    public static stars_activation(): string
+    {
+        return 'return abs(x);'
+    }
 }

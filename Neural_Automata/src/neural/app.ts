@@ -1,21 +1,23 @@
 import { utils } from './utils.js'
+import { Vec2, Vec3 } from '../lib/TSM.js'
 import { simple_vertex, simple_fragment } from './shaders/simple_shader.js' 
 import { webgl_util } from './webgl_util.js'
 import { user_input } from './user_input.js'
 import { kernels } from './kernels.js'
 import { activations } from './activations.js'
+import  Rand  from "../lib/rand-seed/Rand.js"
 
 // http-server dist -c-1
 
 export enum automata
 {
-  worms, waves, paths, gol
+  worms, waves, paths, stars, cgol
 }
 
 export class app
 {
   // neural program
-  private canvas: HTMLCanvasElement
+  public canvas: HTMLCanvasElement
   private context: WebGL2RenderingContext
   private simple_program: WebGLProgram
   private vertices: Float32Array
@@ -110,9 +112,13 @@ export class app
         frag = frag.replace('[AF]', activations.paths_activation())
         this.auto_node.nodeValue = 'paths'
         break
-      case automata.gol:
+      case automata.stars:
+        frag = frag.replace('[AF]', activations.stars_activation())
+        this.auto_node.nodeValue = 'stars'
+        break
+      case automata.cgol:
         frag = frag.replace('[AF]', activations.gol_activation())
-        this.auto_node.nodeValue = 'game of life'
+        this.auto_node.nodeValue = 'c-gol'
         break
     }
 
@@ -184,13 +190,13 @@ export class app
 
     // generate state based on automata
     let pixels: Uint8Array = new Uint8Array(0)
-    if (auto == automata.gol)
+    if (auto == automata.cgol)
     {
-      pixels = utils.generate_random_binary_state(w, h)
+      pixels = utils.generate_random_binary_state(w, h, this.get_elapsed_time().toString())
     }
     else
     {
-      pixels = utils.generate_random_state(w, h)
+      pixels = utils.generate_random_state(w, h, this.get_elapsed_time().toString())
     }
 
     this.prev_pixels = pixels
@@ -216,7 +222,10 @@ export class app
       case automata.paths:
         kernel = kernels.paths_kernel()
         break
-      case automata.gol:
+      case automata.stars:
+        kernel = kernels.stars_kernel()
+        break
+      case automata.cgol:
         kernel = kernels.gol_kernel()
         break
     }
@@ -396,38 +405,81 @@ export class app
     return needResize;
   }
 
-  public mouse_draw(x_pos: number, y_pos: number, brush_size: number)
+  public mouse_draw(rel_x: number, rel_y: number, brush_size: number)
   {
-    console.log('mouse pos: ' + x_pos + ', ' + y_pos)
-
     let pixels = this.prev_pixels
     let w = this.canvas.width
     let h = this.canvas.height
-    y_pos = h - y_pos
 
-    console.log('pixels: ' + pixels.length)
-    console.log('wxhx4: ' + w * h * 4)
+    rel_y = 1.0 - rel_y
+    let x = Math.floor(w * rel_x)
+    let y = Math.floor(h * rel_y)
+
+    let rng = new Rand((rel_x * rel_y).toString())
 
     // fill in pixels
-    for (let i = y_pos - brush_size; i < y_pos + brush_size; i++)
+    for (let i = y - brush_size; i < y + brush_size; i++)
     {
-      for (let j = x_pos - brush_size; j < x_pos + brush_size; j++)
-      {
-        // mod values so we dont go out of bounds
-        i = i % h
-        j = j % w
+      for (let j = x - brush_size; j < x + brush_size; j++)
+      { 
+        // get new random value
+        let r = 0
+        if (this.curr_automata == automata.cgol)
+        {
+          if (rng.next() > 0.5) r = 255
+        }
+        else
+        {
+          r = Math.floor(255 * rng.next())
+        }
+        
         // access pixel at (x, y) by using (y * width) + (x * 4)
-        const idx = (i * w) + (j * 4)
-        if (idx < pixels.length) pixels[idx+3] = 255
+        const idx = (i * w + j) * 4
+        // make sure index is not out of range
+        if (idx < pixels.length && idx > -1) 
+        {
+          // used to draw a circle
+          if (Vec2.distance(new Vec2([x, y]), new Vec2([j, i])) <= brush_size)
+          {
+            pixels[idx+3] = r
+          } 
+        }
       }
     }
     // set prev pixels to display
     this.prev_pixels = pixels
   }
 
-  public mouse_erase(x_pos: number, y_pos: number, brush_size: number)
+  public mouse_erase(rel_x: number, rel_y: number, brush_size: number)
   {
+    let pixels = this.prev_pixels
+    let w = this.canvas.width
+    let h = this.canvas.height
 
+    rel_y = 1.0 - rel_y
+    let x = Math.floor(w * rel_x)
+    let y = Math.floor(h * rel_y)
+
+    // fill in pixels
+    for (let i = y - brush_size; i < y + brush_size; i++)
+    {
+      for (let j = x - brush_size; j < x + brush_size; j++)
+      {
+        // access pixel at (x, y) by using (y * width) + (x * 4)
+        const idx = (i * w + j) * 4
+        // make sure index is not out of range
+        if (idx < pixels.length && idx > -1) 
+        {
+          // used to draw a circle
+          if (Vec2.distance(new Vec2([x, y]), new Vec2([j, i])) <= brush_size)
+          {
+            pixels[idx+3] = 0
+          } 
+        }
+      }
+    }
+    // set prev pixels to display
+    this.prev_pixels = pixels
   }
 }
 

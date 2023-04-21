@@ -63,5 +63,21 @@ export class kernels {
         kernel[8] = 1.0;
         return kernel;
     }
+    static stars_kernel() {
+        let kernel = new Float32Array(9);
+        // 0 1 2
+        kernel[0] = 0.565;
+        kernel[1] = -0.716;
+        kernel[2] = 0.565;
+        // 3 4 5
+        kernel[3] = -0.759;
+        kernel[4] = 0.627;
+        kernel[5] = -0.759;
+        // 6 7 8
+        kernel[6] = 0.565;
+        kernel[7] = -0.716;
+        kernel[8] = 0.565;
+        return kernel;
+    }
 }
 //# sourceMappingURL=kernels.js.map

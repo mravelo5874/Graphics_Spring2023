@@ -11,5 +11,8 @@ export class activations {
     static gol_activation() {
         return 'if(x == 3.0||x == 11.0||x == 12.0){return 1.0;}return 0.0;';
     }
+    static stars_activation() {
+        return 'return abs(x);';
+    }
 }
 //# sourceMappingURL=activations.js.map

@@ -8,18 +8,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { utils } from './utils.js';
+import { Vec2 } from '../lib/TSM.js';
 import { simple_vertex, simple_fragment } from './shaders/simple_shader.js';
 import { webgl_util } from './webgl_util.js';
 import { user_input } from './user_input.js';
 import { kernels } from './kernels.js';
 import { activations } from './activations.js';
+import Rand from "../lib/rand-seed/Rand.js";
 // http-server dist -c-1
 export var automata;
 (function (automata) {
     automata[automata["worms"] = 0] = "worms";
     automata[automata["waves"] = 1] = "waves";
     automata[automata["paths"] = 2] = "paths";
-    automata[automata["gol"] = 3] = "gol";
+    automata[automata["stars"] = 3] = "stars";
+    automata[automata["cgol"] = 4] = "cgol";
 })(automata || (automata = {}));
 export class app {
     constructor(_canvas) {
@@ -76,9 +79,13 @@ export class app {
                 frag = frag.replace('[AF]', activations.paths_activation());
                 this.auto_node.nodeValue = 'paths';
                 break;
-            case automata.gol:
+            case automata.stars:
+                frag = frag.replace('[AF]', activations.stars_activation());
+                this.auto_node.nodeValue = 'stars';
+                break;
+            case automata.cgol:
                 frag = frag.replace('[AF]', activations.gol_activation());
-                this.auto_node.nodeValue = 'game of life';
+                this.auto_node.nodeValue = 'c-gol';
                 break;
         }
         // create shaders
@@ -142,11 +149,11 @@ export class app {
         const h = this.canvas.height;
         // generate state based on automata
         let pixels = new Uint8Array(0);
-        if (auto == automata.gol) {
-            pixels = utils.generate_random_binary_state(w, h);
+        if (auto == automata.cgol) {
+            pixels = utils.generate_random_binary_state(w, h, this.get_elapsed_time().toString());
         }
         else {
-            pixels = utils.generate_random_state(w, h);
+            pixels = utils.generate_random_state(w, h, this.get_elapsed_time().toString());
         }
         this.prev_pixels = pixels;
         //console.log('pixels.length: ' + pixels.length + ', wxhx4: ' + w * h * 4)
@@ -169,7 +176,10 @@ export class app {
             case automata.paths:
                 kernel = kernels.paths_kernel();
                 break;
-            case automata.gol:
+            case automata.stars:
+                kernel = kernels.stars_kernel();
+                break;
+            case automata.cgol:
                 kernel = kernels.gol_kernel();
                 break;
         }
@@ -309,30 +319,63 @@ export class app {
         }
         return needResize;
     }
-    mouse_draw(x_pos, y_pos, brush_size) {
-        console.log('mouse pos: ' + x_pos + ', ' + y_pos);
+    mouse_draw(rel_x, rel_y, brush_size) {
         let pixels = this.prev_pixels;
         let w = this.canvas.width;
         let h = this.canvas.height;
-        y_pos = h - y_pos;
-        console.log('pixels: ' + pixels.length);
-        console.log('wxhx4: ' + w * h * 4);
+        rel_y = 1.0 - rel_y;
+        let x = Math.floor(w * rel_x);
+        let y = Math.floor(h * rel_y);
+        let rng = new Rand((rel_x * rel_y).toString());
         // fill in pixels
-        for (let i = y_pos - brush_size; i < y_pos + brush_size; i++) {
-            for (let j = x_pos - brush_size; j < x_pos + brush_size; j++) {
-                // mod values so we dont go out of bounds
-                i = i % h;
-                j = j % w;
+        for (let i = y - brush_size; i < y + brush_size; i++) {
+            for (let j = x - brush_size; j < x + brush_size; j++) {
+                // get new random value
+                let r = 0;
+                if (this.curr_automata == automata.cgol) {
+                    if (rng.next() > 0.5)
+                        r = 255;
+                }
+                else {
+                    r = Math.floor(255 * rng.next());
+                }
                 // access pixel at (x, y) by using (y * width) + (x * 4)
-                const idx = (i * w) + (j * 4);
-                if (idx < pixels.length)
-                    pixels[idx + 3] = 255;
+                const idx = (i * w + j) * 4;
+                // make sure index is not out of range
+                if (idx < pixels.length && idx > -1) {
+                    // used to draw a circle
+                    if (Vec2.distance(new Vec2([x, y]), new Vec2([j, i])) <= brush_size) {
+                        pixels[idx + 3] = r;
+                    }
+                }
             }
         }
         // set prev pixels to display
         this.prev_pixels = pixels;
     }
-    mouse_erase(x_pos, y_pos, brush_size) {
+    mouse_erase(rel_x, rel_y, brush_size) {
+        let pixels = this.prev_pixels;
+        let w = this.canvas.width;
+        let h = this.canvas.height;
+        rel_y = 1.0 - rel_y;
+        let x = Math.floor(w * rel_x);
+        let y = Math.floor(h * rel_y);
+        // fill in pixels
+        for (let i = y - brush_size; i < y + brush_size; i++) {
+            for (let j = x - brush_size; j < x + brush_size; j++) {
+                // access pixel at (x, y) by using (y * width) + (x * 4)
+                const idx = (i * w + j) * 4;
+                // make sure index is not out of range
+                if (idx < pixels.length && idx > -1) {
+                    // used to draw a circle
+                    if (Vec2.distance(new Vec2([x, y]), new Vec2([j, i])) <= brush_size) {
+                        pixels[idx + 3] = 0;
+                    }
+                }
+            }
+        }
+        // set prev pixels to display
+        this.prev_pixels = pixels;
     }
 }
 export function init_app() {
