@@ -1,7 +1,9 @@
 import { utils } from './utils.js'
 import { Vec2, Vec3 } from '../lib/TSM.js'
 import { alpha_vertex, alpha_fragment } from './shaders/alpha_shader.js' 
-import {  rgb_vertex, rgb_fragment } from './shaders/rgb_shader.js'
+import { rgb_vertex, rgb_fragment } from './shaders/rgb_shader.js'
+import { bnw_vertex, bnw_fragment } from './shaders/bnw_shader.js'
+import { acid_vertex, acid_fragment } from './shaders/acid_shader.js'
 import { webgl_util } from './webgl_util.js'
 import { user_input } from './user_input.js'
 import { kernels } from './kernels.js'
@@ -12,12 +14,12 @@ import  Rand  from "../lib/rand-seed/Rand.js"
 
 export enum automata
 {
-  worms, drops, slime, waves, paths, stars, cells, lands, cgol, wolfy
+  worms, drops, waves, paths, stars, cells, slime, lands, wolfy, cgol, END
 }
 
 export enum shader_mode
 {
-  alpha, rgb
+  rgb, alpha, bnw, acid, END
 }
 
 export class app
@@ -114,19 +116,29 @@ export class app
     let gl = this.context
 
 
-    let frag = alpha_fragment
-    let vert = alpha_vertex
+    let frag = rgb_fragment
+    let vert = rgb_vertex
     // set shader mode
     switch (mode)
     {
       default:
-      case shader_mode.alpha:
-        this.mode_node.nodeValue= 'alpha'
-        break;
       case shader_mode.rgb:
         this.mode_node.nodeValue= 'rgb'
-        frag = rgb_fragment
-        vert = rgb_vertex
+        break;
+      case shader_mode.alpha:
+        this.mode_node.nodeValue= 'alpha'
+        frag = alpha_fragment
+        vert = alpha_vertex
+        break;
+      case shader_mode.bnw:
+        this.mode_node.nodeValue= 'bnw'
+        frag = bnw_fragment
+        vert = bnw_vertex
+        break;
+      case shader_mode.acid:
+        this.mode_node.nodeValue= 'acid'
+        frag = acid_fragment
+        vert = acid_vertex
         break;
     }
 
@@ -234,6 +246,10 @@ export class app
     const color_loc = gl.getUniformLocation(program, 'u_color')
     gl.uniform4fv(color_loc, [0.0, 0.0, 0.0, 0.0])
 
+    // set time uniform
+    const time_loc = gl.getUniformLocation(program, 'u_time')
+    gl.uniform1f(time_loc, 0.0)
+
     // set texture uniform
     const texture_loc = gl.getUniformLocation(program, 'u_texture');
     this.texture = gl.createTexture() as WebGLTexture
@@ -250,13 +266,17 @@ export class app
     }
     else
     {
-      if (mode == shader_mode.alpha)
+      switch (mode)
       {
-        pixels = utils.generate_random_state(w, h, this.get_elapsed_time().toString())
-      }
-      else if (mode == shader_mode.rgb)
-      {
-        pixels = utils.generate_random_rgb_state(w, h, this.get_elapsed_time().toString())
+        default:
+        case shader_mode.alpha:
+          pixels = utils.generate_random_alpha_state(w, h, this.get_elapsed_time().toString())
+          break
+        case shader_mode.rgb:
+        case shader_mode.bnw:
+        case shader_mode.acid:
+          pixels = utils.generate_random_rgb_state(w, h, this.get_elapsed_time().toString())
+          break
       }
     }
 
@@ -369,6 +389,10 @@ export class app
     gl.generateMipmap(gl.TEXTURE_2D)
     // Tell the shader to use texture unit 0 for u_texture
     gl.uniform1i(texture_loc, 0)
+
+    // set time uniform
+    const time_loc = gl.getUniformLocation(this.simple_program, 'u_time')
+    gl.uniform1f(time_loc, this.get_elapsed_time())
 
     // set position attribute
     const pos_loc = gl.getAttribLocation(this.simple_program, 'a_pos')
@@ -516,6 +540,8 @@ export class app
                 pixels[idx+3] = x
                 break
               case shader_mode.rgb:
+              case shader_mode.bnw:
+              case shader_mode.acid:
                 // get 3 random values
                 let r = 0
                 let g = 0
@@ -573,6 +599,8 @@ export class app
                 pixels[idx+3] = 0
                 break
               case shader_mode.rgb:
+              case shader_mode.bnw:
+              case shader_mode.acid:
                 pixels[idx] = 0
                 pixels[idx+1] = 0
                 pixels[idx+2] = 0
@@ -584,6 +612,22 @@ export class app
     }
     // set prev pixels to display
     this.prev_pixels = pixels
+  }
+
+  public toggle_automata(): void
+  {
+    let a = this.auto
+    a -= 1
+    if (a < 0) a = automata.wolfy - 1
+    this.reset(a, this.mode)
+  }
+
+  public toggle_shader(): void
+  {
+    let m = this.mode
+    m -= 1
+    if (m < 0) m = shader_mode.END - 1
+    this.reset(this.auto, m)
   }
 }
 

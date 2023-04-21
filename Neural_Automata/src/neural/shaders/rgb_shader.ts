@@ -15,6 +15,7 @@ precision mediump float;
 uniform vec4 u_color;
 uniform sampler2D u_texture;
 uniform float u_kernel[9];
+uniform float u_time;
 uniform vec2 u_res;
 varying vec2 v_pos;
 
@@ -63,6 +64,7 @@ void main()
     float r = activation(sum_r);
     float g = activation(sum_g);
     float b = activation(sum_b);
+
     gl_FragColor = vec4(r, g, b, 1.0);
 }
 `

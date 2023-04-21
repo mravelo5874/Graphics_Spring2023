@@ -23,7 +23,7 @@ class utils {
     }
     // must be used inside an async functions
     static delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-    static generate_random_state(width, height, seed) {
+    static generate_random_alpha_state(width, height, seed) {
         let rng = new Rand(seed);
         let cells = new Uint8Array(height * width * 4);
         for (let i = 0; i < height * width * 4; i += 4) {

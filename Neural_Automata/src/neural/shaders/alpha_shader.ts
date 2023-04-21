@@ -15,6 +15,7 @@ precision mediump float;
 uniform vec4 u_color;
 uniform sampler2D u_texture;
 uniform float u_kernel[9];
+uniform float u_time;
 uniform vec2 u_res;
 varying vec2 v_pos;
 

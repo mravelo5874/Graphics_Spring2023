@@ -18,11 +18,25 @@ export class user_input {
             return;
         this.key_lock = true;
         switch (key.code) {
+            // toggle modes
+            case 'Space':
+                this.app.toggle_shader();
+                break;
+            case 'ControlLeft':
+                this.app.toggle_automata();
+                break;
+            // maually set modes
             case 'KeyQ':
                 this.app.reset(this.app.auto, shader_mode.rgb);
                 break;
             case 'KeyW':
                 this.app.reset(this.app.auto, shader_mode.alpha);
+                break;
+            case 'KeyE':
+                this.app.reset(this.app.auto, shader_mode.bnw);
+                break;
+            case 'KeyA':
+                this.app.reset(this.app.auto, shader_mode.acid);
                 break;
             case 'Digit1':
                 this.app.reset(automata.worms, this.app.mode);

@@ -28,7 +28,7 @@ export class utils
     // must be used inside an async functions
     public static delay(ms: number) { return new Promise( resolve => setTimeout(resolve, ms))}
 
-    public static generate_random_state(width, height, seed)
+    public static generate_random_alpha_state(width, height, seed)
     {
         let rng = new Rand(seed)
         let cells = new Uint8Array(height * width * 4)
