@@ -23,7 +23,7 @@ export class activations {
     static drops_activation() {
         return 'return -1.0/pow(2.0, (pow(x, 2.0)))+1.0;';
     }
-    static borders_activation() {
+    static lands_activation() {
         return 'return (exp(2.0*x)-1.0)/(exp(2.0*x)+1.0);';
     }
     static wolfy_activation() {

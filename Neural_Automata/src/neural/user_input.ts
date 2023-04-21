@@ -50,7 +50,7 @@ export class user_input
                 this.app.reset(automata.slime)
                 break
             case 'Digit8':
-                this.app.reset(automata.borders)
+                this.app.reset(automata.lands)
                 break
             case 'Digit9':
                 this.app.reset(automata.wolfy)

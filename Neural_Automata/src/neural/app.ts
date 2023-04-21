@@ -11,7 +11,7 @@ import  Rand  from "../lib/rand-seed/Rand.js"
 
 export enum automata
 {
-  worms, drops, slime, waves, paths, stars, cells, borders, cgol, wolfy
+  worms, drops, slime, waves, paths, stars, cells, lands, cgol, wolfy
 }
 
 export class app
@@ -102,43 +102,43 @@ export class app
       default:
       case automata.worms:
         frag = frag.replace('[AF]', activations.worms_activation())
-        this.auto_node.nodeValue = 'worms'
+        this.auto_node.nodeValue = 'worms (1)'
         break
       case automata.drops:
         frag = frag.replace('[AF]', activations.drops_activation())
-        this.auto_node.nodeValue = 'drops'
-        break
-      case automata.slime:
-        frag = frag.replace('[AF]', activations.slime_activation())
-        this.auto_node.nodeValue = 'slime'
+        this.auto_node.nodeValue = 'drops (2)'
         break
       case automata.waves:
         frag = frag.replace('[AF]', activations.waves_activation())
-        this.auto_node.nodeValue = 'waves'
+        this.auto_node.nodeValue = 'waves (3)'
         break
       case automata.paths:
         frag = frag.replace('[AF]', activations.paths_activation())
-        this.auto_node.nodeValue = 'paths'
+        this.auto_node.nodeValue = 'paths (4)'
         break
       case automata.stars:
         frag = frag.replace('[AF]', activations.stars_activation())
-        this.auto_node.nodeValue = 'stars'
+        this.auto_node.nodeValue = 'stars (5)'
         break
       case automata.cells:
         frag = frag.replace('[AF]', activations.cells_activation())
-        this.auto_node.nodeValue = 'cells'
+        this.auto_node.nodeValue = 'cells (6)'
         break
-      case automata.borders:
-        frag = frag.replace('[AF]', activations.borders_activation())
-        this.auto_node.nodeValue = 'borders'
+      case automata.slime:
+        frag = frag.replace('[AF]', activations.slime_activation())
+        this.auto_node.nodeValue = 'slime (7)'
+        break
+      case automata.lands:
+        frag = frag.replace('[AF]', activations.lands_activation())
+        this.auto_node.nodeValue = 'lands (8)'
         break
       case automata.wolfy:
         frag = frag.replace('[AF]', activations.wolfy_activation())
-        this.auto_node.nodeValue = 'wolfy'
+        this.auto_node.nodeValue = 'wolfy (9)'
         break
       case automata.cgol:
         frag = frag.replace('[AF]', activations.gol_activation())
-        this.auto_node.nodeValue = 'c-gol'
+        this.auto_node.nodeValue = 'c-gol (0)'
         break
     }
 
@@ -258,8 +258,8 @@ export class app
       case automata.cells:
         kernel = kernels.cells_kernel()
         break
-      case automata.borders:
-        kernel = kernels.borders_kernel()
+      case automata.lands:
+        kernel = kernels.lands_kernel()
         break
       case automata.wolfy:
         kernel = kernels.wolfy_kernel()
@@ -463,7 +463,7 @@ export class app
       { 
         // get new random value
         let r = 0
-        if (this.curr_automata == automata.cgol)
+        if (this.curr_automata == automata.cgol || this.curr_automata == automata.wolfy)
         {
           if (rng.next() > 0.5) r = 255
         }

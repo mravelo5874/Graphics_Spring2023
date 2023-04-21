@@ -40,7 +40,7 @@ export class activations
         return 'return -1.0/pow(2.0, (pow(x, 2.0)))+1.0;'
     }
 
-    public static borders_activation(): string
+    public static lands_activation(): string
     {
         return 'return (exp(2.0*x)-1.0)/(exp(2.0*x)+1.0);'
     }

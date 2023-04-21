@@ -127,7 +127,7 @@ export class kernels {
         kernel[8] = -0.764;
         return kernel;
     }
-    static borders_kernel() {
+    static lands_kernel() {
         let kernel = new Float32Array(9);
         // 0 1 2
         kernel[0] = 0.079;
@@ -146,17 +146,17 @@ export class kernels {
     static wolfy_kernel() {
         let kernel = new Float32Array(9);
         // 0 1 2
-        kernel[0] = -1.0;
-        kernel[1] = -1.0;
-        kernel[2] = -1.0;
+        kernel[0] = 0.0;
+        kernel[1] = 0.0;
+        kernel[2] = 0.0;
         // 3 4 5
         kernel[3] = 0.0;
-        kernel[4] = 1.0;
+        kernel[4] = 0.0;
         kernel[5] = 0.0;
         // 6 7 8
         kernel[6] = 1.0;
         kernel[7] = 2.0;
-        kernel[8] = 1.0;
+        kernel[8] = 4.0;
         return kernel;
     }
 }
