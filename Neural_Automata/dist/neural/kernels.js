@@ -79,5 +79,85 @@ export class kernels {
         kernel[8] = 0.565;
         return kernel;
     }
+    static slime_kernel() {
+        let kernel = new Float32Array(9);
+        // 0 1 2
+        kernel[0] = 0.80;
+        kernel[1] = -0.85;
+        kernel[2] = 0.80;
+        // 3 4 5
+        kernel[3] = -0.85;
+        kernel[4] = -0.20;
+        kernel[5] = -0.85;
+        // 6 7 8
+        kernel[6] = 0.80;
+        kernel[7] = -0.85;
+        kernel[8] = 0.80;
+        return kernel;
+    }
+    static cells_kernel() {
+        let kernel = new Float32Array(9);
+        // 0 1 2
+        kernel[0] = -0.939;
+        kernel[1] = 0.880;
+        kernel[2] = -0.939;
+        // 3 4 5
+        kernel[3] = 0.880;
+        kernel[4] = 0.400;
+        kernel[5] = 0.880;
+        // 6 7 8
+        kernel[6] = -0.939;
+        kernel[7] = 0.880;
+        kernel[8] = -0.939;
+        return kernel;
+    }
+    static drops_kernel() {
+        let kernel = new Float32Array(9);
+        // 0 1 2
+        kernel[0] = -0.764;
+        kernel[1] = 0.683;
+        kernel[2] = -0.764;
+        // 3 4 5
+        kernel[3] = 0.683;
+        kernel[4] = -0.558;
+        kernel[5] = 0.683;
+        // 6 7 8
+        kernel[6] = -0.764;
+        kernel[7] = 0.683;
+        kernel[8] = -0.764;
+        return kernel;
+    }
+    static borders_kernel() {
+        let kernel = new Float32Array(9);
+        // 0 1 2
+        kernel[0] = 0.079;
+        kernel[1] = -0.765;
+        kernel[2] = 0.079;
+        // 3 4 5
+        kernel[3] = -0.765;
+        kernel[4] = 0.765;
+        kernel[5] = -0.765;
+        // 6 7 8
+        kernel[6] = 0.079;
+        kernel[7] = -0.765;
+        kernel[8] = 0.079;
+        return kernel;
+    }
+    static wolfy_kernel() {
+        let kernel = new Float32Array(9);
+        // 0 1 2
+        kernel[0] = -1.0;
+        kernel[1] = -1.0;
+        kernel[2] = -1.0;
+        // 3 4 5
+        kernel[3] = 0.0;
+        kernel[4] = 1.0;
+        kernel[5] = 0.0;
+        // 6 7 8
+        kernel[6] = 1.0;
+        kernel[7] = 2.0;
+        kernel[8] = 1.0;
+        return kernel;
+    }
 }
 //# sourceMappingURL=kernels.js.map

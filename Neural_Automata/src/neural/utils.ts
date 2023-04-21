@@ -59,25 +59,16 @@ export class utils
         return cells;
     }
 
-    public static generate_random_kernel(min=-1, max=1, h_symmetry=false, v_symmetry=false, full_symmetry=false) 
+    public static generate_empty_state(width, height)
     {
-        let range = max - min;
-        let kernel = new Float32Array(9);
-    
-        for (let i in kernel)
+        let cells = new Uint8Array(height * width * 4)
+        for(let i = 0; i < height*width*4; i+=4)
         {
-            kernel[i] = Math.random()*range + min;
+            cells[i] = 0
+            cells[i+1] = 0
+            cells[i+2] = 0
+            cells[i+3] = 0
         }
-
-		// if (full_symmetry)
-		// 	kernel = this.fullSymmetry(kernel);
-		// else
-        // {
-		// 	if (h_symmetry)
-		// 		kernel = this.hSymmetry(kernel);
-		// 	if (v_symmetry)
-		// 		kernel = this.vSymmetry(kernel);
-		// }
-        return kernel;
+        return cells;
     }
 }

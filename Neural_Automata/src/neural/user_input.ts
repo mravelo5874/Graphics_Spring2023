@@ -32,15 +32,30 @@ export class user_input
                 this.app.reset(automata.worms)
                 break
             case 'Digit2':
-                this.app.reset(automata.waves)
+                this.app.reset(automata.drops)
                 break
             case 'Digit3':
-                this.app.reset(automata.paths)
+                this.app.reset(automata.waves)
                 break
             case 'Digit4':
-                this.app.reset(automata.stars)
+                this.app.reset(automata.paths)
                 break
             case 'Digit5':
+                this.app.reset(automata.stars)
+                break
+            case 'Digit6':
+                this.app.reset(automata.cells)
+                break
+            case 'Digit7':
+                this.app.reset(automata.slime)
+                break
+            case 'Digit8':
+                this.app.reset(automata.borders)
+                break
+            case 'Digit9':
+                this.app.reset(automata.wolfy)
+                break
+            case 'Digit0':
                 this.app.reset(automata.cgol)
                 break
             case 'KeyR': 

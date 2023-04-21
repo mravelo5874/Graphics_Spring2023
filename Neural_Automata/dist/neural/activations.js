@@ -14,5 +14,20 @@ export class activations {
     static stars_activation() {
         return 'return abs(x);';
     }
+    static slime_activation() {
+        return 'return -1.0/(0.89*pow(x, 2.0)+1.0)+1.0;';
+    }
+    static cells_activation() {
+        return 'return -1.0/(0.9*pow(x, 2.0)+1.0)+1.0;';
+    }
+    static drops_activation() {
+        return 'return -1.0/pow(2.0, (pow(x, 2.0)))+1.0;';
+    }
+    static borders_activation() {
+        return 'return (exp(2.0*x)-1.0)/(exp(2.0*x)+1.0);';
+    }
+    static wolfy_activation() {
+        return 'if (x==1.0||x==2.0||x==3.0||x==4.0){return 1.0;}return 0.0;';
+    }
 }
 //# sourceMappingURL=activations.js.map

@@ -19,10 +19,15 @@ import Rand from "../lib/rand-seed/Rand.js";
 export var automata;
 (function (automata) {
     automata[automata["worms"] = 0] = "worms";
-    automata[automata["waves"] = 1] = "waves";
-    automata[automata["paths"] = 2] = "paths";
-    automata[automata["stars"] = 3] = "stars";
-    automata[automata["cgol"] = 4] = "cgol";
+    automata[automata["drops"] = 1] = "drops";
+    automata[automata["slime"] = 2] = "slime";
+    automata[automata["waves"] = 3] = "waves";
+    automata[automata["paths"] = 4] = "paths";
+    automata[automata["stars"] = 5] = "stars";
+    automata[automata["cells"] = 6] = "cells";
+    automata[automata["borders"] = 7] = "borders";
+    automata[automata["cgol"] = 8] = "cgol";
+    automata[automata["wolfy"] = 9] = "wolfy";
 })(automata || (automata = {}));
 export class app {
     constructor(_canvas) {
@@ -71,6 +76,14 @@ export class app {
                 frag = frag.replace('[AF]', activations.worms_activation());
                 this.auto_node.nodeValue = 'worms';
                 break;
+            case automata.drops:
+                frag = frag.replace('[AF]', activations.drops_activation());
+                this.auto_node.nodeValue = 'drops';
+                break;
+            case automata.slime:
+                frag = frag.replace('[AF]', activations.slime_activation());
+                this.auto_node.nodeValue = 'slime';
+                break;
             case automata.waves:
                 frag = frag.replace('[AF]', activations.waves_activation());
                 this.auto_node.nodeValue = 'waves';
@@ -82,6 +95,18 @@ export class app {
             case automata.stars:
                 frag = frag.replace('[AF]', activations.stars_activation());
                 this.auto_node.nodeValue = 'stars';
+                break;
+            case automata.cells:
+                frag = frag.replace('[AF]', activations.cells_activation());
+                this.auto_node.nodeValue = 'cells';
+                break;
+            case automata.borders:
+                frag = frag.replace('[AF]', activations.borders_activation());
+                this.auto_node.nodeValue = 'borders';
+                break;
+            case automata.wolfy:
+                frag = frag.replace('[AF]', activations.wolfy_activation());
+                this.auto_node.nodeValue = 'wolfy';
                 break;
             case automata.cgol:
                 frag = frag.replace('[AF]', activations.gol_activation());
@@ -150,7 +175,10 @@ export class app {
         // generate state based on automata
         let pixels = new Uint8Array(0);
         if (auto == automata.cgol) {
-            pixels = utils.generate_random_binary_state(w, h, this.get_elapsed_time().toString());
+            pixels = utils.generate_empty_state(w, h);
+        }
+        else if (auto == automata.wolfy) {
+            pixels = utils.generate_empty_state(w, h);
         }
         else {
             pixels = utils.generate_random_state(w, h, this.get_elapsed_time().toString());
@@ -170,6 +198,12 @@ export class app {
             case automata.worms:
                 kernel = kernels.worms_kernel();
                 break;
+            case automata.drops:
+                kernel = kernels.drops_kernel();
+                break;
+            case automata.slime:
+                kernel = kernels.slime_kernel();
+                break;
             case automata.waves:
                 kernel = kernels.waves_kernel();
                 break;
@@ -178,6 +212,15 @@ export class app {
                 break;
             case automata.stars:
                 kernel = kernels.stars_kernel();
+                break;
+            case automata.cells:
+                kernel = kernels.cells_kernel();
+                break;
+            case automata.borders:
+                kernel = kernels.borders_kernel();
+                break;
+            case automata.wolfy:
+                kernel = kernels.wolfy_kernel();
                 break;
             case automata.cgol:
                 kernel = kernels.gol_kernel();
