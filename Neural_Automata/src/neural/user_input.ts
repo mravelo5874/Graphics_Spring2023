@@ -1,15 +1,17 @@
-import { app, automata, shader_mode } from './app.js'
+import { app2D, automata, shader_mode } from './app2D.js'
+import { app3D } from './app3D.js'
+import { neural } from './neural.js'
 
 
 export class user_input
 {
-    private app: app
+    private neural_app: neural
     private mouse_down: boolean = false
     private key_lock: boolean = false
 
-    constructor(canvas: HTMLCanvasElement, neural_app: app)
+    constructor(canvas: HTMLCanvasElement, _neural: neural)
     {
-        this.app = neural_app
+        this.neural_app = _neural
 
         // event listeners for keyboard input
         window.addEventListener("keydown", (key: KeyboardEvent) => this.on_key_down(key))
@@ -28,58 +30,62 @@ export class user_input
 
         switch (key.code) 
         {
-            // toggle modes
+            // switch between 2d and 3d app
             case 'Space':
-                this.app.toggle_shader()
+                this.neural_app.toggle_apps()
+                break
+            // toggle modes
+            case 'ShiftLeft':
+                this.neural_app.app2d.toggle_shader()
                 break
             case 'ControlLeft':
-                this.app.toggle_automata()
+                this.neural_app.app2d.toggle_automata()
                 break
             // maually set modes
             case 'KeyQ':
-                this.app.reset(this.app.auto, shader_mode.rgb)
+                this.neural_app.app2d.reset(this.neural_app.app2d.auto, shader_mode.rgb)
                 break
             case 'KeyW':
-                this.app.reset(this.app.auto, shader_mode.alpha)
+                this.neural_app.app2d.reset(this.neural_app.app2d.auto, shader_mode.alpha)
                 break
             case 'KeyE':
-                this.app.reset(this.app.auto, shader_mode.bnw)
+                this.neural_app.app2d.reset(this.neural_app.app2d.auto, shader_mode.bnw)
                 break
             case 'KeyA':
-                this.app.reset(this.app.auto, shader_mode.acid)
+                this.neural_app.app2d.reset(this.neural_app.app2d.auto, shader_mode.acid)
                 break
             case 'Digit1':
-                this.app.reset(automata.worms, this.app.mode)
+                this.neural_app.app2d.reset(automata.worms, this.neural_app.app2d.mode)
                 break
             case 'Digit2':
-                this.app.reset(automata.drops, this.app.mode)
+                this.neural_app.app2d.reset(automata.drops, this.neural_app.app2d.mode)
                 break
             case 'Digit3':
-                this.app.reset(automata.waves, this.app.mode)
+                this.neural_app.app2d.reset(automata.waves, this.neural_app.app2d.mode)
                 break
             case 'Digit4':
-                this.app.reset(automata.paths, this.app.mode)
+                this.neural_app.app2d.reset(automata.paths, this.neural_app.app2d.mode)
                 break
             case 'Digit5':
-                this.app.reset(automata.stars, this.app.mode)
+                this.neural_app.app2d.reset(automata.stars, this.neural_app.app2d.mode)
                 break
             case 'Digit6':
-                this.app.reset(automata.cells, this.app.mode)
+                this.neural_app.app2d.reset(automata.cells, this.neural_app.app2d.mode)
                 break
             case 'Digit7':
-                this.app.reset(automata.slime, this.app.mode)
+                this.neural_app.app2d.reset(automata.slime, this.neural_app.app2d.mode)
                 break
             case 'Digit8':
-                this.app.reset(automata.lands, this.app.mode)
+                this.neural_app.app2d.reset(automata.lands, this.neural_app.app2d.mode)
                 break
             case 'Digit9':
-                this.app.reset(automata.wolfy, this.app.mode)
+                this.neural_app.app2d.reset(automata.wolfy, this.neural_app.app2d.mode)
                 break
             case 'Digit0':
-                this.app.reset(automata.cgol, this.app.mode)
+                this.neural_app.app2d.reset(automata.cgol, this.neural_app.app2d.mode)
                 break
             case 'KeyR': 
-                this.app.reset(this.app.auto, this.app.mode)
+            this.neural_app.app2d.reset(this.neural_app.app2d.auto, this.neural_app.app2d.mode)
                 break
             default:
                 console.log('Key : \'', key.code, '\' was pressed.');
@@ -118,23 +124,23 @@ export class user_input
 
     private mouse_drag(mouse: MouseEvent)
     {
-        const pos = this.get_mouse_canvas(mouse, this.app.canvas)
+        const pos = this.get_mouse_canvas(mouse, this.neural_app.canvas)
         // pos is in pixel coordinates for the canvas.
         // so convert to WebGL clip space coordinates
-        const x = pos.x / this.app.canvas.width
-        const y = pos.y / this.app.canvas.height
+        const x = pos.x / this.neural_app.canvas.width
+        const y = pos.y / this.neural_app.canvas.height
         if (this.mouse_down)
         {
             switch (mouse.buttons)
             {
                 case 1:
                 {
-                    this.app.mouse_draw(x, y, 32)
+                    this.neural_app.app2d.mouse_draw(x, y, 32)
                     break
                 }
                 case 2:
                 {
-                    this.app.mouse_erase(x, y, 32)
+                    this.neural_app.app2d.mouse_erase(x, y, 32)
                     break
                 }
             }

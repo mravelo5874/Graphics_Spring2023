@@ -1,14 +1,13 @@
 import { utils } from './utils.js'
-import { Vec2, Vec3 } from '../lib/TSM.js'
+import { Vec2 } from '../lib/TSM.js'
 import { alpha_vertex, alpha_fragment } from './shaders/alpha_shader.js' 
 import { rgb_vertex, rgb_fragment } from './shaders/rgb_shader.js'
 import { bnw_vertex, bnw_fragment } from './shaders/bnw_shader.js'
 import { acid_vertex, acid_fragment } from './shaders/acid_shader.js'
-import { webgl_util } from './webgl_util.js'
-import { user_input } from './user_input.js'
 import { kernels } from './kernels.js'
 import { activations } from './activations.js'
 import  Rand  from "../lib/rand-seed/Rand.js"
+import { neural } from './neural.js'
 
 // http-server dist -c-1
 
@@ -22,8 +21,10 @@ export enum shader_mode
   rgb, alpha, bnw, acid, END
 }
 
-export class app
+export class app2D
 {
+  public neural_app: neural
+
   // neural program
   public canvas: HTMLCanvasElement
   public mode: shader_mode
@@ -33,7 +34,7 @@ export class app
   private vertices: Float32Array
   private texture: WebGLTexture
   private prev_pixels: Uint8Array
-  
+  private stop_render: boolean = false
 
   // used to calculate fps
   private fps: number;
@@ -58,15 +59,14 @@ export class app
   private fps_node: Text;
   private res_node: Text;
 
-  // input
-  private user_input: user_input
+  
 
-  constructor(_canvas: HTMLCanvasElement)
+  constructor(_neural: neural)
   {
+    this.neural_app = _neural
     this.mode = shader_mode.alpha
-    this.canvas = _canvas;
-    this.context = webgl_util.request_context(this.canvas)
-    this.user_input = new user_input(_canvas, this)
+    this.canvas = _neural.canvas
+    this.context = _neural.context
     this.frame_time = 1000 / this.fps_cap
 
     // set current time
@@ -101,7 +101,7 @@ export class app
     this.res_node.nodeValue = ''
 
     // handle canvas resize
-    app.canvas_to_disp_size = new Map([[this.canvas, [512, 512]]])
+    app2D.canvas_to_disp_size = new Map([[this.canvas, [512, 512]]])
     this.resize_observer = new ResizeObserver(this.on_resize)
     this.resize_observer.observe(this.canvas, { box: 'content-box' })
   }
@@ -114,7 +114,6 @@ export class app
     this.auto = auto
     this.mode = mode
     let gl = this.context
-
 
     let frag = rgb_fragment
     let vert = rgb_vertex
@@ -343,9 +342,15 @@ export class app
 
   public start(): void
   { 
-    app.update_canvas = true
+    app2D.update_canvas = true
+    this.stop_render = false
     this.reset(automata.worms, shader_mode.rgb)
     window.requestAnimationFrame(() => this.draw_loop())
+  }
+
+  public end(): void
+  {
+    this.stop_render = true
   }
 
   private draw(): void
@@ -359,9 +364,9 @@ export class app
     gl.viewport(0, 0, w, h)
 
     // update canvas size
-    if (app.update_canvas)
+    if (app2D.update_canvas)
     {
-      app.update_canvas = false;
+      app2D.update_canvas = false;
       this.resize_canvas_to_display_size(this.canvas);
 
       (async () => { 
@@ -437,6 +442,9 @@ export class app
       this.prev_fps_time = Date.now()
       this.fps_node.nodeValue = this.fps.toFixed(0)
     }
+
+    if (this.stop_render)
+      return
   
     // request next frame to be drawn
     window.requestAnimationFrame(() => this.draw_loop())
@@ -480,15 +488,15 @@ export class app
       }
       const displayWidth = Math.round(width * dpr);
       const displayHeight = Math.round(height * dpr);
-      app.canvas_to_disp_size.set(entry.target, [displayWidth, displayHeight]);
-      app.update_canvas = true
+      app2D.canvas_to_disp_size.set(entry.target, [displayWidth, displayHeight]);
+      app2D.update_canvas = true
     }
   }
 
   private resize_canvas_to_display_size(canvas) 
   {
     // Get the size the browser is displaying the canvas in device pixels.
-    const [displayWidth, displayHeight] = app.canvas_to_disp_size.get(canvas) as number[];
+    const [displayWidth, displayHeight] = app2D.canvas_to_disp_size.get(canvas) as number[];
     this.res_node.nodeValue = displayWidth + ' x ' + displayHeight
 
     // Check if the canvas is not the same size.
@@ -631,10 +639,10 @@ export class app
   }
 }
 
-export function init_app(): void 
-{
-  // get canvas element from document
-  const canvas = document.getElementById('canvas') as HTMLCanvasElement
-  const neural_app: app = new app(canvas)
-  neural_app.start()
-}
+// export function init_app(): void 
+// {
+//   // get canvas element from document
+//   const canvas = document.getElementById('canvas') as HTMLCanvasElement
+//   const neural_app: app2D = new app2D(canvas)
+//   neural_app.start()
+// }
