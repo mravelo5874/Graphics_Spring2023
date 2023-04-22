@@ -32,7 +32,6 @@ export class app2D
   private vertices: Float32Array
   private texture: WebGLTexture
   private prev_pixels: Uint8Array
-  public static update_canvas: boolean
   
   constructor(_neural: neural)
   {
@@ -275,9 +274,7 @@ export class app2D
 
   public start(): void
   { 
-    app2D.update_canvas = true
     this.reset(automata.worms, shader_mode.rgb)
-    
   }
 
   public end(): void
@@ -295,18 +292,6 @@ export class app2D
     gl.clear(gl.COLOR_BUFFER_BIT)
     gl.viewport(0, 0, w, h)
 
-    // update canvas size
-    if (app2D.update_canvas)
-    {
-      app2D.update_canvas = false;
-      this.neural_app.resize_canvas_to_display_size(this.canvas);
-
-      (async () => { 
-        await utils.delay(1);
-        this.reset(this.auto, this.mode)
-      })();
-    }
-    
     // create vertices buffer
     const buffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer)

@@ -1,12 +1,3 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 import { utils } from './utils.js';
 import { Vec2 } from '../lib/TSM.js';
 import { alpha_vertex, alpha_fragment } from './shaders/alpha_shader.js';
@@ -253,7 +244,6 @@ export class app2D {
         gl.drawArrays(gl.TRIANGLES, 0, this.vertices.length / 2);
     }
     start() {
-        app2D.update_canvas = true;
         this.reset(automata.worms, shader_mode.rgb);
     }
     end() {
@@ -266,15 +256,6 @@ export class app2D {
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.viewport(0, 0, w, h);
-        // update canvas size
-        if (app2D.update_canvas) {
-            app2D.update_canvas = false;
-            this.neural_app.resize_canvas_to_display_size(this.canvas);
-            (() => __awaiter(this, void 0, void 0, function* () {
-                yield utils.delay(1);
-                this.reset(this.auto, this.mode);
-            }))();
-        }
         // create vertices buffer
         const buffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);

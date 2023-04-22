@@ -1,7 +1,17 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { app2D } from './app2D.js';
 import { app3D } from './app3D.js';
 import { user_input } from './user_input.js';
 import { webgl_util } from './webgl_util.js';
+import { utils } from './utils.js';
 // http-server dist -c-1
 export class neural {
     constructor() {
@@ -66,6 +76,24 @@ export class neural {
         window.requestAnimationFrame(() => this.draw_loop());
     }
     draw_loop() {
+        // update canvas size
+        if (neural.update_canvas) {
+            neural.update_canvas = false;
+            this.resize_canvas_to_display_size(this.canvas);
+            // reset app canvas
+            if (this.curr_app == 'app2d') {
+                (() => __awaiter(this, void 0, void 0, function* () {
+                    yield utils.delay(1);
+                    this.app2d.reset(this.app2d.auto, this.app2d.mode);
+                }))();
+            }
+            else if (this.curr_app == 'app3d') {
+                (() => __awaiter(this, void 0, void 0, function* () {
+                    yield utils.delay(1);
+                    this.app3d.reset();
+                }))();
+            }
+        }
         // which app to render ?
         if (this.curr_app == 'app2d') {
             this.app2d.draw_loop();
@@ -128,7 +156,7 @@ export class neural {
             const displayWidth = Math.round(width * dpr);
             const displayHeight = Math.round(height * dpr);
             neural.canvas_to_disp_size.set(entry.target, [displayWidth, displayHeight]);
-            app2D.update_canvas = true;
+            neural.update_canvas = true;
         }
     }
     resize_canvas_to_display_size(canvas) {

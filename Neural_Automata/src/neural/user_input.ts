@@ -1,6 +1,6 @@
-import { app2D, automata, shader_mode } from './app2D.js'
-import { app3D } from './app3D.js'
+import { automata, shader_mode } from './app2D.js'
 import { neural } from './neural.js'
+import { Vec3 } from '../lib/TSM.js'
 
 
 export class user_input
@@ -8,6 +8,9 @@ export class user_input
     private neural_app: neural
     private mouse_down: boolean = false
     private key_lock: boolean = false
+
+    private prev_x: number
+    private prev_y: number
 
     constructor(canvas: HTMLCanvasElement, _neural: neural)
     {
@@ -100,6 +103,12 @@ export class user_input
 
     private mouse_start(mouse: MouseEvent)
     {
+        // draw with mouse if in 2d mode
+        const pos = this.get_mouse_canvas(mouse, this.neural_app.canvas)
+        const x = pos.x / this.neural_app.canvas.width
+        const y = pos.y / this.neural_app.canvas.height
+        this.prev_x = x
+        this.prev_y = y
         this.mouse_down = true
     }
 
@@ -124,23 +133,49 @@ export class user_input
 
     private mouse_drag(mouse: MouseEvent)
     {
+        // draw with mouse if in 2d mode
         const pos = this.get_mouse_canvas(mouse, this.neural_app.canvas)
-        // pos is in pixel coordinates for the canvas.
-        // so convert to WebGL clip space coordinates
         const x = pos.x / this.neural_app.canvas.width
         const y = pos.y / this.neural_app.canvas.height
+        const dx = x - this.prev_x;
+        const dy = y - this.prev_y;
+
         if (this.mouse_down)
         {
             switch (mouse.buttons)
             {
                 case 1:
                 {
-                    this.neural_app.app2d.mouse_draw(x, y, 32)
+                    if (this.neural_app.curr_app == 'app2d')
+                    { 
+                        this.neural_app.app2d.mouse_draw(x, y, 32)
+                    }
+                    else if (this.neural_app.curr_app == 'app3d')
+                    {
+                        // move camera if in 3d mode
+                        let camera = this.neural_app.app3d.camera
+                        const mouseDir: Vec3 = camera.right()
+                        mouseDir.scale(-dx)
+                        mouseDir.add(camera.up().scale(dy))
+                        mouseDir.normalize()
+                        // move camera
+                        let rotAxis: Vec3 = Vec3.cross(camera.forward(), mouseDir)
+                        rotAxis = rotAxis.normalize()
+                        camera.orbitTarget(rotAxis, this.neural_app.app3d.rot_speed)
+                    }
+                    
                     break
                 }
                 case 2:
                 {
-                    this.neural_app.app2d.mouse_erase(x, y, 32)
+                    if (this.neural_app.curr_app == 'app2d')
+                    { 
+                        this.neural_app.app2d.mouse_erase(x, y, 32)
+                    }
+                    else if (this.neural_app.curr_app == 'app3d')
+                    {
+
+                    }
                     break
                 }
             }
