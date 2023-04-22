@@ -9,8 +9,6 @@ import { activations } from './activations.js'
 import  Rand  from "../lib/rand-seed/Rand.js"
 import { neural } from './neural.js'
 
-// http-server dist -c-1
-
 export enum automata
 {
   worms, drops, waves, paths, stars, cells, slime, lands, wolfy, cgol, END
@@ -24,90 +22,25 @@ export enum shader_mode
 export class app2D
 {
   public neural_app: neural
-
-  // neural program
   public canvas: HTMLCanvasElement
+  private context: WebGL2RenderingContext
+
   public mode: shader_mode
   public auto: automata
-  private context: WebGL2RenderingContext
-  private simple_program: WebGLProgram
+  
+  private program: WebGLProgram
   private vertices: Float32Array
   private texture: WebGLTexture
   private prev_pixels: Uint8Array
-  private stop_render: boolean = false
-
-  // used to calculate fps
-  private fps: number;
-  private start_time: number;
-  private prev_time: number;
-  private curr_delta_time: number;
-  private prev_fps_time: number;
-  private frame_count: number = 0;
-
-  // used to cap fps
-  private fps_cap: number = 30
-  private frame_time: number
-
-  // used for canvas resize
-  private resize_observer: ResizeObserver
-  public static canvas_to_disp_size: Map<HTMLCanvasElement, number[]>
   public static update_canvas: boolean
-
-  // ui nodes
-  private auto_node: Text;
-  private mode_node: Text;
-  private fps_node: Text;
-  private res_node: Text;
-
   
-
   constructor(_neural: neural)
   {
     this.neural_app = _neural
     this.mode = shader_mode.alpha
     this.canvas = _neural.canvas
     this.context = _neural.context
-    this.frame_time = 1000 / this.fps_cap
-
-    // set current time
-    this.start_time = Date.now()
-    this.prev_time = Date.now()
-    this.prev_fps_time = Date.now()
-    this.curr_delta_time = 0
-    this.fps = 0
-
-    // add automata text element to screen
-    const auto_element = document.querySelector("#auto")
-    this.auto_node = document.createTextNode("")
-    auto_element?.appendChild(this.auto_node)
-    this.auto_node.nodeValue = ''
-
-    // add mode text element to screen
-    const mode_element = document.querySelector("#mode")
-    this.mode_node = document.createTextNode("")
-    mode_element?.appendChild(this.mode_node)
-    this.mode_node.nodeValue = ''
-
-    // add fps text element to screen
-    const fps_element = document.querySelector("#fps")
-    this.fps_node = document.createTextNode("")
-    fps_element?.appendChild(this.fps_node)
-    this.fps_node.nodeValue = ''
-
-    // add res text element to screen
-    const res_element = document.querySelector("#res")
-    this.res_node = document.createTextNode("")
-    res_element?.appendChild(this.res_node)
-    this.res_node.nodeValue = ''
-
-    // handle canvas resize
-    app2D.canvas_to_disp_size = new Map([[this.canvas, [512, 512]]])
-    this.resize_observer = new ResizeObserver(this.on_resize)
-    this.resize_observer.observe(this.canvas, { box: 'content-box' })
   }
-
-  public get_delta_time(): number { return this.curr_delta_time }
-  public get_elapsed_time(): number { return Date.now() - this.start_time }
 
   public reset(auto: automata, mode: shader_mode): void 
   {
@@ -122,20 +55,20 @@ export class app2D
     {
       default:
       case shader_mode.rgb:
-        this.mode_node.nodeValue= 'rgb'
+        this.neural_app.shade_node.nodeValue= 'rgb'
         break;
       case shader_mode.alpha:
-        this.mode_node.nodeValue= 'alpha'
+        this.neural_app.shade_node.nodeValue= 'alpha'
         frag = alpha_fragment
         vert = alpha_vertex
         break;
       case shader_mode.bnw:
-        this.mode_node.nodeValue= 'bnw'
+        this.neural_app.shade_node.nodeValue= 'bnw'
         frag = bnw_fragment
         vert = bnw_vertex
         break;
       case shader_mode.acid:
-        this.mode_node.nodeValue= 'acid'
+        this.neural_app.shade_node.nodeValue= 'acid'
         frag = acid_fragment
         vert = acid_vertex
         break;
@@ -147,43 +80,43 @@ export class app2D
       default:
       case automata.worms:
         frag = frag.replace('[AF]', activations.worms_activation())
-        this.auto_node.nodeValue = 'worms (1)'
+        this.neural_app.auto_node.nodeValue = 'worms (1)'
         break
       case automata.drops:
         frag = frag.replace('[AF]', activations.drops_activation())
-        this.auto_node.nodeValue = 'drops (2)'
+        this.neural_app.auto_node.nodeValue = 'drops (2)'
         break
       case automata.waves:
         frag = frag.replace('[AF]', activations.waves_activation())
-        this.auto_node.nodeValue = 'waves (3)'
+        this.neural_app.auto_node.nodeValue = 'waves (3)'
         break
       case automata.paths:
         frag = frag.replace('[AF]', activations.paths_activation())
-        this.auto_node.nodeValue = 'paths (4)'
+        this.neural_app.auto_node.nodeValue = 'paths (4)'
         break
       case automata.stars:
         frag = frag.replace('[AF]', activations.stars_activation())
-        this.auto_node.nodeValue = 'stars (5)'
+        this.neural_app.auto_node.nodeValue = 'stars (5)'
         break
       case automata.cells:
         frag = frag.replace('[AF]', activations.cells_activation())
-        this.auto_node.nodeValue = 'cells (6)'
+        this.neural_app.auto_node.nodeValue = 'cells (6)'
         break
       case automata.slime:
         frag = frag.replace('[AF]', activations.slime_activation())
-        this.auto_node.nodeValue = 'slime (7)'
+        this.neural_app.auto_node.nodeValue = 'slime (7)'
         break
       case automata.lands:
         frag = frag.replace('[AF]', activations.lands_activation())
-        this.auto_node.nodeValue = 'lands (8)'
+        this.neural_app.auto_node.nodeValue = 'lands (8)'
         break
       case automata.wolfy:
         frag = frag.replace('[AF]', activations.wolfy_activation())
-        this.auto_node.nodeValue = 'wolfy (9)'
+        this.neural_app.auto_node.nodeValue = 'wolfy (9)'
         break
       case automata.cgol:
         frag = frag.replace('[AF]', activations.gol_activation())
-        this.auto_node.nodeValue = 'c-gol (0)'
+        this.neural_app.auto_node.nodeValue = 'c-gol (0)'
         break
     }
 
@@ -202,8 +135,8 @@ export class app2D
     if (fragment_log != '') console.log('fragment shader log: ' + fragment_log)
     
     // create program
-    this.simple_program = gl.createProgram() as WebGLProgram
-    let program = this.simple_program
+    this.program = gl.createProgram() as WebGLProgram
+    let program = this.program
     gl.attachShader(program, vertex_shader)
     gl.attachShader(program, fragment_shader)
     gl.linkProgram(program)
@@ -269,12 +202,12 @@ export class app2D
       {
         default:
         case shader_mode.alpha:
-          pixels = utils.generate_random_alpha_state(w, h, this.get_elapsed_time().toString())
+          pixels = utils.generate_random_alpha_state(w, h, this.neural_app.get_elapsed_time().toString())
           break
         case shader_mode.rgb:
         case shader_mode.bnw:
         case shader_mode.acid:
-          pixels = utils.generate_random_rgb_state(w, h, this.get_elapsed_time().toString())
+          pixels = utils.generate_random_rgb_state(w, h, this.neural_app.get_elapsed_time().toString())
           break
       }
     }
@@ -343,17 +276,16 @@ export class app2D
   public start(): void
   { 
     app2D.update_canvas = true
-    this.stop_render = false
     this.reset(automata.worms, shader_mode.rgb)
-    window.requestAnimationFrame(() => this.draw_loop())
+    
   }
 
   public end(): void
   {
-    this.stop_render = true
+    // idk something ?
   }
 
-  private draw(): void
+  public draw(): void
   {
     let gl = this.context
     let w = this.canvas.width
@@ -367,7 +299,7 @@ export class app2D
     if (app2D.update_canvas)
     {
       app2D.update_canvas = false;
-      this.resize_canvas_to_display_size(this.canvas);
+      this.neural_app.resize_canvas_to_display_size(this.canvas);
 
       (async () => { 
         await utils.delay(1);
@@ -381,14 +313,14 @@ export class app2D
     gl.bufferData(gl.ARRAY_BUFFER, this.vertices, gl.STATIC_DRAW)
 
     // use program !!!
-    gl.useProgram(this.simple_program)
+    gl.useProgram(this.program)
 
     // set color uniform
-    const color_loc = gl.getUniformLocation(this.simple_program, 'u_color')
+    const color_loc = gl.getUniformLocation(this.program, 'u_color')
     gl.uniform4fv(color_loc, [0.0, 0.0, 0.0, 0.0])
 
     // set texture uniform
-    const texture_loc = gl.getUniformLocation(this.simple_program, 'u_texture');
+    const texture_loc = gl.getUniformLocation(this.program, 'u_texture');
     //console.log('pixels.length: ' + pixels.length + ', wxhx4: ' + w * h * 4)
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.prev_pixels)
     gl.generateMipmap(gl.TEXTURE_2D)
@@ -396,11 +328,11 @@ export class app2D
     gl.uniform1i(texture_loc, 0)
 
     // set time uniform
-    const time_loc = gl.getUniformLocation(this.simple_program, 'u_time')
-    gl.uniform1f(time_loc, this.get_elapsed_time())
+    const time_loc = gl.getUniformLocation(this.program, 'u_time')
+    gl.uniform1f(time_loc, this.neural_app.get_elapsed_time())
 
     // set position attribute
-    const pos_loc = gl.getAttribLocation(this.simple_program, 'a_pos')
+    const pos_loc = gl.getAttribLocation(this.program, 'a_pos')
     gl.enableVertexAttribArray(pos_loc)
     gl.vertexAttribPointer(pos_loc, 2, gl.FLOAT, false, 0, 0)
 
@@ -427,90 +359,6 @@ export class app2D
     this.read()
     this.draw()
     this.read()
-    this.frame_count++
-
-    // calculate current delta time
-    const curr_time: number = Date.now()
-    this.curr_delta_time = (curr_time - this.prev_time)
-    this.prev_time = curr_time
-
-    // calculate fps
-    if (Date.now() - this.prev_fps_time >= 1000)
-    {
-      this.fps = this.frame_count
-      this.frame_count = 0
-      this.prev_fps_time = Date.now()
-      this.fps_node.nodeValue = this.fps.toFixed(0)
-    }
-
-    if (this.stop_render)
-      return
-  
-    // request next frame to be drawn
-    window.requestAnimationFrame(() => this.draw_loop())
-  }
-
-  private on_resize(entries) 
-  {
-    for (const entry of entries) 
-    {
-      let width;
-      let height;
-      let dpr = window.devicePixelRatio;
-      if (entry.devicePixelContentBoxSize) 
-      {
-        // NOTE: Only this path gives the correct answer
-        // The other 2 paths are an imperfect fallback
-        // for browsers that don't provide anyway to do this
-        width = entry.devicePixelContentBoxSize[0].inlineSize;
-        height = entry.devicePixelContentBoxSize[0].blockSize;
-        dpr = 1; // it's already in width and height
-      } 
-      else if (entry.contentBoxSize) 
-      {
-        if (entry.contentBoxSize[0]) 
-        {
-          width = entry.contentBoxSize[0].inlineSize;
-          height = entry.contentBoxSize[0].blockSize;
-        } 
-        else 
-        {
-          // legacy
-          width = entry.contentBoxSize.inlineSize;
-          height = entry.contentBoxSize.blockSize;
-        }
-      } 
-      else 
-      {
-        // legacy
-        width = entry.contentRect.width;
-        height = entry.contentRect.height;
-      }
-      const displayWidth = Math.round(width * dpr);
-      const displayHeight = Math.round(height * dpr);
-      app2D.canvas_to_disp_size.set(entry.target, [displayWidth, displayHeight]);
-      app2D.update_canvas = true
-    }
-  }
-
-  private resize_canvas_to_display_size(canvas) 
-  {
-    // Get the size the browser is displaying the canvas in device pixels.
-    const [displayWidth, displayHeight] = app2D.canvas_to_disp_size.get(canvas) as number[];
-    this.res_node.nodeValue = displayWidth + ' x ' + displayHeight
-
-    // Check if the canvas is not the same size.
-    const needResize = canvas.width  !== displayWidth ||
-                       canvas.height !== displayHeight;
-
-    if (needResize) 
-    {
-      // Make the canvas the same size
-      canvas.width  = displayWidth;
-      canvas.height = displayHeight;
-    }
-
-    return needResize;
   }
 
   public mouse_draw(rel_x: number, rel_y: number, brush_size: number)
