@@ -12,6 +12,7 @@ import { app3D } from './app3D.js';
 import { user_input } from './user_input.js';
 import { webgl_util } from './webgl_util.js';
 import { utils } from './utils.js';
+import { Vec4 } from "../lib/TSM.js";
 // http-server dist -c-1
 export class neural {
     constructor() {
@@ -20,6 +21,7 @@ export class neural {
         this.context = webgl_util.request_context(this.canvas);
         this.app2d = new app2D(this);
         this.app3d = new app3D(this);
+        this.bg_color = new Vec4([0.0, 0.0, 0.0, 1.0]);
         this.user_input = new user_input(this.canvas, this);
         this.curr_app = 'app2d';
         // set current time
@@ -61,12 +63,14 @@ export class neural {
     get_delta_time() { return this.curr_delta_time; }
     get_elapsed_time() { return Date.now() - this.start_time; }
     set_2d() {
+        this.resize_canvas_to_display_size(this.canvas);
         this.mode_node.nodeValue = '2D';
         this.curr_app = 'app2d';
         this.app3d.end();
         this.app2d.start();
     }
     set_3d() {
+        this.resize_canvas_to_display_size(this.canvas);
         this.mode_node.nodeValue = '3D';
         this.curr_app = 'app3d';
         this.app2d.end();

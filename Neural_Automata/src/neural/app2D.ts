@@ -41,6 +41,16 @@ export class app2D
     this.context = _neural.context
   }
 
+  public start(): void
+  { 
+    this.reset(automata.worms, shader_mode.rgb)
+  }
+
+  public end(): void
+  {
+    // idk something ?
+  }
+
   public reset(auto: automata, mode: shader_mode): void 
   {
     this.auto = auto
@@ -272,25 +282,11 @@ export class app2D
     gl.drawArrays(gl.TRIANGLES, 0, this.vertices.length / 2)
   }
 
-  public start(): void
-  { 
-    this.reset(automata.worms, shader_mode.rgb)
-  }
-
-  public end(): void
-  {
-    // idk something ?
-  }
-
   public draw(): void
   {
     let gl = this.context
     let w = this.canvas.width
     let h = this.canvas.height
-
-    gl.clearColor(0.0, 0.0, 0.0, 1.0)
-    gl.clear(gl.COLOR_BUFFER_BIT)
-    gl.viewport(0, 0, w, h)
 
     // create vertices buffer
     const buffer = gl.createBuffer()
@@ -339,6 +335,19 @@ export class app2D
   /* Draws and then requests a draw for the next frame */
   public draw_loop(): void
   {
+    let gl = this.context
+    let w = this.canvas.width
+    let h = this.canvas.height
+    let bg = this.neural_app.bg_color
+
+    // Drawing
+    gl.clearColor(bg.r, bg.g, bg.b, bg.a)
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+    gl.disable(gl.CULL_FACE)
+    gl.disable(gl.DEPTH_TEST)
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+    gl.viewport(0, 0, w, h)
+
     // draw to screen and read pixels twice to skip every other frame
     this.draw()
     this.read()

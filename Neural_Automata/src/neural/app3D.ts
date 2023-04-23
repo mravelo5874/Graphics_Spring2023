@@ -15,7 +15,6 @@ export class app3D
     public camera: Camera
     public cam_sense: number = 0.25
     public rot_speed: number = 0.01
-    private bg_color: Vec4
 
     // geometry
     public cube: cube
@@ -28,9 +27,20 @@ export class app3D
         this.canvas = _neural.canvas
         this.context = _neural.context
         this.cube = new cube()
-        this.bg_color = new Vec4([0.0, 0.0, 0.0, 1.0]);
     }
 
+    public start()
+    {
+        this.reset()
+        this.neural_app.auto_node.nodeValue = 'none'
+        this.neural_app.shade_node.nodeValue = 'simple 3d'
+    }
+
+    public end()
+    {
+        // idk something ?
+    }
+    
     public reset()
     {
         // get context
@@ -79,24 +89,12 @@ export class app3D
         this.setup_cube()
     }
 
-    public start()
-    {
-        this.reset()
-        this.neural_app.auto_node.nodeValue = 'none'
-        this.neural_app.shade_node.nodeValue = 'none'
-    }
-
-    public end()
-    {
-        // idk something ?
-    }
-
     public draw_loop(): void
     {
         let gl = this.context
         let w = this.canvas.width
         let h = this.canvas.height
-        let bg = this.bg_color
+        let bg = this.neural_app.bg_color
 
         // Drawing
         gl.clearColor(bg.r, bg.g, bg.b, bg.a)

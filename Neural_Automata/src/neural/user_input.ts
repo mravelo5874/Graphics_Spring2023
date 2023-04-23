@@ -139,6 +139,8 @@ export class user_input
         const y = pos.y / this.neural_app.canvas.height
         const dx = x - this.prev_x;
         const dy = y - this.prev_y;
+        this.prev_x = x
+        this.prev_y = y
 
         if (this.mouse_down)
         {

@@ -1,5 +1,5 @@
 import { Camera } from "../lib/webglutils/Camera.js";
-import { Vec3, Vec4 } from "../lib/TSM.js";
+import { Vec3 } from "../lib/TSM.js";
 import { cube } from "./cube.js";
 import { simple_3d_vertex, simple_3d_fragment } from './shaders/simple_3d_shader.js';
 export class app3D {
@@ -10,7 +10,14 @@ export class app3D {
         this.canvas = _neural.canvas;
         this.context = _neural.context;
         this.cube = new cube();
-        this.bg_color = new Vec4([0.0, 0.0, 0.0, 1.0]);
+    }
+    start() {
+        this.reset();
+        this.neural_app.auto_node.nodeValue = 'none';
+        this.neural_app.shade_node.nodeValue = 'simple 3d';
+    }
+    end() {
+        // idk something ?
     }
     reset() {
         // get context
@@ -46,19 +53,11 @@ export class app3D {
             console.log('shader program log: ' + program_log);
         this.setup_cube();
     }
-    start() {
-        this.reset();
-        this.neural_app.auto_node.nodeValue = 'none';
-        this.neural_app.shade_node.nodeValue = 'none';
-    }
-    end() {
-        // idk something ?
-    }
     draw_loop() {
         let gl = this.context;
         let w = this.canvas.width;
         let h = this.canvas.height;
-        let bg = this.bg_color;
+        let bg = this.neural_app.bg_color;
         // Drawing
         gl.clearColor(bg.r, bg.g, bg.b, bg.a);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
