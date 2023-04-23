@@ -7,6 +7,8 @@ export class app3D {
         this.cam_sense = 0.25;
         this.rot_speed = 0.03;
         this.zoom_speed = 0.005;
+        this.min_zoom = 1.5;
+        this.max_zoom = 12;
         this.neural_app = _neural;
         this.canvas = _neural.canvas;
         this.context = _neural.context;
@@ -23,10 +25,11 @@ export class app3D {
     camera_zoom(zoom) {
         let dist = this.camera.distance();
         // do not zoom if too far away or too close
-        if (dist > 10 && zoom > 0)
+        if (dist > this.max_zoom && zoom > 0)
             return;
-        else if (dist < 2 && zoom < 0)
+        else if (dist < this.min_zoom && zoom < 0)
             return;
+        // offset camera
         this.camera.offsetDist(zoom * this.zoom_speed);
     }
     toggle_shader() {
@@ -37,7 +40,7 @@ export class app3D {
         // get context
         let gl = this.context;
         // reset camera
-        this.camera = new Camera(new Vec3([0, 0, -3]), new Vec3([0, 0, 0]), new Vec3([0, 1, 0]), 45, this.canvas.width / this.canvas.height, 0.1, 1000.0);
+        this.camera = new Camera(new Vec3([0, 0, -2]), new Vec3([0, 0, 0]), new Vec3([0, 1, 0]), 45, this.canvas.width / this.canvas.height, 0.1, 1000.0);
         // program
         let frag = simple_3d_fragment;
         let vert = simple_3d_vertex;
@@ -74,7 +77,8 @@ export class app3D {
         let bg = this.neural_app.bg_color;
         // rotate cube if there is no user input
         if (!this.neural_app.user_input.mouse_down) {
-            this.camera.orbitTarget(this.camera.up().normalize(), this.rot_speed * 0.1);
+            let t = this.neural_app.get_elapsed_time() / 1000;
+            this.camera.orbitTarget(this.camera.up().normalize(), this.rot_speed * 0.05);
         }
         // Drawing
         gl.clearColor(bg.r, bg.g, bg.b, bg.a);

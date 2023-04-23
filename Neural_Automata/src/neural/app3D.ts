@@ -17,6 +17,9 @@ export class app3D
     public rot_speed: number = 0.03
     public zoom_speed: number = 0.005
 
+    private min_zoom: number = 1.5
+    private max_zoom: number = 12
+
     // geometry
     public cube: cube
     private vao: WebGLVertexArrayObject
@@ -47,9 +50,9 @@ export class app3D
         let dist: number = this.camera.distance()
 
         // do not zoom if too far away or too close
-        if (dist > 10 && zoom > 0)
+        if (dist > this.max_zoom && zoom > 0)
             return
-        else if (dist < 2 && zoom < 0)
+        else if (dist < this.min_zoom && zoom < 0)
             return
 
         // offset camera
@@ -58,7 +61,7 @@ export class app3D
 
     public toggle_shader()
     {
-        
+
     }
 
     public toggle_automata()
@@ -73,7 +76,7 @@ export class app3D
 
         // reset camera
         this.camera = new Camera(
-            new Vec3([0, 0, -3]),
+            new Vec3([0, 0, -2]),
             new Vec3([0, 0, 0]),
             new Vec3([0, 1, 0]),
             45,
@@ -124,7 +127,8 @@ export class app3D
         // rotate cube if there is no user input
         if (!this.neural_app.user_input.mouse_down)
         {
-            this.camera.orbitTarget(this.camera.up().normalize(), this.rot_speed * 0.1)
+            let t = this.neural_app.get_elapsed_time() / 1000
+            this.camera.orbitTarget(this.camera.up().normalize(), this.rot_speed * 0.05)
         }
          
 
