@@ -1,8 +1,14 @@
 import  Rand  from "../lib/rand-seed/Rand.js"
+import { Vec2, Vec3 } from '../lib/TSM.js'
 
 export class utils
 {
     public static DEFAULT_ACTIVATION = `float activation(float x) {\n\treturn x;\n}`
+
+    public static DIGITS: number = 3
+
+    public static v3(v: Vec3, d: number = this.DIGITS) : string { return v.x.toFixed(d) + ', ' + v.y.toFixed(d) + ', ' + v.z.toFixed(d) }
+    public static v2(v: Vec2, d: number = this.DIGITS) : string { return v.x.toFixed(d) + ', ' + v.y.toFixed(d) }
     
     // thanks to chatgpt: 'create a function that interpolates between two numbers given a t value' 
     public static lerp(p0: number, p1: number, t: number): number

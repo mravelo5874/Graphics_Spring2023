@@ -1,5 +1,7 @@
 import Rand from "../lib/rand-seed/Rand.js";
 class utils {
+    static v3(v, d = this.DIGITS) { return v.x.toFixed(d) + ', ' + v.y.toFixed(d) + ', ' + v.z.toFixed(d); }
+    static v2(v, d = this.DIGITS) { return v.x.toFixed(d) + ', ' + v.y.toFixed(d); }
     // thanks to chatgpt: 'create a function that interpolates between two numbers given a t value' 
     static lerp(p0, p1, t) {
         // make sure t is clamped between 0 and 1
@@ -75,5 +77,6 @@ class utils {
     }
 }
 utils.DEFAULT_ACTIVATION = `float activation(float x) {\n\treturn x;\n}`;
+utils.DIGITS = 3;
 export { utils };
 //# sourceMappingURL=utils.js.map

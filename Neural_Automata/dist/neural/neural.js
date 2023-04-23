@@ -82,13 +82,14 @@ export class neural {
     draw_loop() {
         // update canvas size
         if (neural.update_canvas) {
+            console.log('update canvas!');
             neural.update_canvas = false;
             this.resize_canvas_to_display_size(this.canvas);
-            // reset app canvas
+            // reset apps
             if (this.curr_app == 'app2d') {
                 (() => __awaiter(this, void 0, void 0, function* () {
                     yield utils.delay(1);
-                    this.app2d.reset(this.app2d.auto, this.app2d.mode);
+                    this.app2d.reset();
                 }))();
             }
             else if (this.curr_app == 'app3d') {

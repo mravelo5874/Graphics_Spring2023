@@ -17,9 +17,8 @@ export var automata;
     automata[automata["cells"] = 5] = "cells";
     automata[automata["slime"] = 6] = "slime";
     automata[automata["lands"] = 7] = "lands";
-    automata[automata["wolfy"] = 8] = "wolfy";
-    automata[automata["cgol"] = 9] = "cgol";
-    automata[automata["END"] = 10] = "END";
+    automata[automata["cgol"] = 8] = "cgol";
+    automata[automata["END"] = 9] = "END";
 })(automata || (automata = {}));
 export var shader_mode;
 (function (shader_mode) {
@@ -42,10 +41,13 @@ export class app2D {
     end() {
         // idk something ?
     }
-    reset(auto, mode) {
+    reset(auto = this.auto, mode = this.mode) {
         this.auto = auto;
         this.mode = mode;
         let gl = this.context;
+        gl.disable(gl.CULL_FACE);
+        gl.disable(gl.DEPTH_TEST);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         let frag = rgb_fragment;
         let vert = rgb_vertex;
         // set shader mode
@@ -105,10 +107,6 @@ export class app2D {
                 frag = frag.replace('[AF]', activations.lands_activation());
                 this.neural_app.auto_node.nodeValue = 'lands (8)';
                 break;
-            case automata.wolfy:
-                frag = frag.replace('[AF]', activations.wolfy_activation());
-                this.neural_app.auto_node.nodeValue = 'wolfy (9)';
-                break;
             case automata.cgol:
                 frag = frag.replace('[AF]', activations.gol_activation());
                 this.neural_app.auto_node.nodeValue = 'c-gol (0)';
@@ -149,14 +147,6 @@ export class app2D {
             -1.0, 1.0,
             1.0, 1.0
         ]);
-        // // lower triangle
-        // -0.9,-0.9,
-        // -0.9, 0.9,
-        // 0.9,-0.9,
-        // // upper triangle
-        // 0.9,-0.9,
-        // -0.9, 0.9,
-        // 0.9, 0.9
         // create vertices buffer
         const buffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -178,7 +168,7 @@ export class app2D {
         const h = this.canvas.height;
         // generate state based on automata
         let pixels = new Uint8Array(0);
-        if (auto == automata.cgol || auto == automata.wolfy) {
+        if (auto == automata.cgol) {
             pixels = utils.generate_empty_state(w, h);
         }
         else {
@@ -229,9 +219,6 @@ export class app2D {
                 break;
             case automata.lands:
                 kernel = kernels.lands_kernel();
-                break;
-            case automata.wolfy:
-                kernel = kernels.wolfy_kernel();
                 break;
             case automata.cgol:
                 kernel = kernels.gol_kernel();
@@ -297,9 +284,6 @@ export class app2D {
         // Drawing
         gl.clearColor(bg.r, bg.g, bg.b, bg.a);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.disable(gl.CULL_FACE);
-        gl.disable(gl.DEPTH_TEST);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.viewport(0, 0, w, h);
         // draw to screen and read pixels twice to skip every other frame
         this.draw();
@@ -318,7 +302,6 @@ export class app2D {
         // fill in pixels
         for (let i = y - brush_size; i < y + brush_size; i++) {
             for (let j = x - brush_size; j < x + brush_size; j++) {
-                // access pixel at (x, y) by using (y * width) + (x * 4)
                 const idx = (i * w + j) * 4;
                 // make sure index is not out of range
                 if (idx < pixels.length && idx > -1) {
@@ -328,11 +311,13 @@ export class app2D {
                             case shader_mode.alpha:
                                 // get new random value
                                 let x = 0;
-                                if (this.auto == automata.cgol || this.auto == automata.wolfy)
+                                if (this.auto == automata.cgol) {
                                     if (rng.next() > 0.5)
                                         x = 255;
-                                    else
-                                        x = Math.floor(255 * rng.next());
+                                }
+                                else {
+                                    x = Math.floor(255 * rng.next());
+                                }
                                 pixels[idx + 3] = x;
                                 break;
                             case shader_mode.rgb:
@@ -342,7 +327,7 @@ export class app2D {
                                 let r = 0;
                                 let g = 0;
                                 let b = 0;
-                                if (this.auto == automata.cgol || this.auto == automata.wolfy) {
+                                if (this.auto == automata.cgol) {
                                     if (rng.next() > 0.5)
                                         r = 255;
                                     if (rng.next() > 0.5)
@@ -405,7 +390,7 @@ export class app2D {
         let a = this.auto;
         a -= 1;
         if (a < 0)
-            a = automata.wolfy - 1;
+            a = automata.cgol - 1;
         this.reset(a, this.mode);
     }
     toggle_shader() {
@@ -416,11 +401,4 @@ export class app2D {
         this.reset(this.auto, m);
     }
 }
-// export function init_app(): void 
-// {
-//   // get canvas element from document
-//   const canvas = document.getElementById('canvas') as HTMLCanvasElement
-//   const neural_app: app2D = new app2D(canvas)
-//   neural_app.start()
-// }
 //# sourceMappingURL=app2D.js.map

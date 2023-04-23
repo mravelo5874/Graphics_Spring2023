@@ -26,8 +26,5 @@ export class activations {
     static lands_activation() {
         return 'return (exp(2.0*x)-1.0)/(exp(2.0*x)+1.0);';
     }
-    static wolfy_activation() {
-        return 'if (x==1.0||x==2.0||x==3.0||x==4.0){return 1.0;}return 0.0;';
-    }
 }
 //# sourceMappingURL=activations.js.map

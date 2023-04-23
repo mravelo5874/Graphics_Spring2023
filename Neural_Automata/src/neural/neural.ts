@@ -3,7 +3,7 @@ import { app3D } from './app3D.js'
 import { user_input } from './user_input.js'
 import { webgl_util } from './webgl_util.js'
 import { utils } from './utils.js'
-import { Vec3, Vec4 } from "../lib/TSM.js";
+import { Vec4 } from "../lib/TSM.js";
 
 // http-server dist -c-1
 
@@ -124,21 +124,22 @@ export class neural
         // update canvas size
         if (neural.update_canvas)
         {
-            neural.update_canvas = false;
-            this.resize_canvas_to_display_size(this.canvas);
+            console.log('update canvas!')
+            neural.update_canvas = false
+            this.resize_canvas_to_display_size(this.canvas)
 
-            // reset app canvas
+            // reset apps
             if (this.curr_app == 'app2d')
             {
                 (async () => { 
-                    await utils.delay(1);
-                    this.app2d.reset(this.app2d.auto, this.app2d.mode)
+                    await utils.delay(1)
+                    this.app2d.reset()
                 })();
             }
             else if (this.curr_app == 'app3d')
             {
                 (async () => { 
-                    await utils.delay(1);
+                    await utils.delay(1)
                     this.app3d.reset()
                 })();
             }

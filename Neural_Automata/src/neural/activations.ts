@@ -44,9 +44,4 @@ export class activations
     {
         return 'return (exp(2.0*x)-1.0)/(exp(2.0*x)+1.0);'
     }
-
-    public static wolfy_activation(): string
-    {
-        return 'if (x==1.0||x==2.0||x==3.0||x==4.0){return 1.0;}return 0.0;'
-    }
 }

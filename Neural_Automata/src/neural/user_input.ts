@@ -1,6 +1,7 @@
-import { automata, shader_mode } from './app2D.js'
+import { automata } from './app2D.js'
 import { neural } from './neural.js'
 import { Vec3 } from '../lib/TSM.js'
+import { utils } from './utils.js'
 
 
 export class user_input
@@ -39,56 +40,41 @@ export class user_input
                 break
             // toggle modes
             case 'ShiftLeft':
-                this.neural_app.app2d.toggle_shader()
+                switch (this.neural_app.curr_app)
+                {
+                    case 'app2d':
+                        this.neural_app.app2d.toggle_shader()
+                        break
+                    case 'app3d':
+                        this.neural_app.app3d.toggle_shader()
+                        break
+                }
                 break
             case 'ControlLeft':
-                this.neural_app.app2d.toggle_automata()
-                break
-            // maually set modes
-            case 'KeyQ':
-                this.neural_app.app2d.reset(this.neural_app.app2d.auto, shader_mode.rgb)
-                break
-            case 'KeyW':
-                this.neural_app.app2d.reset(this.neural_app.app2d.auto, shader_mode.alpha)
-                break
-            case 'KeyE':
-                this.neural_app.app2d.reset(this.neural_app.app2d.auto, shader_mode.bnw)
-                break
-            case 'KeyA':
-                this.neural_app.app2d.reset(this.neural_app.app2d.auto, shader_mode.acid)
-                break
-            case 'Digit1':
-                this.neural_app.app2d.reset(automata.worms, this.neural_app.app2d.mode)
-                break
-            case 'Digit2':
-                this.neural_app.app2d.reset(automata.drops, this.neural_app.app2d.mode)
-                break
-            case 'Digit3':
-                this.neural_app.app2d.reset(automata.waves, this.neural_app.app2d.mode)
-                break
-            case 'Digit4':
-                this.neural_app.app2d.reset(automata.paths, this.neural_app.app2d.mode)
-                break
-            case 'Digit5':
-                this.neural_app.app2d.reset(automata.stars, this.neural_app.app2d.mode)
-                break
-            case 'Digit6':
-                this.neural_app.app2d.reset(automata.cells, this.neural_app.app2d.mode)
-                break
-            case 'Digit7':
-                this.neural_app.app2d.reset(automata.slime, this.neural_app.app2d.mode)
-                break
-            case 'Digit8':
-                this.neural_app.app2d.reset(automata.lands, this.neural_app.app2d.mode)
-                break
-            case 'Digit9':
-                this.neural_app.app2d.reset(automata.wolfy, this.neural_app.app2d.mode)
-                break
-            case 'Digit0':
-                this.neural_app.app2d.reset(automata.cgol, this.neural_app.app2d.mode)
+                switch (this.neural_app.curr_app)
+                {
+                    case 'app2d':
+                        this.neural_app.app2d.toggle_automata()
+                        break
+                    case 'app3d':
+                        this.neural_app.app3d.toggle_automata()
+                        break
+                }
                 break
             case 'KeyR': 
-            this.neural_app.app2d.reset(this.neural_app.app2d.auto, this.neural_app.app2d.mode)
+                switch (this.neural_app.curr_app)
+                {
+                    case 'app2d':
+                        this.neural_app.app2d.reset()
+                        break
+                    case 'app3d':
+                        this.neural_app.app3d.reset()
+                        break
+                }
+                break
+            case 'Backquote':
+                if (this.neural_app.curr_app == 'app2d')
+                    this.neural_app.app2d.reset(automata.cgol)
                 break
             default:
                 console.log('Key : \'', key.code, '\' was pressed.');
@@ -105,10 +91,8 @@ export class user_input
     {
         // draw with mouse if in 2d mode
         const pos = this.get_mouse_canvas(mouse, this.neural_app.canvas)
-        const x = pos.x / this.neural_app.canvas.width
-        const y = pos.y / this.neural_app.canvas.height
-        this.prev_x = x
-        this.prev_y = y
+        this.prev_x = pos.x / this.neural_app.canvas.width
+        this.prev_y = pos.y / this.neural_app.canvas.height
         this.mouse_down = true
     }
 
@@ -163,9 +147,13 @@ export class user_input
                         // move camera
                         let rotAxis: Vec3 = Vec3.cross(camera.forward(), mouseDir)
                         rotAxis = rotAxis.normalize()
-                        camera.orbitTarget(rotAxis, this.neural_app.app3d.rot_speed)
+
+                        // make sure values are not NaN
+                        if (dy != 0 || dx != 0)
+                        {
+                            camera.orbitTarget(rotAxis, this.neural_app.app3d.rot_speed)
+                        }
                     }
-                    
                     break
                 }
                 case 2:

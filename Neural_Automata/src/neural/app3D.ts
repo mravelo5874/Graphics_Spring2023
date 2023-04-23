@@ -14,7 +14,7 @@ export class app3D
     // camera
     public camera: Camera
     public cam_sense: number = 0.25
-    public rot_speed: number = 0.01
+    public rot_speed: number = 0.03
 
     // geometry
     public cube: cube
@@ -40,6 +40,16 @@ export class app3D
     {
         // idk something ?
     }
+
+    public toggle_shader()
+    {
+
+    }
+
+    public toggle_automata()
+    {
+        
+    }
     
     public reset()
     {
@@ -49,7 +59,7 @@ export class app3D
         // reset camera
         this.camera = new Camera(
             new Vec3([0, 0, -3]),
-            new Vec3([0, 0, -1]),
+            new Vec3([0, 0, 0]),
             new Vec3([0, 1, 0]),
             45,
             this.canvas.width / this.canvas.height,

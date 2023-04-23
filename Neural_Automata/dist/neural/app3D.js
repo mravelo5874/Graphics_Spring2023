@@ -5,7 +5,7 @@ import { simple_3d_vertex, simple_3d_fragment } from './shaders/simple_3d_shader
 export class app3D {
     constructor(_neural) {
         this.cam_sense = 0.25;
-        this.rot_speed = 0.01;
+        this.rot_speed = 0.03;
         this.neural_app = _neural;
         this.canvas = _neural.canvas;
         this.context = _neural.context;
@@ -19,11 +19,15 @@ export class app3D {
     end() {
         // idk something ?
     }
+    toggle_shader() {
+    }
+    toggle_automata() {
+    }
     reset() {
         // get context
         let gl = this.context;
         // reset camera
-        this.camera = new Camera(new Vec3([0, 0, -3]), new Vec3([0, 0, -1]), new Vec3([0, 1, 0]), 45, this.canvas.width / this.canvas.height, 0.1, 1000.0);
+        this.camera = new Camera(new Vec3([0, 0, -3]), new Vec3([0, 0, 0]), new Vec3([0, 1, 0]), 45, this.canvas.width / this.canvas.height, 0.1, 1000.0);
         // program
         let frag = simple_3d_fragment;
         let vert = simple_3d_vertex;
