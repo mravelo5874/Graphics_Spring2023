@@ -3,6 +3,8 @@ import { Camera } from "../lib/webglutils/Camera.js";
 import { Vec3, Vec4 } from "../lib/TSM.js";
 import { cube } from "./cube.js";
 import { simple_3d_vertex, simple_3d_fragment } from './shaders/simple_3d_shader.js'  
+import { utils } from "./utils.js";
+import { automata_volume } from "./automata_volume.js";
 
 export class app3D
 {
@@ -22,8 +24,11 @@ export class app3D
 
     // geometry
     public cube: cube
+    public volume: automata_volume
     private vao: WebGLVertexArrayObject
     private program: WebGLProgram
+    private texture: WebGLTexture
+    private transfer_function: WebGLTexture
 
     constructor(_neural: neural)
     {
@@ -31,6 +36,9 @@ export class app3D
         this.canvas = _neural.canvas
         this.context = _neural.context
         this.cube = new cube()
+        this.volume = new automata_volume(8)
+        this.volume.randomize_volume(_neural.get_elapsed_time().toString())
+
     }
 
     public start()
@@ -190,6 +198,7 @@ export class app3D
         gl.vertexAttribDivisor(uv_loc, 0)
         gl.enableVertexAttribArray(uv_loc)
 
+
         // set view uniform
         const view_loc = gl.getUniformLocation(this.program, "u_view")
         gl.uniformMatrix4fv(view_loc, false, new Float32Array(this.camera.viewMatrix().all()))
@@ -197,5 +206,46 @@ export class app3D
         // set projection uniform
         const proj_loc = gl.getUniformLocation(this.program, "u_proj")
         gl.uniformMatrix4fv(proj_loc, false, new Float32Array(this.camera.projMatrix().all()))
+
+        // set eye uniform
+        const eye_loc = gl.getUniformLocation(this.program, "u_eye")
+        gl.uniform3fv(eye_loc, new Float32Array(this.camera.pos().xyz))
+
+        // set volume uniform
+        const volume_loc = gl.getUniformLocation(this.program, 'u_volume');
+        this.texture = gl.createTexture() as WebGLTexture
+        gl.bindTexture(gl.TEXTURE_3D, this.texture)
+        const s = this.volume.get_size()
+        gl.texImage3D(gl.TEXTURE_3D, 0, gl.RGBA, s, s, s, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.volume.get_volume())
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        // Tell the shader to use texture unit 0 for u_texture
+        gl.uniform1i(volume_loc, 0)
+
+
+        // set transfer function uniform
+        const func_loc = gl.getUniformLocation(this.program, 'u_func');
+        this.transfer_function = gl.createTexture() as WebGLTexture
+        
+
+        var colormap = new Image();
+        colormap.src = '../colormaps/cool-warm-paraview.png'
+        colormap.onload = function() 
+        {
+            let transfer_function = gl.createTexture() as WebGLTexture
+            gl.activeTexture(gl.TEXTURE1)
+            gl.bindTexture(gl.TEXTURE_2D, transfer_function)
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, colormap.width, colormap.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, colormap)
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+        }
+        // Tell the shader to use texture unit 0 for u_texture
+        gl.uniform1i(func_loc, 0)
+
+
+        //uniform sampler3D u_volume;
+        //uniform sampler2D u_func;
     }
 }

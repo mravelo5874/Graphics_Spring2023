@@ -1,38 +1,100 @@
 export const simple_3d_vertex = 
-`
-    precision mediump float;
+`#version 300 es
+precision mediump float;
 
-    uniform mat4 u_view;
-    uniform mat4 u_proj;
-    
-    attribute vec4 a_norm;
-    attribute vec4 a_pos;
-    attribute vec2 a_uv;
-    
-    varying vec4 v_norm;
-    varying vec4 v_pos;
-    varying vec2 v_uv;
+uniform mat4 u_view;
+uniform mat4 u_proj;
+uniform vec3 u_eye;
 
-    void main () {
+in vec4 a_norm;
+in vec4 a_pos;
+in vec2 a_uv;
 
-        gl_Position = u_proj * u_view * a_pos;
-        v_pos = a_pos;
-        v_norm = normalize(a_norm);
-        v_uv = a_uv;
-    }
+out vec4 v_norm;
+out vec4 v_pos;
+out vec2 v_uv;
+out vec3 v_eye;
+out vec3 v_ray;
+
+void main () 
+{
+    gl_Position = u_proj * u_view * a_pos;
+    v_pos = a_pos;
+    v_norm = normalize(a_norm);
+    v_uv = a_uv;
+    v_eye = u_eye;
+    v_ray = a_pos.xyz - u_eye;
+}
 `;
 
 export const simple_3d_fragment = 
-`
-    precision mediump float;
-    
-    varying vec4 v_norm;
-    varying vec4 v_pos;
-    varying vec2 v_uv;
-    
-    void main() 
+`#version 300 es
+precision mediump float;
+
+uniform mediump sampler3D u_volume;
+uniform sampler2D u_func;
+
+in vec4 v_norm;
+in vec4 v_pos;
+in vec2 v_uv;
+in vec3 v_eye;
+in vec3 v_ray;
+
+out vec4 fragColor;
+
+vec2 intersect_box(vec3 orig, vec3 dir) 
+{
+    const vec3 box_min = vec3(0);
+    const vec3 box_max = vec3(1);
+    vec3 inv_dir = 1.0 / dir;
+    vec3 tmin_tmp = (box_min - orig) * inv_dir;
+    vec3 tmax_tmp = (box_max - orig) * inv_dir;
+    vec3 tmin = min(tmin_tmp, tmax_tmp);
+    vec3 tmax = max(tmin_tmp, tmax_tmp);
+    float t0 = max(tmin.x, max(tmin.y, tmin.z));
+    float t1 = min(tmax.x, min(tmax.y, tmax.z));
+    return vec2(t0, t1);
+}
+
+void main() 
+{   
+    vec4 my_color = vec4(0.0, 0.0, 0.0, 1.0);
+
+    // step 1: normalize ray
+    vec3 ray = normalize(v_ray);
+
+    // step 2: intersect ray with volume, find interval along ray inside volume
+    vec2 t_hit = intersect_box(v_eye, ray);
+    if (t_hit.x > t_hit.y)
     {
-        gl_FragColor = vec4(v_pos.xyz, 1.0);
+        discard;
     }
+
+    // avoid sampling behind eye
+    t_hit.x = max(t_hit.x, 0.0);
+
+    // step 3: compute step size to march through volume
+    vec3 dt_vec = 1.0 / abs(ray);
+    float dt = min(dt_vec.x, min(dt_vec.y, dt_vec.z));
+
+    // step 4: march ray through volume and sample
+    vec3 p = v_eye + t_hit.x * ray;
+    for (float t = t_hit.x; t < t_hit.y; t += dt)
+    {
+        float val = texture(u_volume, p).r;
+        vec4 val_color = vec4(texture(u_func, vec2(val, 0.5)).rgb, val);
+
+        my_color.rgb += (1.0 - my_color.a) * val_color.a * val_color.rgb;
+        my_color.a += (1.0 - my_color.a) * val_color.a;
+
+        if (my_color.a >= 0.95) 
+        {
+            break;
+        }
+        p += ray * dt;
+    }
+
+    fragColor = my_color;
+}
 `;
 

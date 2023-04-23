@@ -4,7 +4,8 @@ from distutils.dir_util import copy_tree
 import shutil
 
 srcfiles = glob.glob('./src/neural/*.ts')
-cmd = 'tsc --allowJs -m ES6 -t ES6 --outDir dist --sourceMap --alwaysStrict ' + " ".join(srcfiles) + ' ./src/lib/vue/vue.js '
+pngFiles = glob.glob('./src/neural/*.png')
+cmd = 'tsc --allowJs -m ES6 -t ES6 --outDir dist --sourceMap --alwaysStrict ' + " ".join(srcfiles) + " ".join(pngFiles) + ' ./src/lib/vue/vue.js '
 print('Building TypeScript: ' + cmd)
 os.system(cmd)
 copy_tree('./src/neural/static', './dist')
