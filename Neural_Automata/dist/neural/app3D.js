@@ -6,6 +6,7 @@ export class app3D {
     constructor(_neural) {
         this.cam_sense = 0.25;
         this.rot_speed = 0.03;
+        this.zoom_speed = 0.005;
         this.neural_app = _neural;
         this.canvas = _neural.canvas;
         this.context = _neural.context;
@@ -18,6 +19,15 @@ export class app3D {
     }
     end() {
         // idk something ?
+    }
+    camera_zoom(zoom) {
+        let dist = this.camera.distance();
+        // do not zoom if too far away or too close
+        if (dist > 10 && zoom > 0)
+            return;
+        else if (dist < 2 && zoom < 0)
+            return;
+        this.camera.offsetDist(zoom * this.zoom_speed);
     }
     toggle_shader() {
     }
@@ -62,6 +72,10 @@ export class app3D {
         let w = this.canvas.width;
         let h = this.canvas.height;
         let bg = this.neural_app.bg_color;
+        // rotate cube if there is no user input
+        if (!this.neural_app.user_input.mouse_down) {
+            this.camera.orbitTarget(this.camera.up().normalize(), this.rot_speed * 0.1);
+        }
         // Drawing
         gl.clearColor(bg.r, bg.g, bg.b, bg.a);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);

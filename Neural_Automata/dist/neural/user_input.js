@@ -13,6 +13,7 @@ export class user_input {
         canvas.addEventListener("mousemove", (mouse) => this.mouse_drag(mouse));
         canvas.addEventListener("mouseup", (mouse) => this.mouse_end(mouse));
         canvas.addEventListener("contextmenu", (event) => event.preventDefault());
+        canvas.addEventListener("wheel", (event) => this.mouse_wheel(event));
     }
     on_key_down(key) {
         if (this.key_lock)
@@ -65,6 +66,14 @@ export class user_input {
     }
     on_key_up(key) {
         this.key_lock = false;
+    }
+    mouse_wheel(wheel) {
+        if (this.neural_app.curr_app == 'app2d') {
+            // do something !
+        }
+        else if (this.neural_app.curr_app == 'app3d') {
+            this.neural_app.app3d.camera_zoom(wheel.deltaY);
+        }
     }
     mouse_start(mouse) {
         // draw with mouse if in 2d mode

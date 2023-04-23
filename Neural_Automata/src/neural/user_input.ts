@@ -7,9 +7,9 @@ import { utils } from './utils.js'
 export class user_input
 {
     private neural_app: neural
-    private mouse_down: boolean = false
-    private key_lock: boolean = false
 
+    public mouse_down: boolean = false
+    private key_lock: boolean = false
     private prev_x: number
     private prev_y: number
 
@@ -25,6 +25,7 @@ export class user_input
         canvas.addEventListener("mousemove", (mouse: MouseEvent) => this.mouse_drag(mouse))
         canvas.addEventListener("mouseup", (mouse: MouseEvent) => this.mouse_end(mouse))
         canvas.addEventListener("contextmenu", (event: any) => event.preventDefault())
+        canvas.addEventListener("wheel", (event: WheelEvent) => this.mouse_wheel(event))
     }
 
     private on_key_down(key: KeyboardEvent)
@@ -85,6 +86,18 @@ export class user_input
     private on_key_up(key: KeyboardEvent)
     {
         this.key_lock = false
+    }
+
+    private mouse_wheel(wheel: WheelEvent)
+    {
+        if (this.neural_app.curr_app == 'app2d')
+        { 
+            // do something !
+        }
+        else if (this.neural_app.curr_app == 'app3d')
+        {
+            this.neural_app.app3d.camera_zoom(wheel.deltaY)
+        }
     }
 
     private mouse_start(mouse: MouseEvent)

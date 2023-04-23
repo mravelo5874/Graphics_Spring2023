@@ -15,6 +15,7 @@ export class app3D
     public camera: Camera
     public cam_sense: number = 0.25
     public rot_speed: number = 0.03
+    public zoom_speed: number = 0.005
 
     // geometry
     public cube: cube
@@ -41,9 +42,23 @@ export class app3D
         // idk something ?
     }
 
+    public camera_zoom(zoom: number)
+    {
+        let dist: number = this.camera.distance()
+
+        // do not zoom if too far away or too close
+        if (dist > 10 && zoom > 0)
+            return
+        else if (dist < 2 && zoom < 0)
+            return
+
+        // offset camera
+        this.camera.offsetDist(zoom* this.zoom_speed)
+    }
+
     public toggle_shader()
     {
-
+        
     }
 
     public toggle_automata()
@@ -105,6 +120,13 @@ export class app3D
         let w = this.canvas.width
         let h = this.canvas.height
         let bg = this.neural_app.bg_color
+
+        // rotate cube if there is no user input
+        if (!this.neural_app.user_input.mouse_down)
+        {
+            this.camera.orbitTarget(this.camera.up().normalize(), this.rot_speed * 0.1)
+        }
+         
 
         // Drawing
         gl.clearColor(bg.r, bg.g, bg.b, bg.a)
