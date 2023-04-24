@@ -1,20 +1,27 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 import { Camera } from "../lib/webglutils/Camera.js";
 import { Vec3 } from "../lib/TSM.js";
 import { cube } from "./cube.js";
 import { simple_3d_vertex, simple_3d_fragment } from './shaders/simple_3d_shader.js';
-import { utils } from "./utils.js";
 import { automata_volume } from "./automata_volume.js";
 import { kernels_3d } from "./kernels_3d.js";
 import { activation_type_3d } from "./activations_3d.js";
+export var volume_type;
+(function (volume_type) {
+    volume_type[volume_type["sphere"] = 0] = "sphere";
+    volume_type[volume_type["random"] = 1] = "random";
+    volume_type[volume_type["perlin"] = 2] = "perlin";
+    volume_type[volume_type["END"] = 3] = "END";
+})(volume_type || (volume_type = {}));
+export var colormap;
+(function (colormap) {
+    colormap[colormap["cool_warm"] = 0] = "cool_warm";
+    colormap[colormap["plasma"] = 1] = "plasma";
+    colormap[colormap["virdis"] = 2] = "virdis";
+    colormap[colormap["rainbow"] = 3] = "rainbow";
+    colormap[colormap["green"] = 4] = "green";
+    colormap[colormap["ygb"] = 5] = "ygb";
+    colormap[colormap["END"] = 6] = "END";
+})(colormap || (colormap = {}));
 export class app3D {
     constructor(_neural) {
         this.cam_sense = 0.25;
@@ -22,17 +29,21 @@ export class app3D {
         this.zoom_speed = 0.005;
         this.min_zoom = 0.5;
         this.max_zoom = 12;
-        // frames per volume update
-        this.conv_frames = 4;
+        // frames per volume updatep
+        this.conv_frames = 24;
+        this.pause_volume = false;
         this.neural_app = _neural;
         this.canvas = _neural.canvas;
         this.context = _neural.context;
+        this.pause_volume = false;
         this.curr_frames = 0;
         this.update_count = 0;
+        // create geometry + volume
         this.cube = new cube();
-        this.volume = new automata_volume(64, kernels_3d.worm_kernel(), activation_type_3d.worm);
-        this.volume.organize_volume();
-        this.volume.perlin_volume(Date.now().toString(), Vec3.zero.copy());
+        this.auto_volume = new automata_volume(32, kernels_3d.worm_kernel(), activation_type_3d.worm);
+        // set initial volume
+        this.volume = volume_type.sphere;
+        this.color = colormap.rainbow;
     }
     load_colormap(path) {
         let gl = this.context;
@@ -57,10 +68,9 @@ export class app3D {
     }
     start() {
         this.reset();
-        this.neural_app.auto_node.nodeValue = 'none';
-        this.neural_app.shade_node.nodeValue = 'simple 3d';
-        // set colormap texture
+        // set initial colormap
         this.function_texture = this.load_colormap('../colormaps/rainbow.png');
+        this.neural_app.shade_node.nodeValue = 'rainbow';
         let gl = this.context;
         // bind transfer function texture
         const func_loc = gl.getUniformLocation(this.program, 'u_func');
@@ -71,6 +81,9 @@ export class app3D {
         this.volume_texture = gl.createTexture();
         this.vao = gl.createVertexArray();
         this.setup_cube();
+    }
+    toggle_pause() {
+        this.pause_volume = !this.pause_volume;
     }
     end() {
         // idk something ?
@@ -85,13 +98,69 @@ export class app3D {
         // offset camera
         this.camera.offsetDist(zoom * this.zoom_speed);
     }
+    toggle_volume() {
+        let v = this.volume;
+        v -= 1;
+        if (v < 0)
+            v = volume_type.END - 1;
+        this.reset(v);
+    }
+    toggle_colormap() {
+        let c = this.color;
+        c -= 1;
+        if (c < 0)
+            c = colormap.END - 1;
+        this.color = c;
+        switch (c) {
+            case colormap.cool_warm:
+                this.function_texture = this.load_colormap('../colormaps/cool-warm-paraview.png');
+                this.neural_app.shade_node.nodeValue = 'cool-warm';
+                break;
+            case colormap.green:
+                this.function_texture = this.load_colormap('../colormaps/samsel-linear-green.png');
+                this.neural_app.shade_node.nodeValue = 'green';
+                break;
+            case colormap.plasma:
+                this.function_texture = this.load_colormap('../colormaps/matplotlib-plasma.png');
+                this.neural_app.shade_node.nodeValue = 'plasma';
+                break;
+            case colormap.rainbow:
+                this.function_texture = this.load_colormap('../colormaps/rainbow.png');
+                this.neural_app.shade_node.nodeValue = 'rainbow';
+                break;
+            case colormap.virdis:
+                this.function_texture = this.load_colormap('../colormaps/matplotlib-virdis.png');
+                this.neural_app.shade_node.nodeValue = 'virdis';
+                break;
+            case colormap.ygb:
+                this.function_texture = this.load_colormap('../colormaps/samsel-linear-ygb-1211g.png');
+                this.neural_app.shade_node.nodeValue = 'ygb';
+                break;
+        }
+    }
     toggle_shader() {
         // TODO this
     }
     toggle_automata() {
         // TODO this
     }
-    reset() {
+    reset(_type = this.volume) {
+        // set volume
+        this.volume = _type;
+        switch (_type) {
+            case volume_type.sphere:
+                this.auto_volume.sphere_volume();
+                this.neural_app.auto_node.nodeValue = 'sphere';
+                break;
+            case volume_type.random:
+                this.neural_app.auto_node.nodeValue = 'random';
+                this.auto_volume.randomize_volume(Date.now().toString());
+                break;
+            case volume_type.perlin:
+                this.neural_app.auto_node.nodeValue = 'perlin';
+                this.auto_volume.perlin_volume(Date.now().toString(), Vec3.zero);
+                break;
+        }
         // get context
         let gl = this.context;
         // reset camera
@@ -131,10 +200,27 @@ export class app3D {
         let w = this.canvas.width;
         let h = this.canvas.height;
         let bg = this.neural_app.bg_color;
-        // rotate cube if there is no user input
-        if (!this.neural_app.user_input.mouse_down) {
-            let t = this.neural_app.get_elapsed_time() / 1000;
-            this.camera.orbitTarget(this.camera.up().normalize(), this.rot_speed * 0.05);
+        if (!this.pause_volume) {
+            // update volume
+            this.update_count++;
+            this.curr_frames++;
+            if (this.curr_frames >= this.conv_frames) {
+                switch (this.volume) {
+                    case volume_type.sphere:
+                        break;
+                    case volume_type.random:
+                        break;
+                    case volume_type.perlin:
+                        let x = this.update_count;
+                        this.auto_volume.perlin_volume(Date.now().toString(), new Vec3([x, x, x]));
+                        break;
+                }
+            }
+            // rotate cube if there is no user input
+            if (!this.neural_app.user_input.mouse_down) {
+                let t = this.neural_app.get_elapsed_time() / 1000;
+                this.camera.orbitTarget(this.camera.up().normalize(), this.rot_speed * 0.05);
+            }
         }
         // Drawing
         gl.clearColor(bg.r, bg.g, bg.b, bg.a);
@@ -145,15 +231,6 @@ export class app3D {
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         gl.viewport(0, 0, w, h);
-        this.curr_frames++;
-        if (this.curr_frames >= this.conv_frames) {
-            (() => __awaiter(this, void 0, void 0, function* () {
-                yield utils.delay(1);
-                this.update_count++;
-                this.volume.perlin_volume(Date.now().toString(), new Vec3([this.update_count, this.update_count, this.update_count]));
-                this.curr_frames = 0;
-            }))();
-        }
         this.setup_cube();
         // draw !!!
         gl.drawElements(gl.TRIANGLES, this.cube.get_idx_u32().length, gl.UNSIGNED_INT, 0);
@@ -206,8 +283,8 @@ export class app3D {
         const volume_loc = gl.getUniformLocation(this.program, 'u_volume');
         gl.activeTexture(gl.TEXTURE2);
         gl.bindTexture(gl.TEXTURE_3D, this.volume_texture);
-        const s = this.volume.get_size();
-        let data = this.volume.get_volume();
+        const s = this.auto_volume.get_size();
+        let data = this.auto_volume.get_volume();
         gl.texImage3D(gl.TEXTURE_3D, 0, gl.ALPHA, s, s, s, 0, gl.ALPHA, gl.UNSIGNED_BYTE, data);
         gl.generateMipmap(gl.TEXTURE_3D);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);

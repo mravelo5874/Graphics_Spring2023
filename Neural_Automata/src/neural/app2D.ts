@@ -94,39 +94,39 @@ export class app2D
       default:
       case automata.worms:
         frag = frag.replace('[AF]', activations_2d.worms_activation())
-        this.neural_app.auto_node.nodeValue = 'worms (1)'
+        this.neural_app.auto_node.nodeValue = 'worms'
         break
       case automata.drops:
         frag = frag.replace('[AF]', activations_2d.drops_activation())
-        this.neural_app.auto_node.nodeValue = 'drops (2)'
+        this.neural_app.auto_node.nodeValue = 'drops'
         break
       case automata.waves:
         frag = frag.replace('[AF]', activations_2d.waves_activation())
-        this.neural_app.auto_node.nodeValue = 'waves (3)'
+        this.neural_app.auto_node.nodeValue = 'waves'
         break
       case automata.paths:
         frag = frag.replace('[AF]', activations_2d.paths_activation())
-        this.neural_app.auto_node.nodeValue = 'paths (4)'
+        this.neural_app.auto_node.nodeValue = 'paths'
         break
       case automata.stars:
         frag = frag.replace('[AF]', activations_2d.stars_activation())
-        this.neural_app.auto_node.nodeValue = 'stars (5)'
+        this.neural_app.auto_node.nodeValue = 'stars'
         break
       case automata.cells:
         frag = frag.replace('[AF]', activations_2d.cells_activation())
-        this.neural_app.auto_node.nodeValue = 'cells (6)'
+        this.neural_app.auto_node.nodeValue = 'cells'
         break
       case automata.slime:
         frag = frag.replace('[AF]', activations_2d.slime_activation())
-        this.neural_app.auto_node.nodeValue = 'slime (7)'
+        this.neural_app.auto_node.nodeValue = 'slime'
         break
       case automata.lands:
         frag = frag.replace('[AF]', activations_2d.lands_activation())
-        this.neural_app.auto_node.nodeValue = 'lands (8)'
+        this.neural_app.auto_node.nodeValue = 'lands'
         break
       case automata.cgol:
         frag = frag.replace('[AF]', activations_2d.gol_activation())
-        this.neural_app.auto_node.nodeValue = 'c-gol (0)'
+        this.neural_app.auto_node.nodeValue = 'c-gol'
         break
     }
 

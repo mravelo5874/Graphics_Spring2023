@@ -79,7 +79,8 @@ void main()
         float val = texture(u_volume, p + vec3(0.5, 0.5, 0.5)).a;
 
         // get color from transfer function
-        vec4 val_color = vec4(texture(u_func, vec2(val * 2.0, 0.5)).rgb, val * 0.5);
+        float alpha = pow(exp(0.97 * (val / 255.0)), 12.0) - 1.0;
+        vec4 val_color = vec4(texture(u_func, vec2(val * 2.0, 0.5)).rgb, alpha);
 
         my_color.rgb += (1.0 - my_color.a) * val_color.a * val_color.rgb;
         my_color.a += (1.0 - my_color.a) * val_color.a;

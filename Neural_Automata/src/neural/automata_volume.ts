@@ -20,7 +20,15 @@ export class automata_volume
         this.activation = _activation
         this.volume = this.create_empty_volume(_size)
 
-        this.map_data = new noise_map_data()
+        this.map_data = new noise_map_data(
+            Date.now.toString(),
+            50.0, // scale
+            0.0, // height
+            1.0, //freq
+            2.0, // oct
+            0.1, // pers
+            5.0,    // lacu
+            )
         this.create_uint8()
     }
 
@@ -92,6 +100,28 @@ export class automata_volume
         return v
     }
 
+    public sphere_volume()
+    {
+        const radius: number = Math.floor(this.size/2)
+        const center: Vec3 = new Vec3([radius, radius, radius])
+        for (let x = 0; x < this.size; x++)
+        {
+            for (let y = 0; y < this.size; y++)
+            {
+                for (let z = 0; z < this.size; z++)
+                {
+                    let v = 0
+                    if (Vec3.distance(center, new Vec3([x, y, z])) < radius)
+                    {
+                        v = 1
+                    }
+                    this.volume[x][y][z] = v
+                }
+            }
+        }
+        this.create_uint8()
+    }
+
     public organize_volume()
     {
         for (let x = 0; x < this.size; x++)
@@ -109,22 +139,14 @@ export class automata_volume
 
     public randomize_volume(seed: string)
     {
-        console.log('seed: ' + seed)
         let rng = new Rand(seed)
-
         for (let x = 0; x < this.size; x++)
         {
             for (let y = 0; y < this.size; y++)
             {
                 for (let z = 0; z < this.size; z++)
                 {
-                    let val = 0
-                    const r = rng.next()
-                    if (r >= 0.95)
-                    {
-                        val = 1
-                    }
-                    this.volume[x][y][z] = val
+                    this.volume[x][y][z] = rng.next()
                 }
             }
         }

@@ -47,7 +47,7 @@ export class user_input
                         this.neural_app.app2d.toggle_shader()
                         break
                     case 'app3d':
-                        this.neural_app.app3d.toggle_shader()
+                        this.neural_app.app3d.toggle_colormap()
                         break
                 }
                 break
@@ -58,7 +58,7 @@ export class user_input
                         this.neural_app.app2d.toggle_automata()
                         break
                     case 'app3d':
-                        this.neural_app.app3d.toggle_automata()
+                        this.neural_app.app3d.toggle_volume()
                         break
                 }
                 break
@@ -70,6 +70,14 @@ export class user_input
                         break
                     case 'app3d':
                         this.neural_app.app3d.reset()
+                        break
+                }
+                break
+            case 'KeyP':
+                switch (this.neural_app.curr_app)
+                {
+                    case 'app3d':
+                        this.neural_app.app3d.toggle_pause()
                         break
                 }
                 break
