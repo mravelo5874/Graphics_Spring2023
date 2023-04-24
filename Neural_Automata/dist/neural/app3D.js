@@ -1,7 +1,17 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { Camera } from "../lib/webglutils/Camera.js";
 import { Vec3 } from "../lib/TSM.js";
 import { cube } from "./cube.js";
 import { simple_3d_vertex, simple_3d_fragment } from './shaders/simple_3d_shader.js';
+import { utils } from "./utils.js";
 import { automata_volume } from "./automata_volume.js";
 import { kernels_3d } from "./kernels_3d.js";
 import { activation_type_3d } from "./activations_3d.js";
@@ -10,13 +20,16 @@ export class app3D {
         this.cam_sense = 0.25;
         this.rot_speed = 0.03;
         this.zoom_speed = 0.005;
-        this.min_zoom = 1.5;
+        this.min_zoom = 0.5;
         this.max_zoom = 12;
+        // frames per volume update
+        this.conv_frames = 100;
         this.neural_app = _neural;
         this.canvas = _neural.canvas;
         this.context = _neural.context;
+        this.frame_count = 0;
         this.cube = new cube();
-        this.volume = new automata_volume(32, kernels_3d.worm_kernel(), activation_type_3d.worm);
+        this.volume = new automata_volume(8, kernels_3d.worm_kernel(), activation_type_3d.worm);
         this.volume.randomize_volume(Date.now().toString());
     }
     load_colormap(path) {
@@ -71,8 +84,10 @@ export class app3D {
         this.camera.offsetDist(zoom * this.zoom_speed);
     }
     toggle_shader() {
+        // TODO this
     }
     toggle_automata() {
+        // TODO this
     }
     reset() {
         // get context
@@ -123,11 +138,19 @@ export class app3D {
         gl.clearColor(bg.r, bg.g, bg.b, bg.a);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.enable(gl.CULL_FACE);
-        gl.cullFace(gl.FRONT_FACE);
+        gl.cullFace(gl.FRONT);
+        gl.frontFace(gl.CCW);
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         gl.viewport(0, 0, w, h);
-        //this.volume.apply_convolutiuon_update()
+        this.frame_count++;
+        if (this.frame_count >= this.conv_frames) {
+            (() => __awaiter(this, void 0, void 0, function* () {
+                yield utils.delay(1);
+                //this.volume.apply_convolutiuon_update()
+                this.frame_count = 0;
+            }))();
+        }
         this.setup_cube();
         // draw !!!
         gl.drawElements(gl.TRIANGLES, this.cube.get_idx_u32().length, gl.UNSIGNED_INT, 0);

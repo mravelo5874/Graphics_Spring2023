@@ -1,4 +1,5 @@
 export const simple_3d_vertex = `#version 300 es
+layout(location=0) in vec3 pos;
 precision highp float;
 
 uniform mat4 u_view;
@@ -10,7 +11,6 @@ in vec4 a_pos;
 in vec2 a_uv;
 
 out vec4 v_norm;
-out vec4 v_pos;
 out vec2 v_uv;
 out vec3 v_eye;
 out vec3 v_ray;
@@ -18,7 +18,6 @@ out vec3 v_ray;
 void main() 
 {
     gl_Position = u_proj * u_view * a_pos;
-    v_pos = a_pos;
     v_norm = normalize(a_norm);
     v_uv = a_uv;
     v_eye = u_eye;
@@ -32,7 +31,6 @@ uniform highp sampler3D u_volume;
 uniform highp sampler2D u_func; 
 
 in vec4 v_norm;
-in vec4 v_pos;
 in vec2 v_uv;
 in vec3 v_eye;
 in vec3 v_ray;
@@ -73,6 +71,7 @@ void main()
     // step 3: compute step size to march through volume
     vec3 dt_vec = 1.0 / abs(ray);
     float dt = min(dt_vec.x, min(dt_vec.y, dt_vec.z));
+    dt = 0.01;
 
     // step 4: march ray through volume and sample
     vec3 p = v_eye + t_hit.x * ray;
@@ -82,7 +81,7 @@ void main()
         float val = texture(u_volume, p).a;
 
         // get color from transfer function
-        vec4 val_color = vec4(texture(u_func, vec2(val, 0.5)).rgb, val);
+        vec4 val_color = vec4(texture(u_func, vec2(val, 0.5)).rgb, val * 0.1);
 
         my_color.rgb += (1.0 - my_color.a) * val_color.a * val_color.rgb;
         my_color.a += (1.0 - my_color.a) * val_color.a;
@@ -94,7 +93,7 @@ void main()
         p += ray * dt;
     }
 
-    fragColor = my_color; // vec4(ray, 1.0); // 
+    fragColor = my_color; // (abs(v_norm) * 0.25) + (vec4(ray, 1.0) * 0.25); +
 }
 `;
 //# sourceMappingURL=simple_3d_shader.js.map

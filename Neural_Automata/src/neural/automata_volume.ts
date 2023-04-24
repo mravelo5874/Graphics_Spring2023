@@ -98,7 +98,13 @@ export class automata_volume
             {
                 for (let z = 0; z < this.size; z++)
                 {
-                    this.volume[x][y][z] = rng.next()
+                    let val = 0
+                    const r = rng.next()
+                    if (r > 0.75)
+                    {
+                        val = r
+                    }
+                    this.volume[x][y][z] = val
                 }
             }
         }

@@ -21,7 +21,7 @@ export class app3D
     public rot_speed: number = 0.03
     public zoom_speed: number = 0.005
 
-    private min_zoom: number = 1.5
+    private min_zoom: number = 0.5
     private max_zoom: number = 12
 
     // geometry
@@ -32,13 +32,18 @@ export class app3D
     private volume_texture: WebGLTexture
     private function_texture: WebGLTexture
 
+    // frames per volume update
+    private conv_frames: number = 100
+    private frame_count: number
+
     constructor(_neural: neural)
     {
         this.neural_app = _neural
         this.canvas = _neural.canvas
         this.context = _neural.context
+        this.frame_count = 0
         this.cube = new cube()
-        this.volume = new automata_volume(32, kernels_3d.worm_kernel(), activation_type_3d.worm)
+        this.volume = new automata_volume(8, kernels_3d.worm_kernel(), activation_type_3d.worm)
         this.volume.randomize_volume(Date.now().toString())
     }
 
@@ -110,12 +115,12 @@ export class app3D
 
     public toggle_shader()
     {
-
+        // TODO this
     }
 
     public toggle_automata()
     {
-        
+        // TODO this
     }
     
     public reset()
@@ -183,14 +188,24 @@ export class app3D
 
         // Drawing
         gl.clearColor(bg.r, bg.g, bg.b, bg.a)
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.enable(gl.CULL_FACE);
-        gl.cullFace(gl.FRONT_FACE);
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);    
+        gl.clear(gl.COLOR_BUFFER_BIT)
+        gl.enable(gl.CULL_FACE)
+        gl.cullFace(gl.FRONT)
+        gl.frontFace(gl.CCW)
+        gl.enable(gl.BLEND)
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)  
         gl.viewport(0, 0, w, h)
 
-        //this.volume.apply_convolutiuon_update()
+        this.frame_count++
+        if (this.frame_count >= this.conv_frames)
+        {
+            (async () => { 
+                await utils.delay(1)
+                //this.volume.apply_convolutiuon_update()
+                this.frame_count = 0
+            })();
+        }
+        
         this.setup_cube()
 
         // draw !!!
@@ -200,9 +215,9 @@ export class app3D
     private setup_cube()
     {
         let gl = this.context
+        
         // draw cube
         gl.useProgram(this.program)
-
         /* Setup VAO */
         gl.bindVertexArray(this.vao)
 

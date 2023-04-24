@@ -77,6 +77,14 @@ export class user_input
                 if (this.neural_app.curr_app == 'app2d')
                     this.neural_app.app2d.reset(automata.cgol)
                 break
+            case 'ArrowUp':
+                if (this.neural_app.curr_app == 'app3d')
+                    this.neural_app.app3d.camera_zoom(-20)
+                break
+            case 'ArrowDown':
+                if (this.neural_app.curr_app == 'app3d')
+                    this.neural_app.app3d.camera_zoom(20)
+                break
             default:
                 console.log('Key : \'', key.code, '\' was pressed.');
                 break

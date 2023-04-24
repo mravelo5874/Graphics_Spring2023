@@ -215,11 +215,9 @@ export class app2D
     this.texture = gl.createTexture() as WebGLTexture
     gl.activeTexture(gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D, this.texture)
-    //console.log('pixels.length: ' + pixels.length + ', wxhx4: ' + w * h * 4)
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-    // Tell the shader to use texture unit 0 for u_texture
     gl.uniform1i(texture_loc, 0)
 
     // set kernel array uniform
