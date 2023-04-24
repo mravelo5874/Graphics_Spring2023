@@ -34,6 +34,13 @@ export class utils
     // must be used inside an async functions
     public static delay(ms: number) { return new Promise( resolve => setTimeout(resolve, ms))}
 
+    public static clamp01(val: number)
+    {
+        if (val > 1) return 1
+        if (val < 0) return 0
+        return val
+    }
+
     public static generate_random_alpha_state(width, height, seed)
     {
         let rng = new Rand(seed)

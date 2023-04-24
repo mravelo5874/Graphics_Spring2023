@@ -149,23 +149,21 @@ export class cube
 
     public get_pos_f32(): Float32Array 
     {
-        console.assert(this.pos_f32.length === 24 * 4);
-        return this.pos_f32;
+      return this.pos_f32;
     }
     
     public get_idx_u32(): Uint32Array 
     {
-        console.assert(this.idx_u32.length === 12 * 3);
-        return this.idx_u32;
+      return this.idx_u32;
     }
 
     public get_norms_f32(): Float32Array 
     {
-        return this.norm_f32;
+      return this.norm_f32;
     }
     
     public get_uvs_f32() : Float32Array 
     {
-        return this.uv_f32;
+      return this.uv_f32;
     }
 }

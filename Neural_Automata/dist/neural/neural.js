@@ -181,7 +181,7 @@ export class neural {
 }
 export function init_neural() {
     const single = new neural();
-    single.set_2d();
+    single.set_3d();
     single.start_render();
 }
 //# sourceMappingURL=neural.js.map

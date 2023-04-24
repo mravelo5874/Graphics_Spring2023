@@ -4,8 +4,8 @@ import { alpha_vertex, alpha_fragment } from './shaders/alpha_shader.js';
 import { rgb_vertex, rgb_fragment } from './shaders/rgb_shader.js';
 import { bnw_vertex, bnw_fragment } from './shaders/bnw_shader.js';
 import { acid_vertex, acid_fragment } from './shaders/acid_shader.js';
-import { kernels } from './kernels.js';
-import { activations } from './activations.js';
+import { kernels_2d } from './kernels_2d.js';
+import { activations_2d } from './activations_2d.js';
 import Rand from "../lib/rand-seed/Rand.js";
 export var automata;
 (function (automata) {
@@ -76,39 +76,39 @@ export class app2D {
         switch (auto) {
             default:
             case automata.worms:
-                frag = frag.replace('[AF]', activations.worms_activation());
+                frag = frag.replace('[AF]', activations_2d.worms_activation());
                 this.neural_app.auto_node.nodeValue = 'worms (1)';
                 break;
             case automata.drops:
-                frag = frag.replace('[AF]', activations.drops_activation());
+                frag = frag.replace('[AF]', activations_2d.drops_activation());
                 this.neural_app.auto_node.nodeValue = 'drops (2)';
                 break;
             case automata.waves:
-                frag = frag.replace('[AF]', activations.waves_activation());
+                frag = frag.replace('[AF]', activations_2d.waves_activation());
                 this.neural_app.auto_node.nodeValue = 'waves (3)';
                 break;
             case automata.paths:
-                frag = frag.replace('[AF]', activations.paths_activation());
+                frag = frag.replace('[AF]', activations_2d.paths_activation());
                 this.neural_app.auto_node.nodeValue = 'paths (4)';
                 break;
             case automata.stars:
-                frag = frag.replace('[AF]', activations.stars_activation());
+                frag = frag.replace('[AF]', activations_2d.stars_activation());
                 this.neural_app.auto_node.nodeValue = 'stars (5)';
                 break;
             case automata.cells:
-                frag = frag.replace('[AF]', activations.cells_activation());
+                frag = frag.replace('[AF]', activations_2d.cells_activation());
                 this.neural_app.auto_node.nodeValue = 'cells (6)';
                 break;
             case automata.slime:
-                frag = frag.replace('[AF]', activations.slime_activation());
+                frag = frag.replace('[AF]', activations_2d.slime_activation());
                 this.neural_app.auto_node.nodeValue = 'slime (7)';
                 break;
             case automata.lands:
-                frag = frag.replace('[AF]', activations.lands_activation());
+                frag = frag.replace('[AF]', activations_2d.lands_activation());
                 this.neural_app.auto_node.nodeValue = 'lands (8)';
                 break;
             case automata.cgol:
-                frag = frag.replace('[AF]', activations.gol_activation());
+                frag = frag.replace('[AF]', activations_2d.gol_activation());
                 this.neural_app.auto_node.nodeValue = 'c-gol (0)';
                 break;
         }
@@ -159,10 +159,6 @@ export class app2D {
         // set time uniform
         const time_loc = gl.getUniformLocation(program, 'u_time');
         gl.uniform1f(time_loc, 0.0);
-        // set texture uniform
-        const texture_loc = gl.getUniformLocation(program, 'u_texture');
-        this.texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, this.texture);
         // Fill the texture with random states
         const w = this.canvas.width;
         const h = this.canvas.height;
@@ -185,6 +181,11 @@ export class app2D {
             }
         }
         this.prev_pixels = pixels;
+        // set texture uniform
+        const texture_loc = gl.getUniformLocation(program, 'u_texture');
+        this.texture = gl.createTexture();
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.texture);
         //console.log('pixels.length: ' + pixels.length + ', wxhx4: ' + w * h * 4)
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
@@ -197,31 +198,31 @@ export class app2D {
         switch (auto) {
             default:
             case automata.worms:
-                kernel = kernels.worms_kernel();
+                kernel = kernels_2d.worms_kernel();
                 break;
             case automata.drops:
-                kernel = kernels.drops_kernel();
+                kernel = kernels_2d.drops_kernel();
                 break;
             case automata.slime:
-                kernel = kernels.slime_kernel();
+                kernel = kernels_2d.slime_kernel();
                 break;
             case automata.waves:
-                kernel = kernels.waves_kernel();
+                kernel = kernels_2d.waves_kernel();
                 break;
             case automata.paths:
-                kernel = kernels.paths_kernel();
+                kernel = kernels_2d.paths_kernel();
                 break;
             case automata.stars:
-                kernel = kernels.stars_kernel();
+                kernel = kernels_2d.stars_kernel();
                 break;
             case automata.cells:
-                kernel = kernels.cells_kernel();
+                kernel = kernels_2d.cells_kernel();
                 break;
             case automata.lands:
-                kernel = kernels.lands_kernel();
+                kernel = kernels_2d.lands_kernel();
                 break;
             case automata.cgol:
-                kernel = kernels.gol_kernel();
+                kernel = kernels_2d.gol_kernel();
                 break;
         }
         gl.uniform1fv(kernel_loc, kernel);

@@ -253,6 +253,6 @@ export class neural
 export function init_neural(): void 
 {
    const single: neural = new neural()
-   single.set_2d()
+   single.set_3d()
    single.start_render()
 }

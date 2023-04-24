@@ -131,11 +131,9 @@ export class cube {
         this.uv_v3.forEach((v, i) => { this.uv_f32.set(v.xy, i * 2); });
     }
     get_pos_f32() {
-        console.assert(this.pos_f32.length === 24 * 4);
         return this.pos_f32;
     }
     get_idx_u32() {
-        console.assert(this.idx_u32.length === 12 * 3);
         return this.idx_u32;
     }
     get_norms_f32() {

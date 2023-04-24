@@ -1,4 +1,4 @@
-export class kernels
+export class kernels_2d
 {
     public static worms_kernel(): Float32Array
     {

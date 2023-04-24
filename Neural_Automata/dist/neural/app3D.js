@@ -3,6 +3,8 @@ import { Vec3 } from "../lib/TSM.js";
 import { cube } from "./cube.js";
 import { simple_3d_vertex, simple_3d_fragment } from './shaders/simple_3d_shader.js';
 import { automata_volume } from "./automata_volume.js";
+import { kernels_3d } from "./kernels_3d.js";
+import { activation_type_3d } from "./activations_3d.js";
 export class app3D {
     constructor(_neural) {
         this.cam_sense = 0.25;
@@ -14,13 +16,46 @@ export class app3D {
         this.canvas = _neural.canvas;
         this.context = _neural.context;
         this.cube = new cube();
-        this.volume = new automata_volume(8);
-        this.volume.randomize_volume(_neural.get_elapsed_time().toString());
+        this.volume = new automata_volume(32, kernels_3d.worm_kernel(), activation_type_3d.worm);
+        this.volume.randomize_volume(Date.now().toString());
+    }
+    load_colormap(path) {
+        let gl = this.context;
+        let transfer_function = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, transfer_function);
+        // add single pixel for now
+        const pixel = new Uint8Array([0, 0, 255, 255]);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+        // add image after load
+        const img = new Image();
+        img.onload = () => {
+            console.log('loaded img: ' + img.width + ' x ' + img.height);
+            gl.bindTexture(gl.TEXTURE_2D, transfer_function);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+        };
+        // Turn off mips and set wrapping to clamp to edge
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        img.src = path;
+        return transfer_function;
     }
     start() {
         this.reset();
         this.neural_app.auto_node.nodeValue = 'none';
         this.neural_app.shade_node.nodeValue = 'simple 3d';
+        // set colormap texture
+        this.function_texture = this.load_colormap('../colormaps/matplotlib-plasma.png');
+        let gl = this.context;
+        // bind transfer function texture
+        const func_loc = gl.getUniformLocation(this.program, 'u_func');
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, this.function_texture);
+        gl.uniform1i(func_loc, 1);
+        // create volume texture and vao
+        this.volume_texture = gl.createTexture();
+        this.vao = gl.createVertexArray();
+        this.setup_cube();
     }
     end() {
         // idk something ?
@@ -71,7 +106,8 @@ export class app3D {
         const program_log = gl.getProgramInfoLog(program);
         if (program_log != '')
             console.log('shader program log: ' + program_log);
-        this.setup_cube();
+        // use program!
+        gl.useProgram(this.program);
     }
     draw_loop() {
         let gl = this.context;
@@ -87,11 +123,11 @@ export class app3D {
         gl.clearColor(bg.r, bg.g, bg.b, bg.a);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.enable(gl.CULL_FACE);
-        gl.enable(gl.DEPTH_TEST);
-        gl.frontFace(gl.CCW);
-        gl.cullFace(gl.BACK);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.cullFace(gl.FRONT);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         gl.viewport(0, 0, w, h);
+        //this.volume.apply_convolutiuon_update()
         this.setup_cube();
         // draw !!!
         gl.drawElements(gl.TRIANGLES, this.cube.get_idx_u32().length, gl.UNSIGNED_INT, 0);
@@ -142,33 +178,21 @@ export class app3D {
         gl.uniform3fv(eye_loc, new Float32Array(this.camera.pos().xyz));
         // set volume uniform
         const volume_loc = gl.getUniformLocation(this.program, 'u_volume');
-        this.texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_3D, this.texture);
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_3D, this.volume_texture);
         const s = this.volume.get_size();
-        gl.texImage3D(gl.TEXTURE_3D, 0, gl.RGBA, s, s, s, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.volume.get_volume());
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        // Tell the shader to use texture unit 0 for u_texture
-        gl.uniform1i(volume_loc, 0);
-        // set transfer function uniform
+        let data = this.volume.get_volume();
+        gl.texImage3D(gl.TEXTURE_3D, 0, gl.ALPHA, s, s, s, 0, gl.ALPHA, gl.UNSIGNED_BYTE, data);
+        gl.generateMipmap(gl.TEXTURE_3D);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+        gl.uniform1i(volume_loc, 2);
+        // bind transfer function texture
         const func_loc = gl.getUniformLocation(this.program, 'u_func');
-        this.transfer_function = gl.createTexture();
-        var colormap = new Image();
-        colormap.src = '../colormaps/cool-warm-paraview.png';
-        colormap.onload = function () {
-            let transfer_function = gl.createTexture();
-            gl.activeTexture(gl.TEXTURE1);
-            gl.bindTexture(gl.TEXTURE_2D, transfer_function);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, colormap.width, colormap.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, colormap);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-        };
-        // Tell the shader to use texture unit 0 for u_texture
-        gl.uniform1i(func_loc, 0);
-        //uniform sampler3D u_volume;
-        //uniform sampler2D u_func;
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, this.function_texture);
+        gl.uniform1i(func_loc, 1);
     }
 }
 //# sourceMappingURL=app3D.js.map

@@ -1,4 +1,4 @@
-export class activations
+export class activations_2d
 {
     public static worms_activation(): string
     {

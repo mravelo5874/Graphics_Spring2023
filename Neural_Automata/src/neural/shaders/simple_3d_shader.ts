@@ -1,6 +1,6 @@
 export const simple_3d_vertex = 
 `#version 300 es
-precision mediump float;
+precision highp float;
 
 uniform mat4 u_view;
 uniform mat4 u_proj;
@@ -16,7 +16,7 @@ out vec2 v_uv;
 out vec3 v_eye;
 out vec3 v_ray;
 
-void main () 
+void main() 
 {
     gl_Position = u_proj * u_view * a_pos;
     v_pos = a_pos;
@@ -29,10 +29,10 @@ void main ()
 
 export const simple_3d_fragment = 
 `#version 300 es
-precision mediump float;
+precision highp float;
 
-uniform mediump sampler3D u_volume;
-uniform sampler2D u_func;
+uniform highp sampler3D u_volume;
+uniform highp sampler2D u_func; 
 
 in vec4 v_norm;
 in vec4 v_pos;
@@ -44,21 +44,21 @@ out vec4 fragColor;
 
 vec2 intersect_box(vec3 orig, vec3 dir) 
 {
-    const vec3 box_min = vec3(0);
-    const vec3 box_max = vec3(1);
-    vec3 inv_dir = 1.0 / dir;
-    vec3 tmin_tmp = (box_min - orig) * inv_dir;
-    vec3 tmax_tmp = (box_max - orig) * inv_dir;
-    vec3 tmin = min(tmin_tmp, tmax_tmp);
-    vec3 tmax = max(tmin_tmp, tmax_tmp);
-    float t0 = max(tmin.x, max(tmin.y, tmin.z));
-    float t1 = min(tmax.x, min(tmax.y, tmax.z));
-    return vec2(t0, t1);
+	const vec3 box_min = vec3(-0.5, -0.5, -0.5);
+	const vec3 box_max = vec3(0.5, 0.5, 0.5);
+	vec3 inv_dir = 1.0 / dir;
+	vec3 tmin_tmp = (box_min - orig) * inv_dir;
+	vec3 tmax_tmp = (box_max - orig) * inv_dir;
+	vec3 tmin = min(tmin_tmp, tmax_tmp);
+	vec3 tmax = max(tmin_tmp, tmax_tmp);
+	float t0 = max(tmin.x, max(tmin.y, tmin.z));
+	float t1 = min(tmax.x, min(tmax.y, tmax.z));
+	return vec2(t0, t1);
 }
 
 void main() 
 {   
-    vec4 my_color = vec4(0.0, 0.0, 0.0, 1.0);
+    vec4 my_color = vec4(0.0, 0.0, 0.0, 0.0);
 
     // step 1: normalize ray
     vec3 ray = normalize(v_ray);
@@ -81,20 +81,23 @@ void main()
     vec3 p = v_eye + t_hit.x * ray;
     for (float t = t_hit.x; t < t_hit.y; t += dt)
     {
-        float val = texture(u_volume, p).r;
+        // sample volume
+        float val = texture(u_volume, p).a;
+
+        // get color from transfer function
         vec4 val_color = vec4(texture(u_func, vec2(val, 0.5)).rgb, val);
 
         my_color.rgb += (1.0 - my_color.a) * val_color.a * val_color.rgb;
         my_color.a += (1.0 - my_color.a) * val_color.a;
 
-        if (my_color.a >= 0.95) 
+        if (my_color.a >= 0.95)
         {
             break;
         }
         p += ray * dt;
     }
 
-    fragColor = my_color;
+    fragColor = my_color; // vec4(ray, 1.0); // 
 }
 `;
 
