@@ -68,10 +68,8 @@ void main()
     // avoid sampling behind eye
     t_hit.x = max(t_hit.x, 0.0);
 
-    // step 3: compute step size to march through volume
-    vec3 dt_vec = 1.0 / abs(ray);
-    float dt = min(dt_vec.x, min(dt_vec.y, dt_vec.z));
-    dt = 0.01;
+    // step 3: set step size to march through volume
+    float dt = 0.001;
 
     // step 4: march ray through volume and sample
     vec3 p = v_eye + t_hit.x * ray;
@@ -81,7 +79,7 @@ void main()
         float val = texture(u_volume, p).a;
 
         // get color from transfer function
-        vec4 val_color = vec4(texture(u_func, vec2(val, 0.5)).rgb, val * 0.1);
+        vec4 val_color = vec4(texture(u_func, vec2(val * 2.0, 0.5)).rgb, val * 0.5);
 
         my_color.rgb += (1.0 - my_color.a) * val_color.a * val_color.rgb;
         my_color.a += (1.0 - my_color.a) * val_color.a;

@@ -33,18 +33,20 @@ export class app3D
     private function_texture: WebGLTexture
 
     // frames per volume update
-    private conv_frames: number = 100
-    private frame_count: number
+    private conv_frames: number = 12
+    private curr_frames: number
+    private update_count: number
 
     constructor(_neural: neural)
     {
         this.neural_app = _neural
         this.canvas = _neural.canvas
         this.context = _neural.context
-        this.frame_count = 0
+        this.curr_frames = 0
+        this.update_count = 0
         this.cube = new cube()
-        this.volume = new automata_volume(8, kernels_3d.worm_kernel(), activation_type_3d.worm)
-        this.volume.randomize_volume(Date.now().toString())
+        this.volume = new automata_volume(32, kernels_3d.worm_kernel(), activation_type_3d.worm)
+        this.volume.perlin_volume(Date.now().toString(), Vec3.zero.copy())
     }
 
     private load_colormap(path: string)
@@ -79,7 +81,7 @@ export class app3D
         this.neural_app.shade_node.nodeValue = 'simple 3d'
 
         // set colormap texture
-        this.function_texture = this.load_colormap('../colormaps/matplotlib-plasma.png')
+        this.function_texture = this.load_colormap('../colormaps/rainbow.png')
         let gl = this.context
 
         // bind transfer function texture
@@ -196,13 +198,14 @@ export class app3D
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)  
         gl.viewport(0, 0, w, h)
 
-        this.frame_count++
-        if (this.frame_count >= this.conv_frames)
+        this.curr_frames++
+        if (this.curr_frames >= this.conv_frames)
         {
             (async () => { 
                 await utils.delay(1)
-                //this.volume.apply_convolutiuon_update()
-                this.frame_count = 0
+                this.update_count++
+                this.volume.perlin_volume(Date.now().toString(), new Vec3([this.update_count, this.update_count, this.update_count]))
+                this.curr_frames = 0
             })();
         }
         
@@ -273,10 +276,12 @@ export class app3D
         const s = this.volume.get_size()
         let data = this.volume.get_volume()
         gl.texImage3D(gl.TEXTURE_3D, 0, gl.ALPHA, s, s, s, 0, gl.ALPHA, gl.UNSIGNED_BYTE, data)
-        gl.generateMipmap(gl.TEXTURE_3D);
-		gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.REPEAT);
-		gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-		gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+        gl.generateMipmap(gl.TEXTURE_3D)
+		gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.REPEAT)
+		gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+		gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
         gl.uniform1i(volume_loc, 2)
 
         // bind transfer function texture

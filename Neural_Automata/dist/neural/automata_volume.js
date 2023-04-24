@@ -1,12 +1,14 @@
 import { Vec3 } from "../lib/TSM.js";
 import Rand from "../lib/rand-seed/Rand.js";
 import { activation_3d } from "./activations_3d.js";
+import { noise, noise_map_data } from "./noise.js";
 export class automata_volume {
     constructor(_size, _kernel, _activation) {
         this.size = _size;
         this.kernel = _kernel;
         this.activation = _activation;
         this.volume = this.create_empty_volume(_size);
+        this.map_data = new noise_map_data();
         this.create_uint8();
     }
     get_size() { return this.size; }
@@ -73,10 +75,21 @@ export class automata_volume {
                 for (let z = 0; z < this.size; z++) {
                     let val = 0;
                     const r = rng.next();
-                    if (r > 0.75) {
-                        val = r;
+                    if (r >= 0.95) {
+                        val = 1;
                     }
                     this.volume[x][y][z] = val;
+                }
+            }
+        }
+        this.create_uint8();
+    }
+    perlin_volume(seed, offset) {
+        const perlin_data = noise.generate_perlin_volume(this.size, this.map_data, offset, true);
+        for (let x = 0; x < this.size; x++) {
+            for (let y = 0; y < this.size; y++) {
+                for (let z = 0; z < this.size; z++) {
+                    this.volume[x][y][z] = perlin_data[x][y][z];
                 }
             }
         }

@@ -13,5 +13,11 @@ export class activation_3d {
     static worm(val) {
         return -1.0 / Math.pow(2.0, (0.6 * Math.pow(val, 2.0))) + 1.0;
     }
+    static gol(val) {
+        if (val == 3.0 || val == 11.0 || val == 12.0) {
+            return 1.0;
+        }
+        return 0.0;
+    }
 }
 //# sourceMappingURL=activations_3d.js.map

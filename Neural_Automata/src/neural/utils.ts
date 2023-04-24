@@ -3,8 +3,7 @@ import { Vec2, Vec3 } from '../lib/TSM.js'
 
 export class utils
 {
-    public static DEFAULT_ACTIVATION = `float activation(float x) {\n\treturn x;\n}`
-
+    public static SQRT2: number = 1.41421356237
     public static DIGITS: number = 3
 
     public static v3(v: Vec3, d: number = this.DIGITS) : string { return v.x.toFixed(d) + ', ' + v.y.toFixed(d) + ', ' + v.z.toFixed(d) }
@@ -29,6 +28,11 @@ export class utils
         else if (val < p0) return 0
         // return t value
         return (val - p0) / (p1 - p0)
+    }
+
+    public static smooth(t: number): number
+    {
+        return t * t * t * (t * (t * 6 - 15) + 10)
     }
 
     // must be used inside an async functions

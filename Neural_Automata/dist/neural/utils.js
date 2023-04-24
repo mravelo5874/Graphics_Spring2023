@@ -23,6 +23,9 @@ class utils {
         // return t value
         return (val - p0) / (p1 - p0);
     }
+    static smooth(t) {
+        return t * t * t * (t * (t * 6 - 15) + 10);
+    }
     // must be used inside an async functions
     static delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
     static clamp01(val) {
@@ -83,7 +86,7 @@ class utils {
         return cells;
     }
 }
-utils.DEFAULT_ACTIVATION = `float activation(float x) {\n\treturn x;\n}`;
+utils.SQRT2 = 1.41421356237;
 utils.DIGITS = 3;
 export { utils };
 //# sourceMappingURL=utils.js.map
