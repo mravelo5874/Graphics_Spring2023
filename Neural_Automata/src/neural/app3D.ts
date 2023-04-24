@@ -185,7 +185,7 @@ export class app3D
         gl.clearColor(bg.r, bg.g, bg.b, bg.a)
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.enable(gl.CULL_FACE);
-        gl.cullFace(gl.FRONT);
+        gl.cullFace(gl.FRONT_FACE);
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);    
         gl.viewport(0, 0, w, h)
