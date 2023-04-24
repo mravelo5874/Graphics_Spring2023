@@ -2,6 +2,7 @@ import { Vec3 } from "../lib/TSM.js"
 import  Rand  from "../lib/rand-seed/Rand.js"
 import { activation_3d, activation_type_3d } from "./activations_3d.js"
 import { noise, noise_map_data } from "./noise.js";
+import { utils } from "./utils.js";
 
 export class automata_volume
 {
@@ -89,6 +90,21 @@ export class automata_volume
             }
         }
         return v
+    }
+
+    public organize_volume()
+    {
+        for (let x = 0; x < this.size; x++)
+        {
+            for (let y = 0; y < this.size; y++)
+            {
+                for (let z = 0; z < this.size; z++)
+                {
+                    this.volume[x][y][z] = utils.inverse_lerp(0, this.size * this.size * this.size, x * y * z)
+                }
+            }
+        }
+        this.create_uint8()
     }
 
     public randomize_volume(seed: string)

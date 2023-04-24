@@ -79,7 +79,7 @@ void main()
     for (float t = t_hit.x; t < t_hit.y; t += dt)
     {
         // sample volume
-        float val = texture(u_volume, p).a;
+        float val = texture(u_volume, p + vec3(0.5, 0.5, 0.5)).a;
 
         // get color from transfer function
         vec4 val_color = vec4(texture(u_func, vec2(val * 2.0, 0.5)).rgb, val * 0.5);

@@ -23,14 +23,15 @@ export class app3D {
         this.min_zoom = 0.5;
         this.max_zoom = 12;
         // frames per volume update
-        this.conv_frames = 12;
+        this.conv_frames = 4;
         this.neural_app = _neural;
         this.canvas = _neural.canvas;
         this.context = _neural.context;
         this.curr_frames = 0;
         this.update_count = 0;
         this.cube = new cube();
-        this.volume = new automata_volume(32, kernels_3d.worm_kernel(), activation_type_3d.worm);
+        this.volume = new automata_volume(64, kernels_3d.worm_kernel(), activation_type_3d.worm);
+        this.volume.organize_volume();
         this.volume.perlin_volume(Date.now().toString(), Vec3.zero.copy());
     }
     load_colormap(path) {
@@ -209,9 +210,9 @@ export class app3D {
         let data = this.volume.get_volume();
         gl.texImage3D(gl.TEXTURE_3D, 0, gl.ALPHA, s, s, s, 0, gl.ALPHA, gl.UNSIGNED_BYTE, data);
         gl.generateMipmap(gl.TEXTURE_3D);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.uniform1i(volume_loc, 2);
