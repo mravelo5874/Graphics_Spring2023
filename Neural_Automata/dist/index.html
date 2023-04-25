@@ -27,23 +27,25 @@
 
 <body>
 <canvas id="canvas"></canvas>
-<!-- <div id="overlay" style="left:10px;top:10px">
-  <div style="color:lightGreen;font-size:16px">automata: </div>
-  <div style="font-size:16px">(1) worms</div>
-  <div style="font-size:16px">(2) slime</div>
-  <div style="font-size:16px">(3) waves</div>
-  <div style="font-size:16px">(4) paths</div>
-  <div style="font-size:16px">(5) stars</div>
-  <div style="font-size:16px">(6) cells</div>
-  <div style="font-size:16px">(7) c-gol</div>
-</div> -->
-<div id="overlay" style="left:10px;bottom:10px">
+
+<div id="overlay" style="right:10px;bottom:10px">
   <div style="font-size:16px">automata: <span id="auto" style="color:rgb(0, 255, 0)"></span></div>
-  <div style="font-size:16px">shader: <span id="shade" style="color:rgb(255, 208, 0)"></span></div>
+  <div style="font-size:16px">shade: <span id="shade" style="color:rgb(255, 208, 0)"></span></div>
   <div style="font-size:16px">mode: <span id="mode" style="color:rgb(255, 136, 0)"></span></div>
   <div style="font-size:16px">res: <span id="res" style="color:rgb(0, 183, 255)"></span></div>
   <div style="font-size:16px">fps: <span id="fps" style="color:rgb(255, 0, 234)"></span></div>
 </div>
+
+<div id="overlay" style="left:10px;bottom:10px;text-align:left;">
+  <div style="font-size:16px;color:rgb(161, 120, 255);">[controls]</div>
+  <div style="font-size:16px"><span style="color:rgb(0, 255, 0)">left ctrl:</span> change automata</div>
+  <div style="font-size:16px"><span style="color:rgb(255, 208, 0)">left shift:</span> change shade</div>
+  <div style="font-size:16px"><span style="color:rgb(255, 136, 0)">space:</span> swap 2D/3D </div>
+  <div style="font-size:16px"><span style="color:rgb(0, 183, 255)">mouse:</span> interact</div>
+  <div style="font-size:16px"><span style="color:rgb(255, 0, 234)">p:</span> stop/start</div>
+  <div style="font-size:16px"><span style="color:rgb(255, 0, 106)">r:</span> reset</div>
+</div>
+
 <script type="module" src="./index.js"></script>
 </body>
 </html>

@@ -45,17 +45,17 @@ export class app3D
     private function_texture: WebGLTexture
 
     // frames per volume updatep
-    private conv_frames: number = 24
+    private conv_frames: number = 16
     private curr_frames: number
     private update_count: number
-    private pause_volume: boolean = false
+    private pause: boolean = false
 
     constructor(_neural: neural)
     {
         this.neural_app = _neural
         this.canvas = _neural.canvas
         this.context = _neural.context
-        this.pause_volume = false
+        this.pause = false
         this.curr_frames = 0
         this.update_count = 0
 
@@ -74,13 +74,12 @@ export class app3D
         let transfer_function = gl.createTexture() as WebGLTexture
         gl.bindTexture(gl.TEXTURE_2D, transfer_function)
         // add single pixel for now
-        const pixel = new Uint8Array([0, 0, 255, 255])
+        const pixel = new Uint8Array([0, 0, 0, 255])
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixel)
         // add image after load
         const img = new Image() 
         img.onload = () =>
         {
-            console.log('loaded img: ' + img.width + ' x ' + img.height)
             gl.bindTexture(gl.TEXTURE_2D, transfer_function)
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
         }
@@ -95,6 +94,7 @@ export class app3D
 
     public start()
     {
+        this.pause = false
         this.reset()
 
         // set initial colormap
@@ -117,7 +117,7 @@ export class app3D
 
     public toggle_pause()
     {
-        this.pause_volume = !this.pause_volume
+        this.pause = !this.pause
     }
 
     public end()
@@ -149,13 +149,9 @@ export class app3D
         
     }
 
-    public toggle_colormap()
+    public set_colormap(_color: colormap)
     {
-        let c = this.color
-        c -= 1
-        if (c < 0) c = colormap.END - 1
-        this.color = c
-        switch (c)
+        switch (_color)
         {
             case colormap.cool_warm:
                 this.function_texture = this.load_colormap('../colormaps/cool-warm-paraview.png')
@@ -183,6 +179,15 @@ export class app3D
                 break
         }
     }
+
+    public toggle_colormap()
+    {
+        let c = this.color
+        c -= 1
+        if (c < 0) c = colormap.END - 1
+        this.color = c
+        this.set_colormap(c)
+    }   
 
     public toggle_shader()
     {
@@ -268,7 +273,7 @@ export class app3D
         let h = this.canvas.height
         let bg = this.neural_app.bg_color
 
-        if (!this.pause_volume)
+        if (!this.pause)
         {
             // update volume
             this.update_count++
@@ -285,7 +290,7 @@ export class app3D
                         break
                     case volume_type.perlin:
                         let x = this.update_count
-                        this.auto_volume.perlin_volume(Date.now().toString(), new Vec3([x, x, x]))
+                        this.auto_volume.perlin_volume(Date.now().toString(), new Vec3([x, x, x]).scale(0.15))
                         break
                 }
             }

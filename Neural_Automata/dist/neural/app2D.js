@@ -30,13 +30,19 @@ export var shader_mode;
 })(shader_mode || (shader_mode = {}));
 export class app2D {
     constructor(_neural) {
+        this.pause = false;
         this.neural_app = _neural;
-        this.mode = shader_mode.alpha;
+        this.mode = shader_mode.rgb;
+        this.auto = automata.worms;
         this.canvas = _neural.canvas;
         this.context = _neural.context;
     }
     start() {
-        this.reset(automata.worms, shader_mode.rgb);
+        this.pause = false;
+        this.reset();
+    }
+    toggle_pause() {
+        this.pause = !this.pause;
     }
     end() {
         // idk something ?
@@ -286,9 +292,12 @@ export class app2D {
         gl.viewport(0, 0, w, h);
         // draw to screen and read pixels twice to skip every other frame
         this.draw();
-        this.read();
-        this.draw();
-        this.read();
+        // stop in paused
+        if (!this.pause) {
+            this.read();
+            this.draw();
+            this.read();
+        }
     }
     mouse_draw(rel_x, rel_y, brush_size) {
         let pixels = this.prev_pixels;

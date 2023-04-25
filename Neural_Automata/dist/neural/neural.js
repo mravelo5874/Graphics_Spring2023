@@ -14,6 +14,7 @@ import { webgl_util } from './webgl_util.js';
 import { utils } from './utils.js';
 import { Vec4 } from "../lib/TSM.js";
 // http-server dist -c-1
+// this is the main program where everything happens 
 export class neural {
     constructor() {
         this.frame_count = 0;

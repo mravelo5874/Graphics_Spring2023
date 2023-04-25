@@ -1,5 +1,6 @@
-import { automata } from './app2D.js';
+import { automata, shader_mode } from './app2D.js';
 import { Vec3 } from '../lib/TSM.js';
+import { colormap, volume_type } from './app3D.js';
 export class user_input {
     constructor(canvas, _neural) {
         this.mouse_down = false;
@@ -48,15 +49,19 @@ export class user_input {
             case 'KeyR':
                 switch (this.neural_app.curr_app) {
                     case 'app2d':
-                        this.neural_app.app2d.reset();
+                        this.neural_app.app2d.reset(automata.worms, shader_mode.rgb);
                         break;
                     case 'app3d':
-                        this.neural_app.app3d.reset();
+                        this.neural_app.app3d.reset(volume_type.sphere);
+                        this.neural_app.app3d.set_colormap(colormap.rainbow);
                         break;
                 }
                 break;
             case 'KeyP':
                 switch (this.neural_app.curr_app) {
+                    case 'app2d':
+                        this.neural_app.app2d.toggle_pause();
+                        break;
                     case 'app3d':
                         this.neural_app.app3d.toggle_pause();
                         break;

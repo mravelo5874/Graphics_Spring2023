@@ -22,10 +22,10 @@ export class automata_volume
 
         this.map_data = new noise_map_data(
             Date.now.toString(),
-            50.0, // scale
+            16.0, // scale
             0.0, // height
             1.0, //freq
-            2.0, // oct
+            1.0, // oct
             0.1, // pers
             5.0,    // lacu
             )
@@ -111,7 +111,7 @@ export class automata_volume
                 for (let z = 0; z < this.size; z++)
                 {
                     let v = 0
-                    if (Vec3.distance(center, new Vec3([x, y, z])) < radius)
+                    if (Vec3.distance(center, new Vec3([x, y, z])) < radius - 1)
                     {
                         v = 1
                     }
@@ -146,7 +146,12 @@ export class automata_volume
             {
                 for (let z = 0; z < this.size; z++)
                 {
-                    this.volume[x][y][z] = rng.next()
+                    let v = 0
+                    if (rng.next() > 0.8)
+                    {
+                        v = 1
+                    }
+                    this.volume[x][y][z] = v
                 }
             }
         }
@@ -163,7 +168,12 @@ export class automata_volume
             {
                 for (let z = 0; z < this.size; z++)
                 {
-                    this.volume[x][y][z] = perlin_data[x][y][z]
+                    let p = 0
+                    if (perlin_data[x][y][z] > 0.1)
+                    {
+                        p = 1
+                    }
+                    this.volume[x][y][z] = p
                 }
             }
         }

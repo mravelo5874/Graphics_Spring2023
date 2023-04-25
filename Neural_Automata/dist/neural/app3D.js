@@ -30,12 +30,12 @@ export class app3D {
         this.min_zoom = 0.5;
         this.max_zoom = 12;
         // frames per volume updatep
-        this.conv_frames = 24;
-        this.pause_volume = false;
+        this.conv_frames = 16;
+        this.pause = false;
         this.neural_app = _neural;
         this.canvas = _neural.canvas;
         this.context = _neural.context;
-        this.pause_volume = false;
+        this.pause = false;
         this.curr_frames = 0;
         this.update_count = 0;
         // create geometry + volume
@@ -50,12 +50,11 @@ export class app3D {
         let transfer_function = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, transfer_function);
         // add single pixel for now
-        const pixel = new Uint8Array([0, 0, 255, 255]);
+        const pixel = new Uint8Array([0, 0, 0, 255]);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
         // add image after load
         const img = new Image();
         img.onload = () => {
-            console.log('loaded img: ' + img.width + ' x ' + img.height);
             gl.bindTexture(gl.TEXTURE_2D, transfer_function);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
         };
@@ -67,6 +66,7 @@ export class app3D {
         return transfer_function;
     }
     start() {
+        this.pause = false;
         this.reset();
         // set initial colormap
         this.function_texture = this.load_colormap('../colormaps/rainbow.png');
@@ -83,7 +83,7 @@ export class app3D {
         this.setup_cube();
     }
     toggle_pause() {
-        this.pause_volume = !this.pause_volume;
+        this.pause = !this.pause;
     }
     end() {
         // idk something ?
@@ -105,13 +105,8 @@ export class app3D {
             v = volume_type.END - 1;
         this.reset(v);
     }
-    toggle_colormap() {
-        let c = this.color;
-        c -= 1;
-        if (c < 0)
-            c = colormap.END - 1;
-        this.color = c;
-        switch (c) {
+    set_colormap(_color) {
+        switch (_color) {
             case colormap.cool_warm:
                 this.function_texture = this.load_colormap('../colormaps/cool-warm-paraview.png');
                 this.neural_app.shade_node.nodeValue = 'cool-warm';
@@ -137,6 +132,14 @@ export class app3D {
                 this.neural_app.shade_node.nodeValue = 'ygb';
                 break;
         }
+    }
+    toggle_colormap() {
+        let c = this.color;
+        c -= 1;
+        if (c < 0)
+            c = colormap.END - 1;
+        this.color = c;
+        this.set_colormap(c);
     }
     toggle_shader() {
         // TODO this
@@ -200,7 +203,7 @@ export class app3D {
         let w = this.canvas.width;
         let h = this.canvas.height;
         let bg = this.neural_app.bg_color;
-        if (!this.pause_volume) {
+        if (!this.pause) {
             // update volume
             this.update_count++;
             this.curr_frames++;
@@ -212,7 +215,7 @@ export class app3D {
                         break;
                     case volume_type.perlin:
                         let x = this.update_count;
-                        this.auto_volume.perlin_volume(Date.now().toString(), new Vec3([x, x, x]));
+                        this.auto_volume.perlin_volume(Date.now().toString(), new Vec3([x, x, x]).scale(0.15));
                         break;
                 }
             }

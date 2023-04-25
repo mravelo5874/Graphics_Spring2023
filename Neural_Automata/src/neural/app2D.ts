@@ -24,7 +24,7 @@ export class app2D
   public neural_app: neural
   public canvas: HTMLCanvasElement
   private context: WebGL2RenderingContext
-
+  private pause: boolean = false
   public mode: shader_mode
   public auto: automata
   
@@ -36,15 +36,21 @@ export class app2D
   constructor(_neural: neural)
   {
     this.neural_app = _neural
-    this.mode = shader_mode.alpha
+    this.mode = shader_mode.rgb
+    this.auto = automata.worms
     this.canvas = _neural.canvas
     this.context = _neural.context
   }
 
   public start(): void
   { 
-    
-    this.reset(automata.worms, shader_mode.rgb)
+    this.pause = false
+    this.reset()
+  }
+
+  public toggle_pause(): void
+  {
+    this.pause = !this.pause
   }
 
   public end(): void
@@ -335,9 +341,13 @@ export class app2D
 
     // draw to screen and read pixels twice to skip every other frame
     this.draw()
-    this.read()
-    this.draw()
-    this.read()
+    // stop in paused
+    if (!this.pause)
+    {
+      this.read()
+      this.draw()
+      this.read()
+    }
   }
 
   public mouse_draw(rel_x: number, rel_y: number, brush_size: number)
