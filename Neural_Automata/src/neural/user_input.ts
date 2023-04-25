@@ -65,11 +65,10 @@ export class user_input
                 switch (this.neural_app.curr_app)
                 {
                     case 'app2d':
-                        this.neural_app.app2d.reset(automata.worms, shader_mode.rgb)
+                        this.neural_app.app2d.reset()
                         break
                     case 'app3d':
-                        this.neural_app.app3d.reset(volume_type.sphere)
-                        this.neural_app.app3d.set_colormap(colormap.rainbow)
+                        this.neural_app.app3d.reset()
                         break
                 }
                 break
