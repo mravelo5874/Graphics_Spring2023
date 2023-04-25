@@ -3,14 +3,19 @@ import { Vec3 } from "../lib/TSM.js";
 import { cube } from "./cube.js";
 import { simple_3d_vertex, simple_3d_fragment } from './shaders/simple_3d_shader.js';
 import { automata_volume } from "./automata_volume.js";
-import { kernels_3d } from "./kernels_3d.js";
-import { activation_type_3d } from "./activations_3d.js";
+import { rules } from "./rules.js";
 export var volume_type;
 (function (volume_type) {
     volume_type[volume_type["sphere"] = 0] = "sphere";
     volume_type[volume_type["random"] = 1] = "random";
     volume_type[volume_type["perlin"] = 2] = "perlin";
-    volume_type[volume_type["END"] = 3] = "END";
+    volume_type[volume_type["grow"] = 3] = "grow";
+    volume_type[volume_type["amoeba"] = 4] = "amoeba";
+    volume_type[volume_type["clouds"] = 5] = "clouds";
+    volume_type[volume_type["arch"] = 6] = "arch";
+    volume_type[volume_type["caves"] = 7] = "caves";
+    volume_type[volume_type["crystal"] = 8] = "crystal";
+    volume_type[volume_type["END"] = 9] = "END";
 })(volume_type || (volume_type = {}));
 export var colormap;
 (function (colormap) {
@@ -40,7 +45,7 @@ export class app3D {
         this.update_count = 0;
         // create geometry + volume
         this.cube = new cube();
-        this.auto_volume = new automata_volume(32, kernels_3d.worm_kernel(), activation_type_3d.worm);
+        this.auto_volume = new automata_volume(32, rules.grow());
         // set initial volume
         this.volume = volume_type.sphere;
         this.color = colormap.rainbow;
@@ -157,11 +162,47 @@ export class app3D {
                 break;
             case volume_type.random:
                 this.neural_app.auto_node.nodeValue = 'random';
-                this.auto_volume.randomize_volume(Date.now().toString());
+                this.auto_volume.randomize_volume(Date.now().toString(), 0.8);
                 break;
             case volume_type.perlin:
                 this.neural_app.auto_node.nodeValue = 'perlin';
                 this.auto_volume.perlin_volume(Date.now().toString(), Vec3.zero);
+                break;
+            case volume_type.grow:
+                this.neural_app.auto_node.nodeValue = 'grow';
+                this.auto_volume.set_rule(rules.grow());
+                this.auto_volume.sphere_volume(3);
+                this.auto_volume.init_rule();
+                break;
+            case volume_type.amoeba:
+                this.neural_app.auto_node.nodeValue = 'amoeba';
+                this.auto_volume.set_rule(rules.amoeba());
+                this.auto_volume.randomize_volume(Date.now().toString(), 0.8);
+                this.auto_volume.init_rule();
+                break;
+            case volume_type.clouds:
+                this.neural_app.auto_node.nodeValue = 'clouds';
+                this.auto_volume.set_rule(rules.clouds());
+                this.auto_volume.randomize_volume(Date.now().toString(), 0.62);
+                this.auto_volume.init_rule();
+                break;
+            case volume_type.caves:
+                this.neural_app.auto_node.nodeValue = 'caves';
+                this.auto_volume.set_rule(rules.caves());
+                this.auto_volume.randomize_volume(Date.now().toString(), 0.62);
+                this.auto_volume.init_rule();
+                break;
+            case volume_type.crystal:
+                this.neural_app.auto_node.nodeValue = 'crystal';
+                this.auto_volume.set_rule(rules.crystal());
+                this.auto_volume.sphere_volume(2);
+                this.auto_volume.init_rule();
+                break;
+            case volume_type.arch:
+                this.neural_app.auto_node.nodeValue = 'arch';
+                this.auto_volume.set_rule(rules.arch());
+                this.auto_volume.sphere_volume(3);
+                this.auto_volume.init_rule();
                 break;
         }
         // get context
@@ -216,6 +257,14 @@ export class app3D {
                     case volume_type.perlin:
                         let x = this.update_count;
                         this.auto_volume.perlin_volume(Date.now().toString(), new Vec3([x, x, x]).scale(0.15));
+                        break;
+                    case volume_type.grow:
+                    case volume_type.amoeba:
+                    case volume_type.clouds:
+                    case volume_type.caves:
+                    case volume_type.crystal:
+                    case volume_type.arch:
+                        this.auto_volume.apply_rule();
                         break;
                 }
             }

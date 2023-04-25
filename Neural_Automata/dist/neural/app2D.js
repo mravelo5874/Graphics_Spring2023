@@ -289,6 +289,8 @@ export class app2D {
         // Drawing
         gl.clearColor(bg.r, bg.g, bg.b, bg.a);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.disable(gl.BLEND);
+        //gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)  
         gl.viewport(0, 0, w, h);
         // draw to screen and read pixels twice to skip every other frame
         this.draw();

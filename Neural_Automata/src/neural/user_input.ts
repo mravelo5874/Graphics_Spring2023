@@ -2,7 +2,7 @@ import { automata, shader_mode } from './app2D.js'
 import { neural } from './neural.js'
 import { Vec3 } from '../lib/TSM.js'
 import { colormap, volume_type } from './app3D.js'
-
+import  Rand  from "../lib/rand-seed/Rand.js"
 
 export class user_input
 {
@@ -84,6 +84,9 @@ export class user_input
                         break
                 }
                 break
+            case 'KeyM':
+                this.randomize()
+                break
             case 'Backquote':
                 if (this.neural_app.curr_app == 'app2d')
                     this.neural_app.app2d.reset(automata.cgol)
@@ -99,6 +102,35 @@ export class user_input
             default:
                 console.log('Key : \'', key.code, '\' was pressed.');
                 break
+        }
+    }
+
+    private randomize()
+    {
+        let rng = new Rand(Date.now().toString())
+        // determin between 2d and 3d
+        if (rng.next() > 0.5)
+        {
+            // set 3d
+            this.neural_app.set_3d()
+            // randomize automata
+            let auto = Math.floor(rng.next() * (volume_type.END - 1))
+            this.neural_app.app3d.reset(auto)
+            // randomize shade
+            let color = Math.floor(rng.next() * (colormap.END - 1))
+            this.neural_app.app3d.set_colormap(color)
+        }
+        else
+        {
+            // set 2d
+            this.neural_app.set_2d()
+            // randomize automata
+            let auto = Math.floor(rng.next() * (automata.END - 1))
+            // randomize shade
+            let shade = Math.floor(rng.next() * (shader_mode.END - 1))
+            if (auto == automata.cgol)
+                shade = Math.floor(rng.next() * (shader_mode.acid - 1))
+            this.neural_app.app2d.reset(auto, shade)
         }
     }
 

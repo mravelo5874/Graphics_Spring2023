@@ -1,13 +1,21 @@
 import { Vec3 } from "../lib/TSM.js";
 import Rand from "../lib/rand-seed/Rand.js";
-import { activation_3d } from "./activations_3d.js";
 import { noise, noise_map_data } from "./noise.js";
 import { utils } from "./utils.js";
-export class automata_volume {
-    constructor(_size, _kernel, _activation) {
+import { neighborhood_type } from "./rules.js";
+export class cell {
+    constructor(_pos, _state) {
+        this.pos = _pos;
+        this.state = _state;
+    }
+}
+class automata_volume {
+    // [depricated] private kernel: number[][][]
+    // [depricated] private activation: activation_type_3d
+    constructor(_size, _rule) {
+        this.stable = false;
         this.size = _size;
-        this.kernel = _kernel;
-        this.activation = _activation;
+        this.my_rule = _rule;
         this.volume = this.create_empty_volume(_size);
         this.map_data = new noise_map_data(Date.now.toString(), 16.0, // scale
         0.0, // height
@@ -19,47 +27,7 @@ export class automata_volume {
     }
     get_size() { return this.size; }
     get_volume() { return this.volume_uint8; }
-    apply_convolutiuon_update() {
-        let v = this.create_empty_volume(this.size);
-        for (let x = 0; x < this.size; x++) {
-            for (let y = 0; y < this.size; y++) {
-                for (let z = 0; z < this.size; z++) {
-                    v[x][y][z] = this.calculate_convolution(new Vec3([x, y, z]));
-                }
-            }
-        }
-        // update volume arrays
-        this.volume = v;
-        this.create_uint8();
-    }
-    calculate_convolution(pos) {
-        let sum = 0;
-        for (let i = -1; i <= 1; i++) {
-            for (let j = -1; j <= 1; j++) {
-                for (let k = -1; k <= 1; k++) {
-                    // get offset positions
-                    let x = pos.x + i;
-                    let y = pos.x + j;
-                    let z = pos.x + k;
-                    // make sure to wrap volume if out of bounds
-                    if (x > this.size - 1)
-                        x = 0;
-                    if (x < 0)
-                        x = this.size - 1;
-                    if (y > this.size - 1)
-                        y = 0;
-                    if (y < 0)
-                        y = this.size - 1;
-                    if (z > this.size - 1)
-                        z = 0;
-                    if (z < 0)
-                        z = this.size - 1;
-                    sum += this.volume[x][y][z] * this.kernel[i + 1][j + 1][k + 1];
-                }
-            }
-        }
-        return activation_3d.perfrom_activation(sum, this.activation);
-    }
+    set_rule(_rule) { this.my_rule = _rule; }
     create_empty_volume(_size) {
         let v = [];
         for (let x = 0; x < _size; x++) {
@@ -73,9 +41,11 @@ export class automata_volume {
         }
         return v;
     }
-    sphere_volume() {
-        const radius = Math.floor(this.size / 2);
-        const center = new Vec3([radius, radius, radius]);
+    sphere_volume(radius = Math.floor(this.size / 2)) {
+        if (radius < 2)
+            radius = 2;
+        let x = Math.floor(this.size / 2);
+        const center = new Vec3([x, x, x]);
         for (let x = 0; x < this.size; x++) {
             for (let y = 0; y < this.size; y++) {
                 for (let z = 0; z < this.size; z++) {
@@ -99,13 +69,13 @@ export class automata_volume {
         }
         this.create_uint8();
     }
-    randomize_volume(seed) {
+    randomize_volume(seed, thresh) {
         let rng = new Rand(seed);
         for (let x = 0; x < this.size; x++) {
             for (let y = 0; y < this.size; y++) {
                 for (let z = 0; z < this.size; z++) {
                     let v = 0;
-                    if (rng.next() > 0.8) {
+                    if (rng.next() > thresh) {
                         v = 1;
                     }
                     this.volume[x][y][z] = v;
@@ -129,6 +99,128 @@ export class automata_volume {
         }
         this.create_uint8();
     }
+    create_empty_cells() {
+        let c = [];
+        for (let x = 0; x < this.size; x++) {
+            c[x] = [];
+            for (let y = 0; y < this.size; y++) {
+                c[x][y] = [];
+                for (let z = 0; z < this.size; z++) {
+                    c[x][y][z] = new cell(new Vec3([x, y, z]), 0);
+                }
+            }
+        }
+        return c;
+    }
+    init_rule() {
+        this.stable = false;
+        this.cells = this.create_empty_cells();
+        for (let x = 0; x < this.size; x++) {
+            for (let y = 0; y < this.size; y++) {
+                for (let z = 0; z < this.size; z++) {
+                    if (this.volume[x][y][z] > 0)
+                        this.cells[x][y][z].state = this.my_rule.init_states;
+                }
+            }
+        }
+    }
+    get_alive_neighboors(x, y, z) {
+        let count = 0;
+        const pos = new Vec3([x, y, z]);
+        if (this.my_rule.neighborhood == neighborhood_type.MOORE) {
+            for (let i = 0; i < automata_volume.moore_offsets.length; i++) {
+                let n = pos.copy().add(automata_volume.moore_offsets[i]);
+                // wrap indexs
+                if (n.x >= this.size)
+                    n.x = 0;
+                else if (n.x < 0)
+                    n.x = this.size - 1;
+                if (n.y >= this.size)
+                    n.y = 0;
+                else if (n.y < 0)
+                    n.y = this.size - 1;
+                if (n.z >= this.size)
+                    n.z = 0;
+                else if (n.z < 0)
+                    n.z = this.size - 1;
+                // check if alive
+                if (this.cells[n.x][n.y][n.z].state > 0)
+                    count++;
+            }
+        }
+        else // VON_NEUMANN
+         {
+            for (let i = 0; i < automata_volume.von_neu_offsets.length; i++) {
+                let n = pos.copy().add(automata_volume.von_neu_offsets[i]);
+                // wrap indexs
+                if (n.x >= this.size)
+                    n.x = 0;
+                else if (n.x < 0)
+                    n.x = this.size - 1;
+                if (n.y >= this.size)
+                    n.y = 0;
+                else if (n.y < 0)
+                    n.y = this.size - 1;
+                if (n.z >= this.size)
+                    n.z = 0;
+                else if (n.z < 0)
+                    n.z = this.size - 1;
+                // check if alive
+                if (this.cells[n.x][n.y][n.z].state > 0)
+                    count++;
+            }
+        }
+        return count;
+    }
+    apply_rule() {
+        // return in cells are stable
+        if (this.stable)
+            return;
+        let update = this.create_empty_cells();
+        let change = false;
+        for (let x = 0; x < this.size; x++) {
+            for (let y = 0; y < this.size; y++) {
+                for (let z = 0; z < this.size; z++) {
+                    // get number of neighbooring alive cells
+                    const alive_neighboors = this.get_alive_neighboors(x, y, z);
+                    // check if cell is alive
+                    if (this.cells[x][y][z].state > 0) {
+                        // check if loose health
+                        if (this.my_rule.alive_req.includes(alive_neighboors)) {
+                            update[x][y][z] = new cell(new Vec3([x, y, z]), this.cells[x][y][z].state);
+                            change = true;
+                        }
+                        else {
+                            const new_state = this.cells[x][y][z].state - 1;
+                            update[x][y][z] = new cell(new Vec3([x, y, z]), new_state);
+                            // modify volume if dead
+                            if (new_state <= 0) {
+                                this.volume[x][y][z] = 0;
+                                change = true;
+                            }
+                        }
+                    }
+                    else {
+                        // cell is dead
+                        // check if can be born
+                        if (this.my_rule.born_req.includes(alive_neighboors)) {
+                            update[x][y][z] = new cell(new Vec3([x, y, z]), this.my_rule.init_states);
+                            this.volume[x][y][z] = 1;
+                            change = true;
+                        }
+                    }
+                }
+            }
+        }
+        // check if no change has been made
+        if (!change) {
+            this.stable = true;
+            console.log('cells stable!');
+        }
+        // update state
+        this.cells = update;
+        this.create_uint8();
+    }
     create_uint8() {
         this.volume_uint8 = new Uint8Array(this.size * this.size * this.size);
         for (let x = 0; x < this.size; x++) {
@@ -140,4 +232,91 @@ export class automata_volume {
         }
     }
 }
+automata_volume.moore_offsets = [
+    new Vec3([-1, -1, -1]),
+    new Vec3([0, -1, -1]),
+    new Vec3([1, -1, -1]),
+    new Vec3([-1, 0, -1]),
+    new Vec3([0, 0, -1]),
+    new Vec3([1, 0, -1]),
+    new Vec3([-1, 1, -1]),
+    new Vec3([0, 1, -1]),
+    new Vec3([1, 1, -1]),
+    new Vec3([-1, -1, 0]),
+    new Vec3([0, -1, 0]),
+    new Vec3([1, -1, 0]),
+    new Vec3([-1, 0, 0]),
+    //new Vec3([ 0,  0,  0]),
+    new Vec3([1, 0, 0]),
+    new Vec3([-1, 1, 0]),
+    new Vec3([0, 1, 0]),
+    new Vec3([1, 1, 0]),
+    new Vec3([-1, -1, 1]),
+    new Vec3([0, -1, 1]),
+    new Vec3([1, -1, 1]),
+    new Vec3([-1, 0, 1]),
+    new Vec3([0, 0, 1]),
+    new Vec3([1, 0, 1]),
+    new Vec3([-1, 1, 1]),
+    new Vec3([0, 1, 1]),
+    new Vec3([1, 1, 1])
+];
+automata_volume.von_neu_offsets = [
+    new Vec3([-1, 0, 0]),
+    new Vec3([1, 0, 0]),
+    new Vec3([0, -1, 0]),
+    new Vec3([0, 1, 0]),
+    new Vec3([0, 0, -1]),
+    new Vec3([0, 0, 1]),
+];
+export { automata_volume };
+// [depricated] :sad-emoji:
+/*
+public apply_convolutiuon_update()
+    {
+        let v: number[][][] = this.create_empty_volume(this.size)
+        for (let x = 0; x < this.size; x++)
+        {
+            for (let y = 0; y < this.size; y++)
+            {
+                for (let z = 0; z < this.size; z++)
+                {
+                    v[x][y][z] = this.calculate_convolution(new Vec3([x, y, z]))
+                }
+            }
+        }
+        // update volume arrays
+        this.volume = v
+        this.create_uint8()
+    }
+
+    private calculate_convolution(pos: Vec3): number
+    {
+        let sum: number = 0
+        for (let i = -1; i <= 1; i++)
+        {
+            for (let j = -1; j <= 1; j++)
+            {
+                for (let k = -1; k <= 1; k++)
+                {
+                    // get offset positions
+                    let x = pos.x + i
+                    let y = pos.x + j
+                    let z = pos.x + k
+
+                    // make sure to wrap volume if out of bounds
+                    if (x > this.size - 1) x = 0
+                    if (x < 0) x = this.size - 1
+                    if (y > this.size - 1) y = 0
+                    if (y < 0) y = this.size - 1
+                    if (z > this.size - 1) z = 0
+                    if (z < 0) z = this.size - 1
+
+                    sum += this.volume[x][y][z] * this.kernel[i+1][j+1][k+1]
+                }
+            }
+        }
+        return activation_3d.perfrom_activation(sum, this.activation)
+    }
+*/ 
 //# sourceMappingURL=automata_volume.js.map
