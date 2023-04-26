@@ -94,6 +94,26 @@ export class user_input {
                 if (this.neural_app.curr_app == 'app3d')
                     this.neural_app.app3d.camera_zoom(20);
                 break;
+            case 'ArrowLeft':
+                switch (this.neural_app.curr_app) {
+                    case 'app2d':
+                        this.neural_app.app2d.go_left();
+                        break;
+                    case 'app3d':
+                        this.neural_app.app3d.go_left();
+                        break;
+                }
+                break;
+            case 'ArrowRight':
+                switch (this.neural_app.curr_app) {
+                    case 'app2d':
+                        this.neural_app.app2d.go_right();
+                        break;
+                    case 'app3d':
+                        this.neural_app.app3d.go_right();
+                        break;
+                }
+                break;
             default:
                 console.log('Key : \'', key.code, '\' was pressed.');
                 break;

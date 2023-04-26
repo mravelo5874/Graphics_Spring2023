@@ -7,15 +7,16 @@ import { rules } from "./rules.js";
 export var volume_type;
 (function (volume_type) {
     volume_type[volume_type["sphere"] = 0] = "sphere";
-    volume_type[volume_type["random"] = 1] = "random";
-    volume_type[volume_type["grow"] = 2] = "grow";
-    volume_type[volume_type["amoeba"] = 3] = "amoeba";
-    volume_type[volume_type["clouds"] = 4] = "clouds";
-    volume_type[volume_type["arch"] = 5] = "arch";
-    volume_type[volume_type["caves"] = 6] = "caves";
-    volume_type[volume_type["crystal"] = 7] = "crystal";
-    volume_type[volume_type["perlin"] = 8] = "perlin";
-    volume_type[volume_type["END"] = 9] = "END";
+    volume_type[volume_type["organized"] = 1] = "organized";
+    volume_type[volume_type["random"] = 2] = "random";
+    volume_type[volume_type["grow"] = 3] = "grow";
+    volume_type[volume_type["amoeba"] = 4] = "amoeba";
+    volume_type[volume_type["clouds"] = 5] = "clouds";
+    volume_type[volume_type["arch"] = 6] = "arch";
+    volume_type[volume_type["caves"] = 7] = "caves";
+    volume_type[volume_type["crystal"] = 8] = "crystal";
+    volume_type[volume_type["perlin"] = 9] = "perlin";
+    volume_type[volume_type["END"] = 10] = "END";
 })(volume_type || (volume_type = {}));
 export var colormap;
 (function (colormap) {
@@ -37,7 +38,7 @@ export class app3D {
     cam_sense = 0.25;
     rot_speed = 0.03;
     zoom_speed = 0.005;
-    min_zoom = 0.5;
+    min_zoom = 2;
     max_zoom = 12;
     // geometry
     cube;
@@ -62,7 +63,7 @@ export class app3D {
         this.update_count = 0;
         // create geometry + volume
         this.cube = new cube();
-        this.auto_volume = new automata_volume(64, rules.grow());
+        this.auto_volume = new automata_volume(32, rules.grow());
         // set initial volume
         this.volume = volume_type.sphere;
         this.color = colormap.rainbow;
@@ -89,7 +90,7 @@ export class app3D {
     }
     start() {
         this.pause = false;
-        this.reset();
+        this.reset(this.volume, true);
         // set initial colormap
         this.function_texture = this.load_colormap('../colormaps/rainbow.png');
         this.neural_app.shade_node.nodeValue = 'rainbow';
@@ -106,6 +107,18 @@ export class app3D {
     }
     toggle_pause() {
         this.pause = !this.pause;
+        if (this.volume == volume_type.perlin) {
+            if (this.pause)
+                this.auto_volume.pause_perlin();
+            else
+                this.auto_volume.resume_perlin();
+        }
+        else {
+            if (this.pause)
+                this.auto_volume.pause_rule();
+            else
+                this.auto_volume.resume_rule();
+        }
     }
     end() {
         // stop perlin
@@ -126,7 +139,17 @@ export class app3D {
         v -= 1;
         if (v < 0)
             v = volume_type.END - 1;
-        this.reset(v);
+        this.reset(v, false);
+    }
+    go_left() {
+        let v = this.volume;
+        v += 1;
+        if (v > volume_type.END - 1)
+            v = 0;
+        this.reset(v, false);
+    }
+    go_right() {
+        this.toggle_volume();
     }
     set_colormap(_color) {
         switch (_color) {
@@ -170,15 +193,21 @@ export class app3D {
     toggle_automata() {
         // TODO this
     }
-    reset(_type = this.volume) {
+    reset(_type = this.volume, _reset_cam = true) {
         // stop perlin
+        this.pause = false;
         this.auto_volume.stop_perlin();
+        this.auto_volume.stop_rule();
         // set volume
         this.volume = _type;
         switch (_type) {
             case volume_type.sphere:
                 this.auto_volume.sphere_volume();
                 this.neural_app.auto_node.nodeValue = 'sphere';
+                break;
+            case volume_type.organized:
+                this.neural_app.auto_node.nodeValue = 'organized';
+                this.auto_volume.organize_volume();
                 break;
             case volume_type.random:
                 this.neural_app.auto_node.nodeValue = 'random';
@@ -193,43 +222,45 @@ export class app3D {
                 this.neural_app.auto_node.nodeValue = 'grow';
                 this.auto_volume.set_rule(rules.grow());
                 this.auto_volume.sphere_volume(3);
-                this.auto_volume.init_rule();
+                this.auto_volume.start_rule();
                 break;
             case volume_type.amoeba:
                 this.neural_app.auto_node.nodeValue = 'amoeba';
                 this.auto_volume.set_rule(rules.amoeba());
                 this.auto_volume.randomize_volume(Date.now().toString(), 0.8);
-                this.auto_volume.init_rule();
+                this.auto_volume.start_rule();
                 break;
             case volume_type.clouds:
                 this.neural_app.auto_node.nodeValue = 'clouds';
                 this.auto_volume.set_rule(rules.clouds());
                 this.auto_volume.randomize_volume(Date.now().toString(), 0.62);
-                this.auto_volume.init_rule();
+                this.auto_volume.start_rule();
                 break;
             case volume_type.caves:
                 this.neural_app.auto_node.nodeValue = 'caves';
                 this.auto_volume.set_rule(rules.caves());
                 this.auto_volume.randomize_volume(Date.now().toString(), 0.62);
-                this.auto_volume.init_rule();
+                this.auto_volume.start_rule();
                 break;
             case volume_type.crystal:
                 this.neural_app.auto_node.nodeValue = 'crystal';
                 this.auto_volume.set_rule(rules.crystal());
                 this.auto_volume.sphere_volume(2);
-                this.auto_volume.init_rule();
+                this.auto_volume.start_rule();
                 break;
             case volume_type.arch:
                 this.neural_app.auto_node.nodeValue = 'arch';
                 this.auto_volume.set_rule(rules.arch());
                 this.auto_volume.sphere_volume(3);
-                this.auto_volume.init_rule();
+                this.auto_volume.start_rule();
                 break;
         }
         // get context
         let gl = this.context;
-        // reset camera
-        this.camera = new Camera(new Vec3([0, 0, -2]), new Vec3([0, 0, 0]), new Vec3([0, 1, 0]), 45, this.canvas.width / this.canvas.height, 0.1, 1000.0);
+        if (_reset_cam) {
+            // reset camera
+            this.camera = new Camera(new Vec3([0, 0, -this.min_zoom - 0.1]), new Vec3([0, 0, 0]), new Vec3([0, 1, 0]), 45, this.canvas.width / this.canvas.height, 0.1, 1000.0);
+        }
         // program
         let frag = simple_3d_fragment;
         let vert = simple_3d_vertex;
@@ -266,29 +297,6 @@ export class app3D {
         let h = this.canvas.height;
         let bg = this.neural_app.bg_color;
         if (!this.pause) {
-            // update volume
-            this.update_count++;
-            this.curr_frames++;
-            if (this.curr_frames >= this.conv_frames) {
-                switch (this.volume) {
-                    case volume_type.sphere:
-                        break;
-                    case volume_type.random:
-                        break;
-                    case volume_type.perlin:
-                        // let x = this.update_count
-                        // this.auto_volume.perlin_volume(Date.now().toString(), new Vec3([x, x, x]).scale(0.15))
-                        break;
-                    case volume_type.grow:
-                    case volume_type.amoeba:
-                    case volume_type.clouds:
-                    case volume_type.caves:
-                    case volume_type.crystal:
-                    case volume_type.arch:
-                        this.auto_volume.apply_rule();
-                        break;
-                }
-            }
             // rotate cube if there is no user input
             if (!this.neural_app.user_input.mouse_down) {
                 let t = this.neural_app.get_elapsed_time() / 1000;

@@ -9,7 +9,7 @@ import { rule, rules } from "./rules.js";
 
 export enum volume_type
 {
-    sphere, random, grow, amoeba, clouds, arch, caves, crystal, perlin, END
+    sphere, organized, random, grow, amoeba, clouds, arch, caves, crystal, perlin, END
 }
 
 export enum colormap
@@ -30,7 +30,7 @@ export class app3D
     public rot_speed: number = 0.03
     public zoom_speed: number = 0.005
 
-    private min_zoom: number = 0.5
+    private min_zoom: number = 2
     private max_zoom: number = 12
 
     // geometry
@@ -60,7 +60,7 @@ export class app3D
 
         // create geometry + volume
         this.cube = new cube()
-        this.auto_volume = new automata_volume(64, rules.grow())
+        this.auto_volume = new automata_volume(32, rules.grow())
 
         // set initial volume
         this.volume = volume_type.sphere
@@ -94,7 +94,7 @@ export class app3D
     public start()
     {
         this.pause = false
-        this.reset()
+        this.reset(this.volume, true)
 
         // set initial colormap
         this.function_texture = this.load_colormap('../colormaps/rainbow.png')
@@ -117,6 +117,17 @@ export class app3D
     public toggle_pause()
     {
         this.pause = !this.pause
+        
+        if (this.volume == volume_type.perlin)
+        {
+            if (this.pause) this.auto_volume.pause_perlin()
+            else this.auto_volume.resume_perlin()
+        }
+        else
+        {
+            if (this.pause) this.auto_volume.pause_rule()
+            else this.auto_volume.resume_rule()
+        }
     }
 
     public end()
@@ -144,9 +155,20 @@ export class app3D
         let v = this.volume
         v -= 1
         if (v < 0) v = volume_type.END - 1
-        this.reset(v)
+        this.reset(v, false)
+    }
 
-        
+    public go_left()
+    {
+        let v = this.volume
+        v += 1
+        if (v > volume_type.END - 1) v = 0
+        this.reset(v, false)
+    }
+
+    public go_right()
+    {
+       this.toggle_volume()
     }
 
     public set_colormap(_color: colormap)
@@ -199,10 +221,12 @@ export class app3D
         // TODO this
     }
     
-    public reset(_type: volume_type = this.volume)
+    public reset(_type: volume_type = this.volume, _reset_cam: boolean = true)
     {
         // stop perlin
+        this.pause = false
         this.auto_volume.stop_perlin()
+        this.auto_volume.stop_rule()
 
         // set volume
         this.volume = _type
@@ -211,6 +235,10 @@ export class app3D
             case volume_type.sphere:
                 this.auto_volume.sphere_volume()
                 this.neural_app.auto_node.nodeValue = 'sphere'
+                break
+            case volume_type.organized:
+                this.neural_app.auto_node.nodeValue = 'organized'
+                this.auto_volume.organize_volume()
                 break
             case volume_type.random:
                 this.neural_app.auto_node.nodeValue = 'random'
@@ -225,53 +253,57 @@ export class app3D
                 this.neural_app.auto_node.nodeValue = 'grow'
                 this.auto_volume.set_rule(rules.grow())
                 this.auto_volume.sphere_volume(3)
-                this.auto_volume.init_rule()
+                this.auto_volume.start_rule()
                 break
             case volume_type.amoeba:
                 this.neural_app.auto_node.nodeValue = 'amoeba'
                 this.auto_volume.set_rule(rules.amoeba())
                 this.auto_volume.randomize_volume(Date.now().toString(), 0.8)
-                this.auto_volume.init_rule()
+                this.auto_volume.start_rule()
                 break
             case volume_type.clouds:
                 this.neural_app.auto_node.nodeValue = 'clouds'
                 this.auto_volume.set_rule(rules.clouds())
                 this.auto_volume.randomize_volume(Date.now().toString(), 0.62)
-                this.auto_volume.init_rule()
+                this.auto_volume.start_rule()
                 break
             case volume_type.caves:
                 this.neural_app.auto_node.nodeValue = 'caves'
                 this.auto_volume.set_rule(rules.caves())
                 this.auto_volume.randomize_volume(Date.now().toString(), 0.62)
-                this.auto_volume.init_rule()
+                this.auto_volume.start_rule()
                 break
             case volume_type.crystal:
                 this.neural_app.auto_node.nodeValue = 'crystal'
                 this.auto_volume.set_rule(rules.crystal())
                 this.auto_volume.sphere_volume(2)
-                this.auto_volume.init_rule()
+                this.auto_volume.start_rule()
                 break
             case volume_type.arch:
                 this.neural_app.auto_node.nodeValue = 'arch'
                 this.auto_volume.set_rule(rules.arch())
                 this.auto_volume.sphere_volume(3)
-                this.auto_volume.init_rule()
+                this.auto_volume.start_rule()
                 break
         }
 
         // get context
         let gl = this.context
 
-        // reset camera
-        this.camera = new Camera(
-            new Vec3([0, 0, -2]),
-            new Vec3([0, 0, 0]),
-            new Vec3([0, 1, 0]),
-            45,
-            this.canvas.width / this.canvas.height,
-            0.1,
-            1000.0
-          )
+        if (_reset_cam)
+        {
+            // reset camera
+            this.camera = new Camera(
+                new Vec3([0, 0, -this.min_zoom-0.1]),
+                new Vec3([0, 0, 0]),
+                new Vec3([0, 1, 0]),
+                45,
+                this.canvas.width / this.canvas.height,
+                0.1,
+                1000.0
+            )
+        }
+        
 
         // program
         let frag = simple_3d_fragment
@@ -315,34 +347,6 @@ export class app3D
 
         if (!this.pause)
         {
-            // update volume
-            this.update_count++
-            this.curr_frames++
-            if (this.curr_frames >= this.conv_frames)
-            {
-                switch (this.volume)
-                {
-                    case volume_type.sphere:
-
-                        break
-                    case volume_type.random:
-
-                        break
-                    case volume_type.perlin:
-                        // let x = this.update_count
-                        // this.auto_volume.perlin_volume(Date.now().toString(), new Vec3([x, x, x]).scale(0.15))
-                        break
-                    case volume_type.grow:
-                    case volume_type.amoeba:
-                    case volume_type.clouds:
-                    case volume_type.caves:
-                    case volume_type.crystal:
-                    case volume_type.arch:
-                        this.auto_volume.apply_rule()
-                        break
-                }
-            }
-
             // rotate cube if there is no user input
             if (!this.neural_app.user_input.mouse_down)
             {

@@ -6,32 +6,37 @@ import { utils } from "./utils.js"
 import { neighborhood_type, rule }from "./rules.js"
 
  
-export class cell
-{
-    public pos: Vec3
-    public state: number
+// export class cell
+// {
+//     public pos: Vec3
+//     public state: number
 
-    constructor(_pos: Vec3, _state: number)
-    {
-        this.pos = _pos
-        this.state = _state
-    }
-}
+//     constructor(_pos: Vec3, _state: number)
+//     {
+//         this.pos = _pos
+//         this.state = _state
+//     }
+// }
 
 export class automata_volume
 {
     private size: number 
     private volume: number[][][]
-    private cells: cell[][][]
+    private cells: number[][][]
     private map_data: noise_map_data
     private volume_uint8: Uint8Array
     private my_rule: rule
-    private stable: boolean = false
+
+    public pause: boolean = false
 
     // perlin stuff
     private perlin_worker: Worker
     private perlin_offset: Vec3
     private perlin_running: boolean = false
+
+    // rules stuff
+    private rule_worker: Worker
+    private rule_running: boolean = false
     
     // [depricated] private kernel: number[][][]
     // [depricated] private activation: activation_type_3d
@@ -41,6 +46,7 @@ export class automata_volume
         this.size = _size
         this.my_rule = _rule
         this.volume = this.create_empty_volume(_size)
+        this.cells = this.create_empty_volume(_size)
 
         this.map_data = new noise_map_data(
             Date.now.toString(),
@@ -135,10 +141,22 @@ export class automata_volume
         this.create_uint8()
     }
 
+    public pause_perlin()
+    {
+        this.perlin_running = false
+    }
+
+    public resume_perlin()
+    {
+        this.perlin_running = true
+        this.perlin_loop()
+    }
+
     public start_perlin(): void
     {
         if (!this.perlin_running)
         {
+            this.perlin_worker = new Worker('neural/workers/perlin_worker.js', {type: 'module'})
             this.perlin_running = true
             this.perlin_offset = Vec3.zero.copy()
             this.perlin_loop()
@@ -153,14 +171,17 @@ export class automata_volume
         this.perlin_worker.postMessage([this.size, o.x, o.y, o.z, this.map_data])
         this.perlin_worker.onmessage = (event) => 
         {   
-            // recieve message from worker and update volume
-            this.volume = event.data
-            this.create_uint8()
-            let x = this.perlin_offset.x + 0.25
-            this.perlin_offset = new Vec3([x,x,x])
+            if (this.perlin_running)
+            {
+                // recieve message from worker and update volume
+                this.volume = event.data
+                this.create_uint8()
+                let x = this.perlin_offset.x + 0.2
+                this.perlin_offset = new Vec3([x,x,x])
 
-            // start again
-            this.perlin_loop()
+                // start again
+                this.perlin_loop()
+            }
         }
     }
 
@@ -170,12 +191,14 @@ export class automata_volume
         {
             this.perlin_running = false
             this.perlin_worker.terminate()
+
+            this.volume = this.create_empty_volume(this.size)
+            this.cells = this.create_empty_volume(this.size)
         }
     }
 
     public perlin_volume(seed: string, offset: Vec3)
     {
-        this.perlin_worker = new Worker('neural/workers/perlin_worker.js', {type: 'module'})
         const perlin_data = noise.generate_perlin_volume(this.size, this.map_data, offset, true)
 
         for (let x = 0; x < this.size; x++)
@@ -196,195 +219,80 @@ export class automata_volume
         this.create_uint8()
     }
 
-    private create_empty_cells(): cell[][][]
+    private init_cells(): void
     {
-        let c: cell[][][] = []
         for (let x = 0; x < this.size; x++)
         {
-            c[x] = []
-            for (let y = 0; y < this.size; y++)
-            {
-                c[x][y] = []
-                for (let z = 0; z < this.size; z++)
-                {
-                    c[x][y][z] = new cell(new Vec3([x, y, z]), 0)
-                }
-            }
-        }
-        return c
-    }
-
-    public init_rule()
-    {
-        this.stable = false
-        this.cells = this.create_empty_cells()
-        for (let x = 0; x < this.size; x++)
-        { 
             for (let y = 0; y < this.size; y++)
             {
                 for (let z = 0; z < this.size; z++)
                 {
                     if (this.volume[x][y][z] > 0)
-                        this.cells[x][y][z].state = this.my_rule.init_states
+                    {   
+                        this.cells[x][y][z] = this.my_rule.init_states
+                    }
                 }
             }
         }
     }
 
-    private static moore_offsets: Vec3[] = [
-        new Vec3([-1, -1, -1]),
-        new Vec3([ 0, -1, -1]),
-        new Vec3([ 1, -1, -1]),
-
-        new Vec3([-1,  0, -1]),
-        new Vec3([ 0,  0, -1]),
-        new Vec3([ 1,  0, -1]),
-
-        new Vec3([-1,  1, -1]),
-        new Vec3([ 0,  1, -1]),
-        new Vec3([ 1,  1, -1]),
-
-        new Vec3([-1, -1,  0]),
-        new Vec3([ 0, -1,  0]),
-        new Vec3([ 1, -1,  0]),
-
-        new Vec3([-1,  0,  0]),
-        //new Vec3([ 0,  0,  0]),
-        new Vec3([ 1,  0,  0]),
-
-        new Vec3([-1,  1,  0]),
-        new Vec3([ 0,  1,  0]),
-        new Vec3([ 1,  1,  0]),
-
-        new Vec3([-1, -1,  1]),
-        new Vec3([ 0, -1,  1]),
-        new Vec3([ 1, -1,  1]),
-
-        new Vec3([-1,  0,  1]),
-        new Vec3([ 0,  0,  1]),
-        new Vec3([ 1,  0,  1]),
-
-        new Vec3([-1,  1,  1]),
-        new Vec3([ 0,  1,  1]),
-        new Vec3([ 1,  1,  1])]
-
-    private static von_neu_offsets: Vec3[] = [
-        new Vec3([-1,  0,  0]),
-        new Vec3([ 1,  0,  0]),
-
-        new Vec3([ 0, -1,  0]),
-        new Vec3([ 0,  1,  0]),
-
-        new Vec3([ 0,  0, -1]),
-        new Vec3([ 0,  0,  1]),
-    ]
-
-    private get_alive_neighboors(x, y, z): number
+    public pause_rule()
     {
-        let count = 0
-        const pos: Vec3 = new Vec3([x, y, z])
-        if (this.my_rule.neighborhood == neighborhood_type.MOORE)
-        {
-            for (let i = 0; i < automata_volume.moore_offsets.length; i++)
-            {
-                let n = pos.copy().add(automata_volume.moore_offsets[i])
-                // wrap indexs
-                if (n.x >= this.size) n.x = 0
-                else if (n.x < 0) n.x = this.size - 1
-                if (n.y >= this.size) n.y = 0
-                else if (n.y < 0) n.y = this.size - 1
-                if (n.z >= this.size) n.z = 0
-                else if (n.z < 0) n.z = this.size - 1
-                // check if alive
-                if (this.cells[n.x][n.y][n.z].state > 0)
-                    count++
-            }
-        }
-        else // VON_NEUMANN
-        {
-            for (let i = 0; i < automata_volume.von_neu_offsets.length; i++)
-            {
-                let n = pos.copy().add(automata_volume.von_neu_offsets[i])
-                // wrap indexs
-                if (n.x >= this.size) n.x = 0
-                else if (n.x < 0) n.x = this.size - 1
-                if (n.y >= this.size) n.y = 0
-                else if (n.y < 0) n.y = this.size - 1
-                if (n.z >= this.size) n.z = 0
-                else if (n.z < 0) n.z = this.size - 1
-                // check if alive
-                if (this.cells[n.x][n.y][n.z].state > 0)
-                    count++
-            }
-        }
-        return count
+        this.rule_running = false
     }
 
-    public apply_rule()
+    public resume_rule()
     {
-        // return in cells are stable
-        if (this.stable) return
+        this.rule_running = true
+        this.rule_loop()
+    }
 
-        let update: cell[][][] = this.create_empty_cells()
-        let change: boolean = false
-        for (let x = 0; x < this.size; x++)
+    public start_rule()
+    {
+        if (!this.rule_running)
         {
-            for (let y = 0; y < this.size; y++)
+            this.init_cells()
+            this.rule_worker = new Worker('neural/workers/rule_worker.js', {type: 'module'})
+            this.rule_running = true
+            this.rule_loop()
+        }
+    }
+
+    private rule_loop()
+    {
+        if (!this.rule_running) return
+
+        this.rule_worker.postMessage([this.size, this.cells, this.my_rule, this.volume])
+        this.rule_worker.onmessage = (event) => 
+        {   
+            if (this.rule_running)
             {
-                for (let z = 0; z < this.size; z++)
-                {
-                    // get number of neighbooring alive cells
-                    const alive_neighboors: number = this.get_alive_neighboors(x, y, z)
-                    // check if cell is alive
-                    if (this.cells[x][y][z].state > 0)
-                    {
-                        // check if loose health
-                        if (this.my_rule.alive_req.includes(alive_neighboors))
-                        {   
-                            update[x][y][z] = new cell(new Vec3([x, y, z]), this.cells[x][y][z].state)
-                            change = true
-                        }
-                        else
-                        {
-                            const new_state = this.cells[x][y][z].state - 1
-                            update[x][y][z] = new cell(new Vec3([x, y, z]), new_state)
-                            // modify volume if dead
-                            if (new_state <= 0)
-                            {
-                                this.volume[x][y][z] = 0
-                                change = true
-                            }
-                        }
-                            
-                    }
-                    else
-                    {
-                        // cell is dead
-                        // check if can be born
-                        if (this.my_rule.born_req.includes(alive_neighboors))
-                        {
-                            update[x][y][z] = new cell(new Vec3([x, y, z]), this.my_rule.init_states)
-                            this.volume[x][y][z] = 1
-                            change = true
-                        }
-                    }
-                }
+                // recieve message from worker and update volume
+                this.cells = event.data[0]
+                this.volume = event.data[1]
+                this.create_uint8()
+
+                // start again
+                this.rule_loop()
             }
         }
-        // check if no change has been made
-        if (!change)
-        {
-            this.stable = true
-            console.log('cells stable!')
-        }
+    }
 
-        // update state
-        this.cells = update
-        this.create_uint8()
+    public stop_rule(): void
+    {
+        if (this.rule_running)
+        {
+            this.rule_running = false
+            this.rule_worker.terminate()
+            // clear volume and cells
+            this.volume = this.create_empty_volume(this.size)
+            this.cells = this.create_empty_volume(this.size)
+        }
     }
 
     private create_uint8(): void
     {
+        // console.log('creating uint8 array')
         this.volume_uint8 = new Uint8Array(this.size * this.size * this.size)
         for (let x = 0; x < this.size; x++)
         {

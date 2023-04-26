@@ -481,4 +481,17 @@ export class app2D
     if (m < 0) m = shader_mode.END - 1
     this.reset(this.auto, m)
   }
+
+  public go_left()
+  {
+    let a = this.auto
+    a += 1
+    if (a > automata.cgol - 1) a = 0
+    this.reset(a, this.mode)
+  }
+
+  public go_right()
+  {
+    this.toggle_automata()
+  }
 }

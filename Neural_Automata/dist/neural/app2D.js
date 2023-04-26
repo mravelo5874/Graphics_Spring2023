@@ -419,5 +419,15 @@ export class app2D {
             m = shader_mode.END - 1;
         this.reset(this.auto, m);
     }
+    go_left() {
+        let a = this.auto;
+        a += 1;
+        if (a > automata.cgol - 1)
+            a = 0;
+        this.reset(a, this.mode);
+    }
+    go_right() {
+        this.toggle_automata();
+    }
 }
 //# sourceMappingURL=app2D.js.map
