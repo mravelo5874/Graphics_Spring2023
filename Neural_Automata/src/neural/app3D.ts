@@ -9,7 +9,7 @@ import { rule, rules } from "./rules.js";
 
 export enum volume_type
 {
-    sphere, random, perlin, grow, amoeba, clouds, arch, caves, crystal, END
+    sphere, random, grow, amoeba, clouds, arch, caves, crystal, perlin, END
 }
 
 export enum colormap
@@ -60,7 +60,7 @@ export class app3D
 
         // create geometry + volume
         this.cube = new cube()
-        this.auto_volume = new automata_volume(32, rules.grow())
+        this.auto_volume = new automata_volume(64, rules.grow())
 
         // set initial volume
         this.volume = volume_type.sphere
@@ -121,7 +121,8 @@ export class app3D
 
     public end()
     {
-        // idk something ?
+        // stop perlin
+        this.auto_volume.stop_perlin()
     }
 
     public camera_zoom(zoom: number)
@@ -200,6 +201,9 @@ export class app3D
     
     public reset(_type: volume_type = this.volume)
     {
+        // stop perlin
+        this.auto_volume.stop_perlin()
+
         // set volume
         this.volume = _type
         switch (_type)
@@ -215,6 +219,7 @@ export class app3D
             case volume_type.perlin:
                 this.neural_app.auto_node.nodeValue = 'perlin'
                 this.auto_volume.perlin_volume(Date.now().toString(), Vec3.zero)
+                this.auto_volume.start_perlin()
                 break
             case volume_type.grow:
                 this.neural_app.auto_node.nodeValue = 'grow'
@@ -324,8 +329,8 @@ export class app3D
 
                         break
                     case volume_type.perlin:
-                        let x = this.update_count
-                        this.auto_volume.perlin_volume(Date.now().toString(), new Vec3([x, x, x]).scale(0.15))
+                        // let x = this.update_count
+                        // this.auto_volume.perlin_volume(Date.now().toString(), new Vec3([x, x, x]).scale(0.15))
                         break
                     case volume_type.grow:
                     case volume_type.amoeba:

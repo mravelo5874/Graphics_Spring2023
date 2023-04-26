@@ -1,8 +1,10 @@
 import { Vec3 } from "../lib/TSM.js"
 import  Rand  from "../lib/rand-seed/Rand.js"
-import { noise, noise_map_data } from "./noise.js";
-import { utils } from "./utils.js";
-import { neighborhood_type, rule }from "./rules.js";
+import noise from "./noise.js"
+import noise_map_data from "./map_data.js"
+import { utils } from "./utils.js"
+import { neighborhood_type, rule }from "./rules.js"
+
  
 export class cell
 {
@@ -25,6 +27,11 @@ export class automata_volume
     private volume_uint8: Uint8Array
     private my_rule: rule
     private stable: boolean = false
+
+    // perlin stuff
+    private perlin_worker: Worker
+    private perlin_offset: Vec3
+    private perlin_running: boolean = false
     
     // [depricated] private kernel: number[][][]
     // [depricated] private activation: activation_type_3d
@@ -128,8 +135,47 @@ export class automata_volume
         this.create_uint8()
     }
 
+    public start_perlin(): void
+    {
+        if (!this.perlin_running)
+        {
+            this.perlin_running = true
+            this.perlin_offset = Vec3.zero.copy()
+            this.perlin_loop()
+        }
+    }
+
+    private perlin_loop(): void
+    {
+        if (!this.perlin_running) return
+
+        const o: Vec3 = this.perlin_offset
+        this.perlin_worker.postMessage([this.size, o.x, o.y, o.z, this.map_data])
+        this.perlin_worker.onmessage = (event) => 
+        {   
+            // recieve message from worker and update volume
+            this.volume = event.data
+            this.create_uint8()
+            let x = this.perlin_offset.x + 0.25
+            this.perlin_offset = new Vec3([x,x,x])
+
+            // start again
+            this.perlin_loop()
+        }
+    }
+
+    public stop_perlin(): void
+    {
+        if (this.perlin_running)
+        {
+            this.perlin_running = false
+            this.perlin_worker.terminate()
+        }
+    }
+
     public perlin_volume(seed: string, offset: Vec3)
     {
+        this.perlin_worker = new Worker('neural/workers/perlin_worker.js', {type: 'module'})
         const perlin_data = noise.generate_perlin_volume(this.size, this.map_data, offset, true)
 
         for (let x = 0; x < this.size; x++)

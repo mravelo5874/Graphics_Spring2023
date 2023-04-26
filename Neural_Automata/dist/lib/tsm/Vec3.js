@@ -39,6 +39,16 @@ class Vec3 {
     get xyz() {
         return [this.values[0], this.values[1], this.values[2]];
     }
+    /** Every element is 0. */
+    static zero = new Vec3([0, 0, 0]);
+    /** Every element is 1. */
+    static one = new Vec3([1, 1, 1]);
+    /** y element is 1. */
+    static up = new Vec3([0, 1, 0]);
+    /** x element is 1. */
+    static right = new Vec3([1, 0, 0]);
+    /** z element is 1. */
+    static forward = new Vec3([0, 0, 1]);
     /**
      * Computes the cross product of the vectors: vector x vector2.
      * The result is placed in dest. If dest is not supplied then
@@ -180,13 +190,13 @@ class Vec3 {
         dest.z = vector.z / vector2.z;
         return dest;
     }
+    values = new Float32Array(3);
     /**
      * Creates a new Vec3. If values is provided then the Vec3
      * is initialized to those values, otherwise, the Vec3 is
      * initialized with all zeros.
      */
     constructor(values) {
-        this.values = new Float32Array(3);
         if (values !== undefined) {
             this.xyz = values;
         }
@@ -383,15 +393,5 @@ class Vec3 {
         return Quaternion.multiplyVec3(this, dest);
     }
 }
-/** Every element is 0. */
-Vec3.zero = new Vec3([0, 0, 0]);
-/** Every element is 1. */
-Vec3.one = new Vec3([1, 1, 1]);
-/** y element is 1. */
-Vec3.up = new Vec3([0, 1, 0]);
-/** x element is 1. */
-Vec3.right = new Vec3([1, 0, 0]);
-/** z element is 1. */
-Vec3.forward = new Vec3([0, 0, 1]);
 export { Vec3 };
 //# sourceMappingURL=Vec3.js.map

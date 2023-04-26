@@ -23,6 +23,25 @@ export var PRNG;
  */
 class Rand {
     /**
+     * The string that will be used for generating a suitable hash for any of
+     * the provided PRNG algorithms.
+     *
+     * @var {string}
+     */
+    str;
+    /**
+     * The PRNG algorithm that should be used for random number generation.
+     *
+     * @var {PRNG}
+     */
+    prng;
+    /**
+     * The generator that should be used for generating random numbers.
+     *
+     * @var {Function}
+     */
+    generator;
+    /**
      * Create a new rand instance.
      *
      * @param {string} str

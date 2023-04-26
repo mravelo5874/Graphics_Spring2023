@@ -5,6 +5,15 @@ import Base from './Base.js';
  */
 class Xoshiro128ss extends Base {
     /**
+     * Seed parameters.
+     *
+     * @var {number}
+     */
+    a;
+    b;
+    c;
+    d;
+    /**
      * Create a new xoshiro128** instance.
      *
      * @param {string} str

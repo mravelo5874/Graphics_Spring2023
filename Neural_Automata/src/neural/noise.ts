@@ -1,41 +1,11 @@
 import { Vec2, Vec3 } from "../lib/TSM.js";
 import Rand from "../lib/rand-seed/Rand.js";
 import { utils } from "./utils.js";
-
-export class noise_map_data
-{
-    public seed: string
-    public scale: number
-    public height: number
-    public freq: number
-    public octs: number
-    public pers: number
-    public lacu: number
-
-    constructor(
-        // default terrain values
-        _seed: string = '42', 
-        _scale: number = 75,
-        _height: number = 24,
-        _freq: number = 1,  
-        _octs: number = 4,
-        _pers: number = 0.1, 
-        _lacu: number = 5
-        )
-    {
-        this.seed = _seed
-        this.scale = _scale
-        this.height = _height
-        this.freq = _freq
-        this.octs = _octs
-        this.pers = _pers
-        this.lacu = _lacu
-    }
-}
+import noise_map_data from "./map_data.js";
 
 // thanks to some help:
 // https://catlikecoding.com/unity/tutorials/noise/
-export class noise
+export default class noise
 {
     public static MASK: number = 255;
     public static HASH: number[] = [ 
@@ -247,6 +217,18 @@ export class noise
 			tz);
     }
 
+    public static generate_perlin_volume_xyz(
+        size: number, 
+        noise_data: noise_map_data,
+        o1: number,
+        o2: number,
+        o3: number,
+        normalize: boolean
+        ): number[][][]
+    {
+        return noise.generate_perlin_volume(size, noise_data, new Vec3([o1, o2, o3]), normalize)
+    }
+
     public static generate_perlin_volume(
         size: number, 
         noise_data: noise_map_data,
@@ -263,9 +245,6 @@ export class noise
 
         // make sure scale is not 0
         if (scale <= 0) { scale = 0.0001 }
-
-        // create RNG
-        let rng = new Rand(seed);
 
         // create per-octave offsets
         let oct_offsets: Vec3[] = []
@@ -305,9 +284,15 @@ export class noise
                         const sample_x = (x - half_w + oct_offsets[oct].x) / scale * cell_freq
                         const sample_y = (y - half_w + oct_offsets[oct].y) / scale * cell_freq
                         const sample_z = (z - half_w + oct_offsets[oct].z) / scale * cell_freq
+
                         const point: Vec3 = new Vec3([sample_x, sample_y, sample_z])
-                        const perlin: number = noise.perlin_3d(point, freq) * 2 - 1
+                        //console.log('point: ' + utils.v3(point))
+                        const res: number = noise.perlin_3d(point, freq)
+                        //console.log('res: ' + res)
+                        const perlin: number = res * 2.0 - 1.0
                         noise_height += perlin * cell_ampl
+
+
 
                         cell_ampl *= persistance
                         cell_freq *= lacunarity

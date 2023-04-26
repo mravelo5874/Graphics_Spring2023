@@ -26,6 +26,10 @@ class Vec2 {
         this.values[0] = values[0];
         this.values[1] = values[1];
     }
+    /** All elements are 0. */
+    static zero = new Vec2([0, 0]);
+    /** All elements are 1. */
+    static one = new Vec2([1, 1]);
     /**
      * Computes the cross product the two vectors as if they were
      * Vec3s with a 0 z component. Places result in dest. If dest
@@ -156,13 +160,13 @@ class Vec2 {
         dest.y = vector.y / vector2.y;
         return dest;
     }
+    values = new Float32Array(2);
     /**
      * Creates a new Vec2. If values is provided then the Vec3
      * is initialized to those values, otherwise, the Vec3 is
      * initialized with all zeros.
      */
     constructor(values) {
-        this.values = new Float32Array(2);
         if (values !== undefined) {
             this.xy = values;
         }
@@ -342,9 +346,5 @@ class Vec2 {
         return matrix.multiplyVec2(this, dest);
     }
 }
-/** All elements are 0. */
-Vec2.zero = new Vec2([0, 0]);
-/** All elements are 1. */
-Vec2.one = new Vec2([1, 1]);
 export { Vec2 };
 //# sourceMappingURL=Vec2.js.map

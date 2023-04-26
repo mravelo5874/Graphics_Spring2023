@@ -1,5 +1,7 @@
 import Rand from "../lib/rand-seed/Rand.js";
 class utils {
+    static SQRT2 = 1.41421356237;
+    static DIGITS = 3;
     static v3(v, d = this.DIGITS) { return v.x.toFixed(d) + ', ' + v.y.toFixed(d) + ', ' + v.z.toFixed(d); }
     static v2(v, d = this.DIGITS) { return v.x.toFixed(d) + ', ' + v.y.toFixed(d); }
     // thanks to chatgpt: 'create a function that interpolates between two numbers given a t value' 
@@ -86,7 +88,5 @@ class utils {
         return cells;
     }
 }
-utils.SQRT2 = 1.41421356237;
-utils.DIGITS = 3;
 export { utils };
 //# sourceMappingURL=utils.js.map

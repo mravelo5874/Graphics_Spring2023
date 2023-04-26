@@ -5,6 +5,11 @@ import { epsilon } from "./Constants.js";
  */
 class Mat2 {
     /**
+     * The identity matrix where the diagonal is 1s
+     * and the off diagonals are 0s
+     */
+    static identity = new Mat2().setIdentity();
+    /**
      * Computes the matrix product m1 * m2 and puts the result
      * in result.
      */
@@ -24,13 +29,13 @@ class Mat2 {
         ]);
         return dest;
     }
+    values = new Float32Array(4);
     /**
      * Creates a new Mat2 initialized to the given
      * values. If values is not provided then the Mat2
      * is initialized to all zeros.
      */
     constructor(values) {
-        this.values = new Float32Array(4);
         if (values !== undefined) {
             this.init(values);
         }
@@ -245,10 +250,5 @@ class Mat2 {
         return dest;
     }
 }
-/**
- * The identity matrix where the diagonal is 1s
- * and the off diagonals are 0s
- */
-Mat2.identity = new Mat2().setIdentity();
 export { Mat2 };
 //# sourceMappingURL=Mat2.js.map

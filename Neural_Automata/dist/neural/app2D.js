@@ -29,8 +29,17 @@ export var shader_mode;
     shader_mode[shader_mode["END"] = 4] = "END";
 })(shader_mode || (shader_mode = {}));
 export class app2D {
+    neural_app;
+    canvas;
+    context;
+    pause = false;
+    mode;
+    auto;
+    program;
+    vertices;
+    texture;
+    prev_pixels;
     constructor(_neural) {
-        this.pause = false;
         this.neural_app = _neural;
         this.mode = shader_mode.rgb;
         this.auto = automata.worms;

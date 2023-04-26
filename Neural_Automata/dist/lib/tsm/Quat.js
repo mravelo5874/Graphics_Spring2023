@@ -61,6 +61,11 @@ class Quat {
         this.values[3] = values[3];
     }
     /**
+     * The identity quaternion. The last element is a 1
+     * and the other elements are 0.
+     */
+    static identity = new Quat().setIdentity();
+    /**
      * Computes the dot product between two quaternions.
      */
     static dot(q1, q2) {
@@ -228,13 +233,13 @@ class Quat {
         dest.w = Math.cos(angle);
         return dest;
     }
+    values = new Float32Array(4);
     /**
      * Creates a new Quat initialized to the given values.
      * If values are not given then the Quat is initialized to
      * all zeros.
      */
     constructor(values) {
-        this.values = new Float32Array(4);
         if (values !== undefined) {
             this.xyzw = values;
         }
@@ -552,10 +557,5 @@ class Quat {
         return dest;
     }
 }
-/**
- * The identity quaternion. The last element is a 1
- * and the other elements are 0.
- */
-Quat.identity = new Quat().setIdentity();
 export { Quat };
 //# sourceMappingURL=Quat.js.map

@@ -8,13 +8,13 @@ export var volume_type;
 (function (volume_type) {
     volume_type[volume_type["sphere"] = 0] = "sphere";
     volume_type[volume_type["random"] = 1] = "random";
-    volume_type[volume_type["perlin"] = 2] = "perlin";
-    volume_type[volume_type["grow"] = 3] = "grow";
-    volume_type[volume_type["amoeba"] = 4] = "amoeba";
-    volume_type[volume_type["clouds"] = 5] = "clouds";
-    volume_type[volume_type["arch"] = 6] = "arch";
-    volume_type[volume_type["caves"] = 7] = "caves";
-    volume_type[volume_type["crystal"] = 8] = "crystal";
+    volume_type[volume_type["grow"] = 2] = "grow";
+    volume_type[volume_type["amoeba"] = 3] = "amoeba";
+    volume_type[volume_type["clouds"] = 4] = "clouds";
+    volume_type[volume_type["arch"] = 5] = "arch";
+    volume_type[volume_type["caves"] = 6] = "caves";
+    volume_type[volume_type["crystal"] = 7] = "crystal";
+    volume_type[volume_type["perlin"] = 8] = "perlin";
     volume_type[volume_type["END"] = 9] = "END";
 })(volume_type || (volume_type = {}));
 export var colormap;
@@ -28,15 +28,32 @@ export var colormap;
     colormap[colormap["END"] = 6] = "END";
 })(colormap || (colormap = {}));
 export class app3D {
+    // gl
+    neural_app;
+    canvas;
+    context;
+    // camera
+    camera;
+    cam_sense = 0.25;
+    rot_speed = 0.03;
+    zoom_speed = 0.005;
+    min_zoom = 0.5;
+    max_zoom = 12;
+    // geometry
+    cube;
+    volume;
+    color;
+    auto_volume;
+    vao;
+    program;
+    volume_texture;
+    function_texture;
+    // frames per volume updatep
+    conv_frames = 16;
+    curr_frames;
+    update_count;
+    pause = false;
     constructor(_neural) {
-        this.cam_sense = 0.25;
-        this.rot_speed = 0.03;
-        this.zoom_speed = 0.005;
-        this.min_zoom = 0.5;
-        this.max_zoom = 12;
-        // frames per volume updatep
-        this.conv_frames = 16;
-        this.pause = false;
         this.neural_app = _neural;
         this.canvas = _neural.canvas;
         this.context = _neural.context;
@@ -45,7 +62,7 @@ export class app3D {
         this.update_count = 0;
         // create geometry + volume
         this.cube = new cube();
-        this.auto_volume = new automata_volume(32, rules.grow());
+        this.auto_volume = new automata_volume(64, rules.grow());
         // set initial volume
         this.volume = volume_type.sphere;
         this.color = colormap.rainbow;
@@ -91,7 +108,8 @@ export class app3D {
         this.pause = !this.pause;
     }
     end() {
-        // idk something ?
+        // stop perlin
+        this.auto_volume.stop_perlin();
     }
     camera_zoom(zoom) {
         let dist = this.camera.distance();
@@ -153,6 +171,8 @@ export class app3D {
         // TODO this
     }
     reset(_type = this.volume) {
+        // stop perlin
+        this.auto_volume.stop_perlin();
         // set volume
         this.volume = _type;
         switch (_type) {
@@ -167,6 +187,7 @@ export class app3D {
             case volume_type.perlin:
                 this.neural_app.auto_node.nodeValue = 'perlin';
                 this.auto_volume.perlin_volume(Date.now().toString(), Vec3.zero);
+                this.auto_volume.start_perlin();
                 break;
             case volume_type.grow:
                 this.neural_app.auto_node.nodeValue = 'grow';
@@ -255,8 +276,8 @@ export class app3D {
                     case volume_type.random:
                         break;
                     case volume_type.perlin:
-                        let x = this.update_count;
-                        this.auto_volume.perlin_volume(Date.now().toString(), new Vec3([x, x, x]).scale(0.15));
+                        // let x = this.update_count
+                        // this.auto_volume.perlin_volume(Date.now().toString(), new Vec3([x, x, x]).scale(0.15))
                         break;
                     case volume_type.grow:
                     case volume_type.amoeba:

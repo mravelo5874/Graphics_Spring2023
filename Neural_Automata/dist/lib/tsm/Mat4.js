@@ -10,6 +10,11 @@ import { epsilon } from "./Constants.js";
  */
 class Mat4 {
     /**
+     * The identity matrix where the diagonal is 1s
+     * and the off diagonals are 0s
+     */
+    static identity = new Mat4().setIdentity();
+    /**
      * Computes the frustrum matrix
      * @param left coordinate for the left vertical clipping plane
      * @param right coordinate for the right vertical clipping plane
@@ -189,13 +194,13 @@ class Mat4 {
         ]);
         return dest;
     }
+    values = new Float32Array(16);
     /**
      * Creates a new Mat4 initialized to the given
      * values. If values is not provided then the Mat4
      * is initialized to all zeros.
      */
     constructor(values) {
-        this.values = new Float32Array(16);
         if (values !== undefined) {
             this.init(values);
         }
@@ -775,10 +780,5 @@ class Mat4 {
         return dest;
     }
 }
-/**
- * The identity matrix where the diagonal is 1s
- * and the off diagonals are 0s
- */
-Mat4.identity = new Mat4().setIdentity();
 export { Mat4 };
 //# sourceMappingURL=Mat4.js.map

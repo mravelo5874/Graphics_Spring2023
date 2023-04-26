@@ -3,9 +3,12 @@ import { Vec3 } from '../lib/TSM.js';
 import { colormap, volume_type } from './app3D.js';
 import Rand from "../lib/rand-seed/Rand.js";
 export class user_input {
+    neural_app;
+    mouse_down = false;
+    key_lock = false;
+    prev_x;
+    prev_y;
     constructor(canvas, _neural) {
-        this.mouse_down = false;
-        this.key_lock = false;
         this.neural_app = _neural;
         // event listeners for keyboard input
         window.addEventListener("keydown", (key) => this.on_key_down(key));
@@ -69,6 +72,15 @@ export class user_input {
                 break;
             case 'KeyM':
                 this.randomize();
+                break;
+            case 'KeyB':
+                // debug button for worker testing
+                const worker = new Worker('neural/workers/test_worker.js');
+                worker.postMessage(2);
+                worker.onmessage = (event) => {
+                    console.log(`Received message from worker: ${event.data}`);
+                    worker.terminate();
+                };
                 break;
             case 'Backquote':
                 if (this.neural_app.curr_app == 'app2d')

@@ -102,6 +102,10 @@ class Vec4 {
         this.values[2] = values[2];
         this.values[3] = values[3];
     }
+    /** All elements are 0 except the last element which is 1. */
+    static zero = new Vec4([0, 0, 0, 1]);
+    /** All elements are 1. */
+    static one = new Vec4([1, 1, 1, 1]);
     /**
      * Performs a linear interpolation between the two vectors.
      * If time == 0, you get the equivalent of vector.
@@ -180,13 +184,13 @@ class Vec4 {
         dest.w = vector.w / vector2.w;
         return dest;
     }
+    values = new Float32Array(4);
     /**
      * Creates a new Vec4. If values is provided then the Vec4
      * is initialized to those values, otherwise, the Vec4 is
      * initialized with all zeros.
      */
     constructor(values) {
-        this.values = new Float32Array(4);
         if (values !== undefined) {
             this.xyzw = values;
         }
@@ -385,9 +389,5 @@ class Vec4 {
         return matrix.multiplyVec4(this, dest);
     }
 }
-/** All elements are 0 except the last element which is 1. */
-Vec4.zero = new Vec4([0, 0, 0, 1]);
-/** All elements are 1. */
-Vec4.one = new Vec4([1, 1, 1, 1]);
 export { Vec4 };
 //# sourceMappingURL=Vec4.js.map

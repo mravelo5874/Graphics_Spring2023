@@ -4,6 +4,10 @@ export var neighborhood_type;
     neighborhood_type[neighborhood_type["VON_NEUMANN"] = 1] = "VON_NEUMANN";
 })(neighborhood_type || (neighborhood_type = {}));
 export class rule {
+    alive_req; // how many alive neighboor cells requiured to stay alive
+    born_req; // how many alive neighboor cells required to be born
+    init_states; // cell is born with x amount of states (health)
+    neighborhood; // what type of neighborhood to use
     constructor(_a, _b, _s, _n) {
         this.alive_req = _a;
         this.born_req = _b;

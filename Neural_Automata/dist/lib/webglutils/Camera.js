@@ -2,6 +2,13 @@ import { Mat4, Mat3, Vec3 } from "../TSM.js";
 import { Quat } from "../tsm/Quat.js";
 //import { Ray } from "../../ray/Ray"
 export class RayCamera {
+    position;
+    look;
+    aspect;
+    rotationMatrix;
+    normalizedHeight;
+    u;
+    v;
     constructor(position, look) {
         if (!position) {
             position = new Vec3();
@@ -24,6 +31,20 @@ export class RayCamera {
 }
 // Camera - defines a camera to be used in an OpenGL app
 export class Camera {
+    // View Matrix parameters
+    _eye; // position of the camera
+    _forward; // forward direction of the camera
+    _up; // up direction of the camera
+    _right; // right direction of the camera
+    _dist; // distance to the focus
+    _initial_forward;
+    _initial_up;
+    _orientation;
+    // Projection matrix parameters
+    _fov; // field of view in degrees
+    _aspect; // aspect ratio
+    _zNear; // near plane distance
+    _zFar; // far plane distance
     /**
      * Camera::constructor
      * @param pos    - the position of the camera

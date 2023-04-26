@@ -1,5 +1,13 @@
 import { Vec3, Vec4 } from "../lib/TSM.js";
 export class cube {
+    pos_v4;
+    idx_v4;
+    norm_v4;
+    uv_v3;
+    pos_f32;
+    idx_u32;
+    norm_f32;
+    uv_f32;
     constructor() {
         // set position arrays
         this.pos_v4 = [

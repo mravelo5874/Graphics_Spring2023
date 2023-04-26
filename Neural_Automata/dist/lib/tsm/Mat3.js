@@ -7,6 +7,11 @@ import { epsilon } from "./Constants.js";
  * A 3x3 Matrix of numbers.
  */
 class Mat3 {
+    /**
+     * The identity matrix where the diagonal is 1s
+     * and the off diagonals are 0s
+     */
+    static identity = new Mat3().setIdentity();
     static projection(width, height) {
         let dst = Mat3.identity.copy();
         // Note: This matrix flips the Y axis so 0 is at the top.
@@ -61,13 +66,13 @@ class Mat3 {
         ]);
         return dest;
     }
+    values = new Float32Array(9);
     /**
      * Creates a new Mat3 initialized to the given
      * values. If values is not provided then the Mat3
      * is initialized to all zeros.
      */
     constructor(values) {
-        this.values = new Float32Array(9);
         if (values !== undefined) {
             this.init(values);
         }
@@ -502,10 +507,5 @@ class Mat3 {
         return dest;
     }
 }
-/**
- * The identity matrix where the diagonal is 1s
- * and the off diagonals are 0s
- */
-Mat3.identity = new Mat3().setIdentity();
 export { Mat3 };
 //# sourceMappingURL=Mat3.js.map

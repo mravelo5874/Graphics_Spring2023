@@ -1,12 +1,3 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 import { app2D } from './app2D.js';
 import { app3D } from './app3D.js';
 import { user_input } from './user_input.js';
@@ -16,8 +7,32 @@ import { Vec4 } from "../lib/TSM.js";
 // http-server dist -c-1
 // this is the main program where everything happens 
 export class neural {
+    app2d;
+    app3d;
+    curr_app;
+    bg_color;
+    canvas;
+    context;
+    static update_canvas;
+    // input
+    user_input;
+    // used to calculate fps
+    fps;
+    start_time;
+    prev_time;
+    curr_delta_time;
+    prev_fps_time;
+    frame_count = 0;
+    // used for canvas resize
+    resize_observer;
+    static canvas_to_disp_size;
+    // ui nodes
+    auto_node;
+    shade_node;
+    mode_node;
+    fps_node;
+    res_node;
     constructor() {
-        this.frame_count = 0;
         this.canvas = document.getElementById('canvas');
         this.context = webgl_util.request_context(this.canvas);
         this.app2d = new app2D(this);
@@ -34,27 +49,27 @@ export class neural {
         // add automata text element to screen
         const auto_element = document.querySelector("#auto");
         this.auto_node = document.createTextNode("");
-        auto_element === null || auto_element === void 0 ? void 0 : auto_element.appendChild(this.auto_node);
+        auto_element?.appendChild(this.auto_node);
         this.auto_node.nodeValue = '';
         // add shader text element to screen
         const shade_element = document.querySelector("#shade");
         this.shade_node = document.createTextNode("");
-        shade_element === null || shade_element === void 0 ? void 0 : shade_element.appendChild(this.shade_node);
+        shade_element?.appendChild(this.shade_node);
         this.shade_node.nodeValue = '';
         // add mode text element to screen
         const mode_element = document.querySelector("#mode");
         this.mode_node = document.createTextNode("");
-        mode_element === null || mode_element === void 0 ? void 0 : mode_element.appendChild(this.mode_node);
+        mode_element?.appendChild(this.mode_node);
         this.mode_node.nodeValue = '';
         // add fps text element to screen
         const fps_element = document.querySelector("#fps");
         this.fps_node = document.createTextNode("");
-        fps_element === null || fps_element === void 0 ? void 0 : fps_element.appendChild(this.fps_node);
+        fps_element?.appendChild(this.fps_node);
         this.fps_node.nodeValue = '';
         // add res text element to screen
         const res_element = document.querySelector("#res");
         this.res_node = document.createTextNode("");
-        res_element === null || res_element === void 0 ? void 0 : res_element.appendChild(this.res_node);
+        res_element?.appendChild(this.res_node);
         this.res_node.nodeValue = '';
         // handle canvas resize
         neural.canvas_to_disp_size = new Map([[this.canvas, [512, 512]]]);
@@ -88,16 +103,16 @@ export class neural {
             this.resize_canvas_to_display_size(this.canvas);
             // reset apps
             if (this.curr_app == 'app2d') {
-                (() => __awaiter(this, void 0, void 0, function* () {
-                    yield utils.delay(1);
+                (async () => {
+                    await utils.delay(1);
                     this.app2d.reset();
-                }))();
+                })();
             }
             else if (this.curr_app == 'app3d') {
-                (() => __awaiter(this, void 0, void 0, function* () {
-                    yield utils.delay(1);
+                (async () => {
+                    await utils.delay(1);
                     this.app3d.reset();
-                }))();
+                })();
             }
         }
         // which app to render ?

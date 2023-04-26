@@ -1,19 +1,32 @@
 import { Vec3 } from "../lib/TSM.js";
 import Rand from "../lib/rand-seed/Rand.js";
-import { noise, noise_map_data } from "./noise.js";
+import noise from "./noise.js";
+import noise_map_data from "./map_data.js";
 import { utils } from "./utils.js";
 import { neighborhood_type } from "./rules.js";
 export class cell {
+    pos;
+    state;
     constructor(_pos, _state) {
         this.pos = _pos;
         this.state = _state;
     }
 }
 class automata_volume {
+    size;
+    volume;
+    cells;
+    map_data;
+    volume_uint8;
+    my_rule;
+    stable = false;
+    // perlin stuff
+    perlin_worker;
+    perlin_offset;
+    perlin_running = false;
     // [depricated] private kernel: number[][][]
     // [depricated] private activation: activation_type_3d
     constructor(_size, _rule) {
-        this.stable = false;
         this.size = _size;
         this.my_rule = _rule;
         this.volume = this.create_empty_volume(_size);
@@ -84,7 +97,36 @@ class automata_volume {
         }
         this.create_uint8();
     }
+    start_perlin() {
+        if (!this.perlin_running) {
+            this.perlin_running = true;
+            this.perlin_offset = Vec3.zero.copy();
+            this.perlin_loop();
+        }
+    }
+    perlin_loop() {
+        if (!this.perlin_running)
+            return;
+        const o = this.perlin_offset;
+        this.perlin_worker.postMessage([this.size, o.x, o.y, o.z, this.map_data]);
+        this.perlin_worker.onmessage = (event) => {
+            // recieve message from worker and update volume
+            this.volume = event.data;
+            this.create_uint8();
+            let x = this.perlin_offset.x + 0.25;
+            this.perlin_offset = new Vec3([x, x, x]);
+            // start again
+            this.perlin_loop();
+        };
+    }
+    stop_perlin() {
+        if (this.perlin_running) {
+            this.perlin_running = false;
+            this.perlin_worker.terminate();
+        }
+    }
     perlin_volume(seed, offset) {
+        this.perlin_worker = new Worker('neural/workers/perlin_worker.js', { type: 'module' });
         const perlin_data = noise.generate_perlin_volume(this.size, this.map_data, offset, true);
         for (let x = 0; x < this.size; x++) {
             for (let y = 0; y < this.size; y++) {
@@ -124,6 +166,43 @@ class automata_volume {
             }
         }
     }
+    static moore_offsets = [
+        new Vec3([-1, -1, -1]),
+        new Vec3([0, -1, -1]),
+        new Vec3([1, -1, -1]),
+        new Vec3([-1, 0, -1]),
+        new Vec3([0, 0, -1]),
+        new Vec3([1, 0, -1]),
+        new Vec3([-1, 1, -1]),
+        new Vec3([0, 1, -1]),
+        new Vec3([1, 1, -1]),
+        new Vec3([-1, -1, 0]),
+        new Vec3([0, -1, 0]),
+        new Vec3([1, -1, 0]),
+        new Vec3([-1, 0, 0]),
+        //new Vec3([ 0,  0,  0]),
+        new Vec3([1, 0, 0]),
+        new Vec3([-1, 1, 0]),
+        new Vec3([0, 1, 0]),
+        new Vec3([1, 1, 0]),
+        new Vec3([-1, -1, 1]),
+        new Vec3([0, -1, 1]),
+        new Vec3([1, -1, 1]),
+        new Vec3([-1, 0, 1]),
+        new Vec3([0, 0, 1]),
+        new Vec3([1, 0, 1]),
+        new Vec3([-1, 1, 1]),
+        new Vec3([0, 1, 1]),
+        new Vec3([1, 1, 1])
+    ];
+    static von_neu_offsets = [
+        new Vec3([-1, 0, 0]),
+        new Vec3([1, 0, 0]),
+        new Vec3([0, -1, 0]),
+        new Vec3([0, 1, 0]),
+        new Vec3([0, 0, -1]),
+        new Vec3([0, 0, 1]),
+    ];
     get_alive_neighboors(x, y, z) {
         let count = 0;
         const pos = new Vec3([x, y, z]);
@@ -232,43 +311,6 @@ class automata_volume {
         }
     }
 }
-automata_volume.moore_offsets = [
-    new Vec3([-1, -1, -1]),
-    new Vec3([0, -1, -1]),
-    new Vec3([1, -1, -1]),
-    new Vec3([-1, 0, -1]),
-    new Vec3([0, 0, -1]),
-    new Vec3([1, 0, -1]),
-    new Vec3([-1, 1, -1]),
-    new Vec3([0, 1, -1]),
-    new Vec3([1, 1, -1]),
-    new Vec3([-1, -1, 0]),
-    new Vec3([0, -1, 0]),
-    new Vec3([1, -1, 0]),
-    new Vec3([-1, 0, 0]),
-    //new Vec3([ 0,  0,  0]),
-    new Vec3([1, 0, 0]),
-    new Vec3([-1, 1, 0]),
-    new Vec3([0, 1, 0]),
-    new Vec3([1, 1, 0]),
-    new Vec3([-1, -1, 1]),
-    new Vec3([0, -1, 1]),
-    new Vec3([1, -1, 1]),
-    new Vec3([-1, 0, 1]),
-    new Vec3([0, 0, 1]),
-    new Vec3([1, 0, 1]),
-    new Vec3([-1, 1, 1]),
-    new Vec3([0, 1, 1]),
-    new Vec3([1, 1, 1])
-];
-automata_volume.von_neu_offsets = [
-    new Vec3([-1, 0, 0]),
-    new Vec3([1, 0, 0]),
-    new Vec3([0, -1, 0]),
-    new Vec3([0, 1, 0]),
-    new Vec3([0, 0, -1]),
-    new Vec3([0, 0, 1]),
-];
 export { automata_volume };
 // [depricated] :sad-emoji:
 /*

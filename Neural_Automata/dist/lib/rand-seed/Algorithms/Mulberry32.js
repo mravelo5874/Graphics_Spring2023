@@ -5,6 +5,12 @@ import Base from './Base.js';
  */
 class Mulberry32 extends Base {
     /**
+     * Seed parameter.
+     *
+     * @var {number}
+     */
+    a;
+    /**
      * Create a new mulberry32 instance.
      *
      * @param {string} str

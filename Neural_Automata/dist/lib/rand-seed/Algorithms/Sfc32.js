@@ -5,6 +5,15 @@ import Base from './Base.js';
  */
 class Sfc32 extends Base {
     /**
+     * Seed parameters.
+     *
+     * @var {number}
+     */
+    a;
+    b;
+    c;
+    d;
+    /**
      * Create a new sfc32 instance.
      *
      * @param {string} str
