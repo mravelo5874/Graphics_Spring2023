@@ -72,7 +72,7 @@ void main()
     t_hit.x = max(t_hit.x, 0.0);
 
     // step 3: set step size to march through volume
-    float dt = 0.0005;
+    float dt = 0.0002;
 
     // step 4: march ray through volume and sample
     vec3 p = v_eye + t_hit.x * ray;
@@ -88,7 +88,7 @@ void main()
         my_color.rgb += (1.0 - my_color.a) * val_color.a * val_color.rgb;
         my_color.a += (1.0 - my_color.a) * val_color.a;
 
-        if (my_color.a >= 0.8)
+        if (my_color.a >= 0.95)
         {
             break;
         }

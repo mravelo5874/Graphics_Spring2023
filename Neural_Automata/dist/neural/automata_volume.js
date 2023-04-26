@@ -3,16 +3,6 @@ import Rand from "../lib/rand-seed/Rand.js";
 import noise from "./noise.js";
 import noise_map_data from "./map_data.js";
 import { utils } from "./utils.js";
-// export class cell
-// {
-//     public pos: Vec3
-//     public state: number
-//     constructor(_pos: Vec3, _state: number)
-//     {
-//         this.pos = _pos
-//         this.state = _state
-//     }
-// }
 export class automata_volume {
     size;
     volume;
@@ -28,8 +18,6 @@ export class automata_volume {
     // rules stuff
     rule_worker;
     rule_running = false;
-    // [depricated] private kernel: number[][][]
-    // [depricated] private activation: activation_type_3d
     constructor(_size, _rule) {
         this.size = _size;
         this.my_rule = _rule;
@@ -219,53 +207,4 @@ export class automata_volume {
         }
     }
 }
-// [depricated] :sad-emoji:
-/*
-public apply_convolutiuon_update()
-    {
-        let v: number[][][] = this.create_empty_volume(this.size)
-        for (let x = 0; x < this.size; x++)
-        {
-            for (let y = 0; y < this.size; y++)
-            {
-                for (let z = 0; z < this.size; z++)
-                {
-                    v[x][y][z] = this.calculate_convolution(new Vec3([x, y, z]))
-                }
-            }
-        }
-        // update volume arrays
-        this.volume = v
-        this.create_uint8()
-    }
-
-    private calculate_convolution(pos: Vec3): number
-    {
-        let sum: number = 0
-        for (let i = -1; i <= 1; i++)
-        {
-            for (let j = -1; j <= 1; j++)
-            {
-                for (let k = -1; k <= 1; k++)
-                {
-                    // get offset positions
-                    let x = pos.x + i
-                    let y = pos.x + j
-                    let z = pos.x + k
-
-                    // make sure to wrap volume if out of bounds
-                    if (x > this.size - 1) x = 0
-                    if (x < 0) x = this.size - 1
-                    if (y > this.size - 1) y = 0
-                    if (y < 0) y = this.size - 1
-                    if (z > this.size - 1) z = 0
-                    if (z < 0) z = this.size - 1
-
-                    sum += this.volume[x][y][z] * this.kernel[i+1][j+1][k+1]
-                }
-            }
-        }
-        return activation_3d.perfrom_activation(sum, this.activation)
-    }
-*/ 
 //# sourceMappingURL=automata_volume.js.map

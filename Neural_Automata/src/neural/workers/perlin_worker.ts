@@ -1,7 +1,5 @@
 import noise from "../noise.js"
 import noise_map_data from "../map_data.js";
-import { Vec3 } from "../../lib/TSM.js"
-import { utils } from "../utils.js";
 
 onmessage = function(event)
 {

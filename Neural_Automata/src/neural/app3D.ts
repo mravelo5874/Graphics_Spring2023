@@ -30,7 +30,7 @@ export class app3D
     public rot_speed: number = 0.03
     public zoom_speed: number = 0.005
 
-    private min_zoom: number = 2
+    private min_zoom: number = 1
     private max_zoom: number = 12
 
     // geometry
@@ -60,11 +60,11 @@ export class app3D
 
         // create geometry + volume
         this.cube = new cube()
-        this.auto_volume = new automata_volume(32, rules.grow())
+        this.auto_volume = new automata_volume(64, rules.grow())
 
         // set initial volume
-        this.volume = volume_type.sphere
-        this.color = colormap.rainbow
+        this.volume = volume_type.perlin
+        this.color = colormap.ygb
     }
 
     private load_colormap(path: string)
@@ -97,8 +97,7 @@ export class app3D
         this.reset(this.volume, true)
 
         // set initial colormap
-        this.function_texture = this.load_colormap('../colormaps/rainbow.png')
-        this.neural_app.shade_node.nodeValue = 'rainbow'
+        this.set_colormap(this.color)
 
         let gl = this.context
 
@@ -132,8 +131,9 @@ export class app3D
 
     public end()
     {
-        // stop perlin
+        // stop perlin and rule workers
         this.auto_volume.stop_perlin()
+        this.auto_volume.stop_rule()
     }
 
     public camera_zoom(zoom: number)
@@ -294,7 +294,7 @@ export class app3D
         {
             // reset camera
             this.camera = new Camera(
-                new Vec3([0, 0, -this.min_zoom-0.1]),
+                new Vec3([0, 0,-2]),
                 new Vec3([0, 0, 0]),
                 new Vec3([0, 1, 0]),
                 45,

@@ -38,7 +38,7 @@ export class app3D {
     cam_sense = 0.25;
     rot_speed = 0.03;
     zoom_speed = 0.005;
-    min_zoom = 2;
+    min_zoom = 1;
     max_zoom = 12;
     // geometry
     cube;
@@ -63,10 +63,10 @@ export class app3D {
         this.update_count = 0;
         // create geometry + volume
         this.cube = new cube();
-        this.auto_volume = new automata_volume(32, rules.grow());
+        this.auto_volume = new automata_volume(64, rules.grow());
         // set initial volume
-        this.volume = volume_type.sphere;
-        this.color = colormap.rainbow;
+        this.volume = volume_type.perlin;
+        this.color = colormap.ygb;
     }
     load_colormap(path) {
         let gl = this.context;
@@ -92,8 +92,7 @@ export class app3D {
         this.pause = false;
         this.reset(this.volume, true);
         // set initial colormap
-        this.function_texture = this.load_colormap('../colormaps/rainbow.png');
-        this.neural_app.shade_node.nodeValue = 'rainbow';
+        this.set_colormap(this.color);
         let gl = this.context;
         // bind transfer function texture
         const func_loc = gl.getUniformLocation(this.program, 'u_func');
@@ -121,8 +120,9 @@ export class app3D {
         }
     }
     end() {
-        // stop perlin
+        // stop perlin and rule workers
         this.auto_volume.stop_perlin();
+        this.auto_volume.stop_rule();
     }
     camera_zoom(zoom) {
         let dist = this.camera.distance();
@@ -259,7 +259,7 @@ export class app3D {
         let gl = this.context;
         if (_reset_cam) {
             // reset camera
-            this.camera = new Camera(new Vec3([0, 0, -this.min_zoom - 0.1]), new Vec3([0, 0, 0]), new Vec3([0, 1, 0]), 45, this.canvas.width / this.canvas.height, 0.1, 1000.0);
+            this.camera = new Camera(new Vec3([0, 0, -2]), new Vec3([0, 0, 0]), new Vec3([0, 1, 0]), 45, this.canvas.width / this.canvas.height, 0.1, 1000.0);
         }
         // program
         let frag = simple_3d_fragment;
