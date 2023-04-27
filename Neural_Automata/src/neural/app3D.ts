@@ -289,6 +289,7 @@ export class app3D
 
         // get context
         let gl = this.context
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 
         if (_reset_cam)
         {

@@ -66,12 +66,12 @@ onmessage = function(event)
             {
                 let n = pos.copy().add(moore_offsets[i])
                 // wrap indexs
-                if (n.x >= size) n.x = 0
-                else if (n.x < 0) n.x = size - 1
-                if (n.y >= size) n.y = 0
-                else if (n.y < 0) n.y = size - 1
-                if (n.z >= size) n.z = 0
-                else if (n.z < 0) n.z = size - 1
+                n.x = n.x % size
+                n.y = n.y % size
+                n.z = n.z % size
+                if (n.x < 0) n.x += size
+                if (n.y < 0) n.y += size
+                if (n.z < 0) n.z += size
                 // check if alive
                 if (cells[n.x][n.y][n.z] > 0)
                     count++
@@ -83,12 +83,12 @@ onmessage = function(event)
             {
                 let n = pos.copy().add(von_neu_offsets[i])
                 // wrap indexs
-                if (n.x >= size) n.x = 0
-                else if (n.x < 0) n.x = size - 1
-                if (n.y >= size) n.y = 0
-                else if (n.y < 0) n.y = size - 1
-                if (n.z >= size) n.z = 0
-                else if (n.z < 0) n.z = size - 1
+                n.x = n.x % size
+                n.y = n.y % size
+                n.z = n.z % size
+                if (n.x < 0) n.x += size
+                if (n.y < 0) n.y += size
+                if (n.z < 0) n.z += size
                 // check if alive
                 if (cells[n.x][n.y][n.z] > 0)
                     count++

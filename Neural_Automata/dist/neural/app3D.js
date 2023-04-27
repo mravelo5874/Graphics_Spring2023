@@ -257,6 +257,7 @@ export class app3D {
         }
         // get context
         let gl = this.context;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         if (_reset_cam) {
             // reset camera
             this.camera = new Camera(new Vec3([0, 0, -2]), new Vec3([0, 0, 0]), new Vec3([0, 1, 0]), 45, this.canvas.width / this.canvas.height, 0.1, 1000.0);
