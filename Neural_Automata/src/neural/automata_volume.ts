@@ -3,8 +3,9 @@ import  Rand  from "../lib/rand-seed/Rand.js"
 import noise from "./noise.js"
 import noise_map_data from "./map_data.js"
 import { utils } from "./utils.js"
-import { neighborhood_type, rule }from "./rules.js"
-
+import { rule }from "./rules.js"
+import { neural_type } from "./app3D.js"
+import { kernels_3d } from "./kernels_3d.js"
 
 export class automata_volume
 {
@@ -24,6 +25,12 @@ export class automata_volume
     // rules stuff
     private rule_worker: Worker
     private rule_running: boolean = false
+
+    // neural stuff
+    private neural_worker: Worker
+    private neural_running: boolean = false
+    private my_neural: neural_type
+    private kernel: number[][][]
 
     constructor(_size: number, _rule: rule) 
     {
@@ -66,6 +73,105 @@ export class automata_volume
         return v
     }
 
+    public pause_neural()
+    {
+        this.neural_running = false
+    }
+
+    public resume_neural()
+    {
+        this.neural_running = true
+        this.neural_loop()
+    }
+
+    public set_neural(type: neural_type)
+    {   
+        if (this.my_neural == type) return
+        this.my_neural = type
+
+        switch (type)
+        {
+            default:
+            case neural_type.worms:
+                this.kernel = kernels_3d.get_kernel(type)
+            case neural_type.stars:
+            case neural_type.waves:
+                this.randomize_volume(Date.now().toString())
+                break
+        }
+    }
+
+    private neural_loop()
+    {
+        if (!this.neural_running) return
+
+        this.neural_worker.postMessage([this.size, this.my_neural, this.volume, this.kernel])
+        this.neural_worker.onmessage = (event) => 
+        {   
+            if (this.neural_running)
+            {
+                // recieve message from worker and update volume
+                this.volume = event.data[0]
+                this.create_uint8()
+
+                // start again
+                this.neural_loop()
+            }
+        }
+    }
+
+    public start_neural(): void
+    {
+        if (!this.neural_running)
+        {
+            this.init_neural_cells()
+            this.neural_worker = new Worker('neural/workers/neural_worker.js', {type: 'module'})
+            this.neural_running = true
+            this.neural_loop()
+        }
+    }
+
+    public stop_neural(): void
+    {
+        if (this.neural_running)
+        {
+            this.neural_running = false
+            this.neural_worker.terminate()
+            // clear volume and cells
+            this.volume = this.create_empty_volume(this.size)
+            this.cells = this.create_empty_volume(this.size)
+        }
+    }
+
+    public update_kernel(_k: number[][][]): void
+    {
+        // stop running if currently running
+        if (this.neural_running)
+        {
+            this.neural_running = false
+            this.neural_worker.terminate()
+        }
+        
+        // reset volume and start neural worker with new kernel
+        this.kernel = _k
+        this.randomize_volume(Date.now().toString())
+        this.start_neural()
+    }
+
+    private init_neural_cells(): void
+    {
+        for (let x = 0; x < this.size; x++)
+        {
+            for (let y = 0; y < this.size; y++)
+            {
+                for (let z = 0; z < this.size; z++)
+                {
+                    this.cells[x][y][z] = this.volume[x][y][z]
+                }
+            }
+        }
+    }
+
     public sphere_volume(radius: number = Math.floor(this.size/2))
     {
         if (radius < 2) radius = 2
@@ -104,7 +210,7 @@ export class automata_volume
         this.create_uint8()
     }
 
-    public randomize_volume(seed: string, thresh: number)
+    public binary_randomize_volume(seed: string, thresh: number)
     {
         let rng = new Rand(seed)
         for (let x = 0; x < this.size; x++)
@@ -119,6 +225,22 @@ export class automata_volume
                         v = 1
                     }
                     this.volume[x][y][z] = v
+                }
+            }
+        }
+        this.create_uint8()
+    }
+
+    public randomize_volume(seed: string)
+    {
+        let rng = new Rand(seed)
+        for (let x = 0; x < this.size; x++)
+        {
+            for (let y = 0; y < this.size; y++)
+            {
+                for (let z = 0; z < this.size; z++)
+                {
+                    this.volume[x][y][z] = rng.next()
                 }
             }
         }
@@ -203,7 +325,7 @@ export class automata_volume
         this.create_uint8()
     }
 
-    private init_cells(): void
+    private init_rule_cells(): void
     {
         for (let x = 0; x < this.size; x++)
         {
@@ -235,7 +357,7 @@ export class automata_volume
     {
         if (!this.rule_running)
         {
-            this.init_cells()
+            this.init_rule_cells()
             this.rule_worker = new Worker('neural/workers/rule_worker.js', {type: 'module'})
             this.rule_running = true
             this.rule_loop()

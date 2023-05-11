@@ -1,19 +1,14 @@
+import { neural_type } from "./app3D.js";
 import { utils } from "./utils.js";
-
-export enum activation_type_3d
-{
-    worm
-}
-
 
 export class activation_3d
 {
-    public static perfrom_activation(val: number, type: activation_type_3d)
+    public static perfrom_activation(val: number, type: neural_type)
     {
         switch (type)
         {
             default:
-            case activation_type_3d.worm: return utils.clamp01(this.worm(val))
+            case neural_type.worms: return utils.clamp01(this.worm(val))
         }
     }
 

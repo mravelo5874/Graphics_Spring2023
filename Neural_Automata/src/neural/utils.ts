@@ -8,6 +8,31 @@ export class utils
 
     public static v3(v: Vec3, d: number = this.DIGITS) : string { return v.x.toFixed(d) + ', ' + v.y.toFixed(d) + ', ' + v.z.toFixed(d) }
     public static v2(v: Vec2, d: number = this.DIGITS) : string { return v.x.toFixed(d) + ', ' + v.y.toFixed(d) }
+    public static num3x3(k: number[][][], d: number = this.DIGITS)
+    {
+        console.log('num3x3:')
+        /* FACE 1 */
+        // row 1
+        console.log('f1-r1: ' + k[0][0][0].toFixed(d) + ', ' + k[1][0][0].toFixed(d) + ', ' + k[2][0][0].toFixed(d))
+        // row 2
+        console.log('f1-r2: ' + k[0][1][0].toFixed(d) + ', ' + k[1][1][0].toFixed(d) + ', ' + k[2][1][0].toFixed(d))
+        // row 3
+        console.log('f1-r3: ' + k[0][2][0].toFixed(d) + ', ' + k[1][2][0].toFixed(d) + ', ' + k[2][2][0].toFixed(d))
+        /* FACE 2 */
+        // row 1
+        console.log('f2-r1: ' + k[0][0][1].toFixed(d) + ', ' + k[1][0][1].toFixed(d) + ', ' + k[2][0][1].toFixed(d))
+        // row 2
+        console.log('f2-r2: ' + k[0][1][1].toFixed(d) + ', ' + k[1][1][1].toFixed(d) + ', ' + k[2][1][1].toFixed(d))
+        // row 3
+        console.log('f2-r3: ' + k[0][2][1].toFixed(d) + ', ' + k[1][2][1].toFixed(d) + ', ' + k[2][2][1].toFixed(d))
+        /* FACE 3 */
+        // row 1
+        console.log('f3-r1: ' + k[0][0][2].toFixed(d) + ', ' + k[1][0][2].toFixed(d) + ', ' + k[2][0][2].toFixed(d))
+        // row 2
+        console.log('f3-r2: ' + k[0][1][2].toFixed(d) + ', ' + k[1][1][2].toFixed(d) + ', ' + k[2][1][2].toFixed(d))
+        // row 3
+        console.log('f3-r3: ' + k[0][2][2].toFixed(d) + ', ' + k[1][2][2].toFixed(d) + ', ' + k[2][2][2].toFixed(d))
+    }
     
     // thanks to chatgpt: 'create a function that interpolates between two numbers given a t value' 
     public static lerp(p0: number, p1: number, t: number): number

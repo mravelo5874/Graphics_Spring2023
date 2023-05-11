@@ -1,15 +1,21 @@
-import { neural } from "./neural";
-import { Camera } from "../lib/webglutils/Camera.js";
-import { Vec3, Vec4 } from "../lib/TSM.js";
-import { cube } from "./cube.js";
-import { simple_3d_vertex, simple_3d_fragment } from './shaders/simple_3d_shader.js'  
-import { utils } from "./utils.js";
-import { automata_volume } from "./automata_volume.js";
-import { rule, rules } from "./rules.js";
+import { neural } from "./neural"
+import { Camera } from "../lib/webglutils/Camera.js"
+import { Vec3 } from "../lib/TSM.js"
+import { cube } from "./cube.js"
+import { simple_3d_vertex, simple_3d_fragment } from './shaders/simple_3d_shader.js'
+import { automata_volume } from "./automata_volume.js"
+import { rules } from "./rules.js"
+import { kernels_3d } from "./kernels_3d.js"
+import { utils } from "./utils.js"
 
 export enum volume_type
 {
-    sphere, organized, random, grow, amoeba, clouds, arch, caves, crystal, perlin, END
+    neural, END, sphere, organized, random, grow, amoeba, clouds, arch, caves, crystal, perlin,
+}
+
+export enum neural_type
+{
+    worms, stars, waves, END
 }
 
 export enum colormap
@@ -43,10 +49,7 @@ export class app3D
     private volume_texture: WebGLTexture
     private function_texture: WebGLTexture
 
-    // frames per volume updatep
-    private conv_frames: number = 16
-    private curr_frames: number
-    private update_count: number
+    // pause alll sims
     private pause: boolean = false
 
     constructor(_neural: neural)
@@ -55,15 +58,13 @@ export class app3D
         this.canvas = _neural.canvas
         this.context = _neural.context
         this.pause = false
-        this.curr_frames = 0
-        this.update_count = 0
 
         // create geometry + volume
         this.cube = new cube()
-        this.auto_volume = new automata_volume(64, rules.grow())
+        this.auto_volume = new automata_volume(32, rules.grow())
 
         // set initial volume
-        this.volume = volume_type.perlin
+        this.volume = volume_type.neural
         this.color = colormap.ygb
     }
 
@@ -121,6 +122,11 @@ export class app3D
         {
             if (this.pause) this.auto_volume.pause_perlin()
             else this.auto_volume.resume_perlin()
+        }
+        else if (this.volume == volume_type.neural)
+        {
+            if (this.pause) this.auto_volume.pause_neural()
+            else this.auto_volume.resume_neural()
         }
         else
         {
@@ -209,16 +215,13 @@ export class app3D
         if (c < 0) c = colormap.END - 1
         this.color = c
         this.set_colormap(c)
-    }   
-
-    public toggle_shader()
-    {
-        // TODO this
     }
 
-    public toggle_automata()
+    public randomize_kernel()
     {
-        // TODO this
+        const kernel: number[][][] = kernels_3d.generate_random_kernel(Date.now().toString())
+        utils.num3x3(kernel)
+        this.auto_volume.update_kernel(kernel)
     }
     
     public reset(_type: volume_type = this.volume, _reset_cam: boolean = true)
@@ -227,11 +230,17 @@ export class app3D
         this.pause = false
         this.auto_volume.stop_perlin()
         this.auto_volume.stop_rule()
+        this.auto_volume.stop_neural()
 
         // set volume
         this.volume = _type
         switch (_type)
         {
+            case volume_type.neural:
+                this.neural_app.auto_node.nodeValue = 'neural'
+                this.auto_volume.set_neural(neural_type.worms)
+                this.auto_volume.start_neural()
+                break
             case volume_type.sphere:
                 this.auto_volume.sphere_volume()
                 this.neural_app.auto_node.nodeValue = 'sphere'
@@ -242,7 +251,7 @@ export class app3D
                 break
             case volume_type.random:
                 this.neural_app.auto_node.nodeValue = 'random'
-                this.auto_volume.randomize_volume(Date.now().toString(), 0.8)
+                this.auto_volume.binary_randomize_volume(Date.now().toString(), 0.8)
                 break
             case volume_type.perlin:
                 this.neural_app.auto_node.nodeValue = 'perlin'
@@ -258,19 +267,19 @@ export class app3D
             case volume_type.amoeba:
                 this.neural_app.auto_node.nodeValue = 'amoeba'
                 this.auto_volume.set_rule(rules.amoeba())
-                this.auto_volume.randomize_volume(Date.now().toString(), 0.8)
+                this.auto_volume.binary_randomize_volume(Date.now().toString(), 0.8)
                 this.auto_volume.start_rule()
                 break
             case volume_type.clouds:
                 this.neural_app.auto_node.nodeValue = 'clouds'
                 this.auto_volume.set_rule(rules.clouds())
-                this.auto_volume.randomize_volume(Date.now().toString(), 0.62)
+                this.auto_volume.binary_randomize_volume(Date.now().toString(), 0.62)
                 this.auto_volume.start_rule()
                 break
             case volume_type.caves:
                 this.neural_app.auto_node.nodeValue = 'caves'
                 this.auto_volume.set_rule(rules.caves())
-                this.auto_volume.randomize_volume(Date.now().toString(), 0.62)
+                this.auto_volume.binary_randomize_volume(Date.now().toString(), 0.62)
                 this.auto_volume.start_rule()
                 break
             case volume_type.crystal:
@@ -305,7 +314,6 @@ export class app3D
             )
         }
         
-
         // program
         let frag = simple_3d_fragment
         let vert = simple_3d_vertex

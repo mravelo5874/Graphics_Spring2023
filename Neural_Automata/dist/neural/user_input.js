@@ -114,6 +114,13 @@ export class user_input {
                         break;
                 }
                 break;
+            case 'KeyZ':
+                switch (this.neural_app.curr_app) {
+                    case 'app3d':
+                        this.neural_app.app3d.randomize_kernel();
+                        break;
+                }
+                break;
             default:
                 console.log('Key : \'', key.code, '\' was pressed.');
                 break;

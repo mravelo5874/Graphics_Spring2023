@@ -1,13 +1,10 @@
+import { neural_type } from "./app3D.js";
 import { utils } from "./utils.js";
-export var activation_type_3d;
-(function (activation_type_3d) {
-    activation_type_3d[activation_type_3d["worm"] = 0] = "worm";
-})(activation_type_3d || (activation_type_3d = {}));
 export class activation_3d {
     static perfrom_activation(val, type) {
         switch (type) {
             default:
-            case activation_type_3d.worm: return utils.clamp01(this.worm(val));
+            case neural_type.worms: return utils.clamp01(this.worm(val));
         }
     }
     static worm(val) {
