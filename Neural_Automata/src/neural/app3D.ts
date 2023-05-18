@@ -10,7 +10,7 @@ import { utils } from "./utils.js"
 
 export enum volume_type
 {
-    neural, END, sphere, organized, random, grow, amoeba, clouds, arch, caves, crystal, perlin,
+    sphere, organized, random, grow, amoeba, clouds, arch, caves, crystal, perlin, END, neural
 }
 
 export enum neural_type
@@ -64,7 +64,7 @@ export class app3D
         this.auto_volume = new automata_volume(32, rules.grow())
 
         // set initial volume
-        this.volume = volume_type.neural
+        this.volume = volume_type.perlin
         this.color = colormap.ygb
     }
 

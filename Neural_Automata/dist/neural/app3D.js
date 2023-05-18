@@ -8,18 +8,18 @@ import { kernels_3d } from "./kernels_3d.js";
 import { utils } from "./utils.js";
 export var volume_type;
 (function (volume_type) {
-    volume_type[volume_type["neural"] = 0] = "neural";
-    volume_type[volume_type["END"] = 1] = "END";
-    volume_type[volume_type["sphere"] = 2] = "sphere";
-    volume_type[volume_type["organized"] = 3] = "organized";
-    volume_type[volume_type["random"] = 4] = "random";
-    volume_type[volume_type["grow"] = 5] = "grow";
-    volume_type[volume_type["amoeba"] = 6] = "amoeba";
-    volume_type[volume_type["clouds"] = 7] = "clouds";
-    volume_type[volume_type["arch"] = 8] = "arch";
-    volume_type[volume_type["caves"] = 9] = "caves";
-    volume_type[volume_type["crystal"] = 10] = "crystal";
-    volume_type[volume_type["perlin"] = 11] = "perlin";
+    volume_type[volume_type["sphere"] = 0] = "sphere";
+    volume_type[volume_type["organized"] = 1] = "organized";
+    volume_type[volume_type["random"] = 2] = "random";
+    volume_type[volume_type["grow"] = 3] = "grow";
+    volume_type[volume_type["amoeba"] = 4] = "amoeba";
+    volume_type[volume_type["clouds"] = 5] = "clouds";
+    volume_type[volume_type["arch"] = 6] = "arch";
+    volume_type[volume_type["caves"] = 7] = "caves";
+    volume_type[volume_type["crystal"] = 8] = "crystal";
+    volume_type[volume_type["perlin"] = 9] = "perlin";
+    volume_type[volume_type["END"] = 10] = "END";
+    volume_type[volume_type["neural"] = 11] = "neural";
 })(volume_type || (volume_type = {}));
 export var neural_type;
 (function (neural_type) {
@@ -70,7 +70,7 @@ export class app3D {
         this.cube = new cube();
         this.auto_volume = new automata_volume(32, rules.grow());
         // set initial volume
-        this.volume = volume_type.neural;
+        this.volume = volume_type.perlin;
         this.color = colormap.ygb;
     }
     load_colormap(path) {

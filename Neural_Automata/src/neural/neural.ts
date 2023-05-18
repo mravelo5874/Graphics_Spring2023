@@ -92,6 +92,13 @@ export class neural
         neural.canvas_to_disp_size = new Map([[this.canvas, [512, 512]]])
         this.resize_observer = new ResizeObserver(this.on_resize)
         this.resize_observer.observe(this.canvas, { box: 'content-box' })
+
+        // handle randomize button
+        var btn = document.getElementById("random_button") as HTMLButtonElement
+        btn.addEventListener("click", () => {
+            console.log("in ok_click");
+            this.user_input.randomize();
+        });
     }
 
     public get_delta_time(): number { return this.curr_delta_time }
@@ -254,6 +261,6 @@ export class neural
 export function init_neural(): void 
 {
    const single: neural = new neural()
-   single.set_3d()
+   single.set_2d()
    single.start_render()
 }

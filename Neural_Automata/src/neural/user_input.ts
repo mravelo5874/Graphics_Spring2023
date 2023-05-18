@@ -144,7 +144,7 @@ export class user_input
         }
     }
 
-    private randomize()
+    public randomize()
     {
         let rng = new Rand(Date.now().toString())
         // determin between 2d and 3d

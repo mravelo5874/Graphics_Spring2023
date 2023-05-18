@@ -3,11 +3,14 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title addtitletodoc="false">AUTOMATA</title>
 <style>
-  body {
+  html, body {
     margin: 0;
+    height: 100%;
+    min-height: 100%;
+    width: 100%;
     background-color: rgb(255, 255, 255);
   }
   canvas {
@@ -15,12 +18,77 @@
     width: 100vw;
     height: 100vh;
   }
-  #overlay {
-    position: absolute;
-    background-color: rgba(0, 0, 0, 0.85);
-    color: white;
-    font-family: monospace;
-    padding: 1em;
+
+  /* MOBILE */
+  @media only screen and (max-width: 600px)
+  {
+    ::-webkit-scrollbar {
+      -webkit-appearance: none;
+    }
+    #overlay_info {
+      scale: 100%; /* make smaller on mobile */
+
+      background-color: rgba(0, 0, 0, 0.85);
+      color: white;
+      font-family: monospace;
+      padding: 0.5em;
+  
+      /* position */
+      position: absolute;
+      top:5px;
+      left:5px;
+      text-align:left;
+    }
+    #overlay_user {
+      scale: 0%; /* remove on mobile */
+    }
+    #random_button {
+      scale: 150%; /* make larger */
+
+      background-color: rgba(0, 0, 0, 0.85);
+      color: white;
+      font-family: monospace;
+      padding: 0.5em;
+      
+      /* position */
+      position: absolute;
+      bottom:16px;
+      right:32px;
+      text-align:center;
+
+    }
+  }
+
+  /* DESKTOP */
+  @media only screen and (min-width: 600px)
+  {
+    #overlay_info {
+      background-color: rgba(0, 0, 0, 0.85);
+      color: white;
+      font-family: monospace;
+      padding: 1em;
+  
+      /* position */
+      position: absolute;
+      right:10px;
+      bottom:10px;
+      text-align:left;
+    }
+    #overlay_user {
+      background-color: rgba(0, 0, 0, 0.85);
+      color: white;
+      font-family: monospace;
+      padding: 1em;
+  
+      /* position */
+      position: absolute;
+      left:10px;
+      bottom:10px;
+      text-align:left;
+    }
+    #random_button {
+      scale: 0%; /* remove on desktop */
+    }
   }
 </style>
 </head>
@@ -28,7 +96,7 @@
 <body>
 <canvas id="canvas"></canvas>
 
-<div id="overlay" style="right:10px;bottom:10px">
+<div id="overlay_info">
   <div style="font-size:16px">automata: <span id="auto" style="color:rgb(0, 255, 0)"></span></div>
   <div style="font-size:16px">shade: <span id="shade" style="color:rgb(255, 208, 0)"></span></div>
   <div style="font-size:16px">mode: <span id="mode" style="color:rgb(255, 136, 0)"></span></div>
@@ -36,7 +104,7 @@
   <div style="font-size:16px">fps: <span id="fps" style="color:rgb(255, 0, 234)"></span></div>
 </div>
 
-<div id="overlay" style="left:10px;bottom:10px;text-align:left;">
+<div id="overlay_user">
   <div style="font-size:16px;color:rgb(161, 120, 255);">[controls]</div>
   <div style="font-size:16px"><span style="color:rgb(0, 255, 0)">left ctrl:</span> change automata</div>
   <div style="font-size:16px"><span style="color:rgb(255, 208, 0)">left shift:</span> change shade</div>
@@ -46,8 +114,10 @@
   <div style="font-size:16px"><span style="color:rgb(255, 0, 234)">p:</span> stop/start</div>
   <div style="font-size:16px"><span style="color:rgb(255, 0, 106)">r:</span> reset</div>
   <div style="font-size:16px"><span style="color:rgb(255, 177, 177)">m:</span> randomize!</div>
-  <div style="font-size:16px"><a target="_blank" href="paper.pdf"><p style="color:rgb(255, 255, 255)">[read paper]</p></a></div> 
+  <div style="font-size:16px"><a target="_blank" href="paper.pdf"><p style="color:rgb(255, 255, 255)">[read paper]</p></a></div>
 </div>
+
+<button id="random_button">RANDOMIZE!</button>
 
 <script>var exports = {};</script>
 <script type="module" src="./index.js"></script>
