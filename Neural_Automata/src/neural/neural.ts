@@ -96,8 +96,7 @@ export class neural
         // handle randomize button
         var btn = document.getElementById("random_button") as HTMLButtonElement
         btn.addEventListener("click", () => {
-            console.log("in ok_click");
-            this.user_input.randomize();
+            this.user_input.randomize()
         });
     }
 

@@ -59,7 +59,7 @@ export class app3D {
     program;
     volume_texture;
     function_texture;
-    // pause alll sims
+    // pause all sims
     pause = false;
     constructor(_neural) {
         this.neural_app = _neural;
@@ -68,7 +68,11 @@ export class app3D {
         this.pause = false;
         // create geometry + volume
         this.cube = new cube();
-        this.auto_volume = new automata_volume(32, rules.grow());
+        // change size of volume if on mobile device
+        if (this.canvas.width >= 600)
+            this.auto_volume = new automata_volume(64, rules.grow());
+        else if (this.canvas.width <= 600)
+            this.auto_volume = new automata_volume(16, rules.grow());
         // set initial volume
         this.volume = volume_type.perlin;
         this.color = colormap.ygb;
@@ -204,6 +208,11 @@ export class app3D {
         this.auto_volume.update_kernel(kernel);
     }
     reset(_type = this.volume, _reset_cam = true) {
+        // change size of volume if on mobile device
+        if (this.canvas.width >= 600)
+            this.auto_volume = new automata_volume(64, rules.grow());
+        else if (this.canvas.width <= 600)
+            this.auto_volume = new automata_volume(16, rules.grow());
         // stop perlin
         this.pause = false;
         this.auto_volume.stop_perlin();

@@ -78,7 +78,6 @@ export class neural {
         // handle randomize button
         var btn = document.getElementById("random_button");
         btn.addEventListener("click", () => {
-            console.log("in ok_click");
             this.user_input.randomize();
         });
     }

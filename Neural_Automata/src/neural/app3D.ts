@@ -49,7 +49,7 @@ export class app3D
     private volume_texture: WebGLTexture
     private function_texture: WebGLTexture
 
-    // pause alll sims
+    // pause all sims
     private pause: boolean = false
 
     constructor(_neural: neural)
@@ -61,7 +61,10 @@ export class app3D
 
         // create geometry + volume
         this.cube = new cube()
-        this.auto_volume = new automata_volume(32, rules.grow())
+
+        // change size of volume if on mobile device
+        if (this.canvas.width >= 600) this.auto_volume = new automata_volume(64, rules.grow())
+        else if (this.canvas.width <= 600 ) this.auto_volume = new automata_volume(16, rules.grow())
 
         // set initial volume
         this.volume = volume_type.perlin
@@ -226,6 +229,10 @@ export class app3D
     
     public reset(_type: volume_type = this.volume, _reset_cam: boolean = true)
     {
+        // change size of volume if on mobile device
+        if (this.canvas.width >= 600) this.auto_volume = new automata_volume(64, rules.grow())
+        else if (this.canvas.width <= 600 ) this.auto_volume = new automata_volume(16, rules.grow())
+        
         // stop perlin
         this.pause = false
         this.auto_volume.stop_perlin()

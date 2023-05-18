@@ -9,8 +9,9 @@
   html, body {
     margin: 0;
     height: 100%;
-    min-height: 100%;
     width: 100%;
+    max-width: 100%;
+    min-width: 100%;
     background-color: rgb(255, 255, 255);
   }
   canvas {
@@ -26,12 +27,12 @@
       -webkit-appearance: none;
     }
     #overlay_info {
-      scale: 100%; /* make smaller on mobile */
+      scale: 100%; /* make visible on mobile */
 
       background-color: rgba(0, 0, 0, 0.85);
       color: white;
       font-family: monospace;
-      padding: 0.5em;
+      padding: 1em;
   
       /* position */
       position: absolute;
@@ -55,7 +56,9 @@
       bottom:16px;
       right:32px;
       text-align:center;
-
+    }
+    #paper_button {
+      scale: 100%; /* make visible on mobile */
     }
   }
 
@@ -89,6 +92,9 @@
     #random_button {
       scale: 0%; /* remove on desktop */
     }
+    #paper_button {
+      scale: 0%; /* remove on desktop */
+    }
   }
 </style>
 </head>
@@ -102,6 +108,7 @@
   <div style="font-size:16px">mode: <span id="mode" style="color:rgb(255, 136, 0)"></span></div>
   <div style="font-size:16px">res: <span id="res" style="color:rgb(0, 183, 255)"></span></div>
   <div style="font-size:16px">fps: <span id="fps" style="color:rgb(255, 0, 234)"></span></div>
+  <div id="paper_button" style="font-size:16px"><a target="_blank" href="paper.pdf"><p style="color:rgb(255, 255, 255);margin-block-start:0.5em;margin-block-end:0em;">[read paper]</p></a></div>
 </div>
 
 <div id="overlay_user">

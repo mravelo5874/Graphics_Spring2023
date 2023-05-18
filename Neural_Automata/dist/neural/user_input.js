@@ -10,6 +10,7 @@ export class user_input {
     prev_y;
     constructor(canvas, _neural) {
         this.neural_app = _neural;
+        canvas.addEventListener("contextmenu", (event) => event.preventDefault());
         // event listeners for keyboard input
         window.addEventListener("keydown", (key) => this.on_key_down(key));
         window.addEventListener("keyup", (key) => this.on_key_up(key));
@@ -17,8 +18,11 @@ export class user_input {
         canvas.addEventListener("mousedown", (mouse) => this.mouse_start(mouse));
         canvas.addEventListener("mousemove", (mouse) => this.mouse_drag(mouse));
         canvas.addEventListener("mouseup", (mouse) => this.mouse_end(mouse));
-        canvas.addEventListener("contextmenu", (event) => event.preventDefault());
         canvas.addEventListener("wheel", (event) => this.mouse_wheel(event));
+        // event listeners for touch input
+        canvas.addEventListener("touchstart", (touch) => this.touch_start(touch));
+        canvas.addEventListener("touchmove", (touch) => this.touch_drag(touch));
+        canvas.addEventListener("touchend", (touch) => this.touch_end(touch));
     }
     on_key_down(key) {
         if (this.key_lock)
@@ -162,29 +166,85 @@ export class user_input {
             this.neural_app.app3d.camera_zoom(wheel.deltaY);
         }
     }
+    touch_start(touch) {
+        // return if screen size too large
+        if (this.neural_app.canvas.width >= 600)
+            return;
+        // draw with mouse if in 2d mode
+        const pos = this.get_touch_canvas(touch, this.neural_app.canvas);
+        this.prev_x = pos.x / this.neural_app.canvas.width;
+        this.prev_y = pos.y / this.neural_app.canvas.height;
+        this.mouse_down = true;
+    }
+    touch_drag(touch) {
+        // return if screen size too large
+        if (this.neural_app.canvas.width >= 600)
+            return;
+        // draw with mouse if in 2d mode
+        const pos = this.get_touch_canvas(touch, this.neural_app.canvas);
+        const x = pos.x / this.neural_app.canvas.width;
+        const y = pos.y / this.neural_app.canvas.height;
+        const dx = x - this.prev_x;
+        const dy = y - this.prev_y;
+        this.prev_x = x;
+        this.prev_y = y;
+        if (this.mouse_down) {
+            switch (touch.touches.length) {
+                case 1:
+                    {
+                        if (this.neural_app.curr_app == 'app2d') {
+                            this.neural_app.app2d.mouse_draw(x, y, 32);
+                        }
+                        else if (this.neural_app.curr_app == 'app3d') {
+                            // move camera if in 3d mode
+                            let camera = this.neural_app.app3d.camera;
+                            const mouseDir = camera.right();
+                            mouseDir.scale(-dx);
+                            mouseDir.add(camera.up().scale(dy));
+                            mouseDir.normalize();
+                            // move camera
+                            let rotAxis = Vec3.cross(camera.forward(), mouseDir);
+                            rotAxis = rotAxis.normalize();
+                            // make sure values are not NaN
+                            if (dy != 0 || dx != 0) {
+                                camera.orbitTarget(rotAxis, this.neural_app.app3d.rot_speed);
+                            }
+                        }
+                        break;
+                    }
+                case 2:
+                    {
+                        if (this.neural_app.curr_app == 'app2d') {
+                            this.neural_app.app2d.mouse_erase(x, y, 32);
+                        }
+                        else if (this.neural_app.curr_app == 'app3d') {
+                            this.neural_app.app3d.camera_zoom(dy);
+                        }
+                        break;
+                    }
+            }
+        }
+    }
+    touch_end(touch) {
+        // return if screen size too large
+        if (this.neural_app.canvas.width >= 600)
+            return;
+        this.mouse_down = false;
+    }
     mouse_start(mouse) {
+        // return if screen size too small
+        if (this.neural_app.canvas.width <= 600)
+            return;
         // draw with mouse if in 2d mode
         const pos = this.get_mouse_canvas(mouse, this.neural_app.canvas);
         this.prev_x = pos.x / this.neural_app.canvas.width;
         this.prev_y = pos.y / this.neural_app.canvas.height;
         this.mouse_down = true;
     }
-    // thanks to:
-    // https://stackoverflow.com/questions/42309715/how-to-correctly-pass-mouse-coordinates-to-webgl
-    get_mouse_relative(event, target) {
-        target = target || event.target;
-        var rect = target.getBoundingClientRect();
-        return { x: event.clientX - rect.left, y: event.clientY - rect.top };
-    }
-    // assumes target or event.target is canvas
-    get_mouse_canvas(event, target) {
-        target = target || event.target;
-        var pos = this.get_mouse_relative(event, target);
-        pos.x = pos.x * target.width / target.clientWidth;
-        pos.y = pos.y * target.height / target.clientHeight;
-        return pos;
-    }
     mouse_drag(mouse) {
+        // return if screen size too small
+        if (this.neural_app.canvas.width <= 600)
+            return;
         // draw with mouse if in 2d mode
         const pos = this.get_mouse_canvas(mouse, this.neural_app.canvas);
         const x = pos.x / this.neural_app.canvas.width;
@@ -230,7 +290,38 @@ export class user_input {
         }
     }
     mouse_end(mouse) {
+        // return if screen size too small
+        if (this.neural_app.canvas.width <= 600)
+            return;
         this.mouse_down = false;
+    }
+    // thanks to:
+    // https://stackoverflow.com/questions/42309715/how-to-correctly-pass-mouse-coordinates-to-webgl
+    get_mouse_relative(event, target) {
+        target = target || event.target;
+        var rect = target.getBoundingClientRect();
+        return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+    }
+    // assumes target or event.target is canvas
+    get_mouse_canvas(event, target) {
+        target = target || event.target;
+        var pos = this.get_mouse_relative(event, target);
+        pos.x = pos.x * target.width / target.clientWidth;
+        pos.y = pos.y * target.height / target.clientHeight;
+        return pos;
+    }
+    get_touch_relative(event, target) {
+        target = target || event.target;
+        var rect = target.getBoundingClientRect();
+        return { x: event.touches[0].clientX - rect.left, y: event.touches[0].clientY - rect.top };
+    }
+    // assumes target or event.target is canvas
+    get_touch_canvas(event, target) {
+        target = target || event.target;
+        var pos = this.get_touch_relative(event, target);
+        pos.x = pos.x * target.width / target.clientWidth;
+        pos.y = pos.y * target.height / target.clientHeight;
+        return pos;
     }
 }
 //# sourceMappingURL=user_input.js.map
