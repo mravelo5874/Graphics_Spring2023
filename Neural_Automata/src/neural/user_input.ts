@@ -196,9 +196,6 @@ export class user_input
 
     private touch_start(touch: TouchEvent)
     {   
-        // return if screen size too large
-        if (this.neural_app.canvas.width >= 600) return;
-
         // draw with mouse if in 2d mode
         const pos = this.get_touch_canvas(touch, this.neural_app.canvas)
 
@@ -209,9 +206,6 @@ export class user_input
 
     private touch_drag(touch: TouchEvent)
     {
-        // return if screen size too large
-        if (this.neural_app.canvas.width >= 600) return;
-
         // draw with mouse if in 2d mode
         const pos = this.get_touch_canvas(touch, this.neural_app.canvas)
         const x = pos.x / this.neural_app.canvas.width
@@ -269,9 +263,6 @@ export class user_input
 
     private touch_end(touch: TouchEvent)
     {   
-        // return if screen size too large
-        if (this.neural_app.canvas.width >= 600) return;
-
         this.mouse_down = false
     }
 
