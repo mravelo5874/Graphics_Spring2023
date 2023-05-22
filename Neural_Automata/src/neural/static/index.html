@@ -76,7 +76,7 @@
       /* position */
       position: absolute;
       right:10px;
-      bottom:10px;
+      bottom:20px;
       text-align:left;
     }
     #overlay_user {
@@ -92,7 +92,18 @@
       text-align:left;
     }
     #random_button {
-      scale: 0%; /* remove on desktop */
+      scale: 150%; /* make larger */
+
+      background-color: rgba(0, 0, 0, 0.85);
+      color: white;
+      font-family: monospace;
+      padding: 0.5em;
+      
+      /* position */
+      position: absolute;
+      bottom:16px;
+      right:44px;
+      text-align:center;
     }
     #paper_button {
       scale: 0%; /* remove on desktop */
@@ -113,6 +124,8 @@
   <div id="paper_button" style="font-size:16px"><a target="_blank" href="paper.pdf"><p style="color:rgb(255, 255, 255);margin-block-start:0.5em;margin-block-end:0em;">[read paper]</p></a></div>
 </div>
 
+<button id="random_button">RANDOMIZE!</button>
+
 <div id="overlay_user">
   <div style="font-size:16px;color:rgb(161, 120, 255);">[controls]</div>
   <div style="font-size:16px"><span style="color:rgb(0, 255, 0)">left ctrl:</span> change automata</div>
@@ -122,11 +135,8 @@
   <div style="font-size:16px"><span style="color:rgb(108, 130, 255)">arrows:</span> stuff</div>
   <div style="font-size:16px"><span style="color:rgb(255, 0, 234)">p:</span> stop/start</div>
   <div style="font-size:16px"><span style="color:rgb(255, 0, 106)">r:</span> reset</div>
-  <div style="font-size:16px"><span style="color:rgb(255, 177, 177)">m:</span> randomize!</div>
   <div style="font-size:16px"><a target="_blank" href="paper.pdf"><p style="color:rgb(255, 255, 255)">[read paper]</p></a></div>
 </div>
-
-<button id="random_button">RANDOMIZE!</button>
 
 <script>var exports = {};</script>
 <script type="module" src="./index.js"></script>

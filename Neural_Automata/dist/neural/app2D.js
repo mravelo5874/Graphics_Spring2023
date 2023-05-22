@@ -52,40 +52,9 @@ export class app2D {
         this.context = _neural.context;
         this.set_brush(128);
     }
-    start() {
-        this.pause = false;
-        this.reset();
-    }
-    toggle_pause() {
-        this.pause = !this.pause;
-    }
-    end() {
-        // idk something ?
-    }
-    toggle_automata() {
-        let a = this.auto;
-        a -= 1;
-        if (a < 0)
-            a = automata.cgol - 1;
-        this.reset(a, this.mode);
-    }
-    toggle_shader() {
-        let m = this.mode;
-        m -= 1;
-        if (m < 0)
-            m = shader_mode.END - 1;
-        this.reset(this.auto, m);
-    }
-    go_left() {
-        let a = this.auto;
-        a += 1;
-        if (a > automata.cgol - 1)
-            a = 0;
-        this.reset(a, this.mode);
-    }
-    go_right() {
-        this.toggle_automata();
-    }
+    // ####################
+    // MAIN WEBGL FUNCTIONS
+    // ####################
     reset(auto = this.auto, mode = this.mode) {
         this.auto = auto;
         this.mode = mode;
@@ -213,7 +182,6 @@ export class app2D {
                     break;
             }
         }
-        // OPTIMIZATION REWORK START HERE
         // create 2 textures and attach them to framebuffers
         this.textures = [];
         this.framebuffers = [];
@@ -377,6 +345,9 @@ export class app2D {
         // draw to screen
         this.draw();
     }
+    // ############################
+    // BRUSH DRAW / ERASE FUNCTIONS
+    // ############################
     set_brush(size) {
         this.brush_size = size;
         let arr_size = size * size * 4;
@@ -424,9 +395,43 @@ export class app2D {
         gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, this.brush_size, this.brush_size, gl.RGBA, gl.UNSIGNED_BYTE, brush_arr);
         this.draw_to_canvas(gl);
     }
-    // ##############################
-    // #  Framebuffer Optimization  #
-    // ##############################
+    // #################
+    // UTILITY FUNCTIONS
+    // #################
+    start() {
+        this.pause = false;
+        this.reset();
+    }
+    toggle_pause() {
+        this.pause = !this.pause;
+    }
+    end() {
+        // idk something ?
+    }
+    toggle_automata() {
+        let a = this.auto;
+        a -= 1;
+        if (a < 0)
+            a = automata.cgol - 1;
+        this.reset(a, this.mode);
+    }
+    toggle_shader() {
+        let m = this.mode;
+        m -= 1;
+        if (m < 0)
+            m = shader_mode.END - 1;
+        this.reset(this.auto, m);
+    }
+    go_left() {
+        let a = this.auto;
+        a += 1;
+        if (a > automata.cgol - 1)
+            a = 0;
+        this.reset(a, this.mode);
+    }
+    go_right() {
+        this.toggle_automata();
+    }
     create_setup_texture(gl) {
         var texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);

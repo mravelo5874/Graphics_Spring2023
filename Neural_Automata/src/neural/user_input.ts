@@ -87,19 +87,6 @@ export class user_input
                         break
                 }
                 break
-            case 'KeyM':
-                this.randomize()
-                break
-            case 'KeyB':
-                // debug button for worker testing
-                const worker = new Worker('neural/workers/test_worker.js')
-                worker.postMessage(2)
-                worker.onmessage = (event) => 
-                {
-                    console.log(`Received message from worker: ${event.data}`)
-                    worker.terminate()
-                }
-                break
             case 'Backquote':
                 if (this.neural_app.curr_app == 'app2d')
                     this.neural_app.app2d.reset(automata.cgol)
