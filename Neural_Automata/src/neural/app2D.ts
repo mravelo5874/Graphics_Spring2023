@@ -31,12 +31,15 @@ export class app2D
   
   private program: WebGLProgram
   private vertices: Float32Array
-  //private start_texture: WebGLTexture
   private buffer: WebGLBuffer
-  private prev_pixels: Uint8Array
 
   private textures: WebGLTexture[]
   private framebuffers: WebGLFramebuffer[]
+
+  // brush stuff
+  private brush_size: number
+  private brush_1: Uint8Array
+  private brush_0: Uint8Array
   
   constructor(_neural: neural)
   {
@@ -45,28 +48,12 @@ export class app2D
     this.auto = automata.worms
     this.canvas = _neural.canvas
     this.context = _neural.context
+    this.set_brush(128)
   }
 
-  public start(): void
-  { 
-    this.pause = false
-    this.reset()
-  }
-
-  public toggle_pause(): void
-  {
-    this.pause = !this.pause
-  }
-
-  public toggle_step(): void
-  {
-    this.step = !this.step
-  }
-
-  public end(): void
-  {
-    // idk something ?
-  }
+  // ####################
+  // MAIN WEBGL FUNCTIONS
+  // ####################
 
   public reset(auto: automata = this.auto, mode: shader_mode = this.mode): void 
   {
@@ -208,12 +195,6 @@ export class app2D
           break
       }
     }
-    this.prev_pixels = pixels
-
-    // OPTIMIZATION REWORK START HERE
-
-    // Create a start texture and put the init pixels into it
-    //this.start_texture = this.create_setup_texture(gl)
     
     // create 2 textures and attach them to framebuffers
     this.textures = []
@@ -259,6 +240,11 @@ export class app2D
     const step_loc = gl.getUniformLocation(this.program, 'u_step')
     this.step = true
     gl.uniform1f(step_loc, 1)
+
+    // set pause uniform
+    const pause_loc = gl.getUniformLocation(this.program, 'u_pause')
+    this.pause = false
+    gl.uniform1f(pause_loc, 0)
 
     // start with the original texture on unit 0
     const texture_loc = gl.getUniformLocation(program, 'u_texture')
@@ -316,7 +302,7 @@ export class app2D
 
     // DRAW TO CANVAS
     this.set_fb(null, w, h, gl)
-    this.draw_this(gl)
+    this.draw_to_canvas(gl)
   }
 
   public draw(): void
@@ -340,10 +326,6 @@ export class app2D
     // Tell the shader to get the texture from texture unit 0
     gl.uniform1i(texture_loc, 0);
 
-    // set color uniform
-    const color_loc = gl.getUniformLocation(this.program, 'u_color')
-    gl.uniform4fv(color_loc, [0.0, 0.0, 0.0, 0.0])
-
     // set time uniform
     const time_loc = gl.getUniformLocation(this.program, 'u_time')
     gl.uniform1f(time_loc, this.neural_app.get_elapsed_time())
@@ -352,6 +334,11 @@ export class app2D
     const step_loc = gl.getUniformLocation(this.program, 'u_step')
     gl.uniform1f(step_loc, 1)
 
+    // set pause uniform
+    const pause_loc = gl.getUniformLocation(this.program, 'u_pause')
+    if (this.pause) gl.uniform1f(pause_loc, 1)
+    else gl.uniform1f(pause_loc, 0)
+
     // set position attribute
     const pos_loc = gl.getAttribLocation(this.program, 'a_pos')
     gl.enableVertexAttribArray(pos_loc)
@@ -359,12 +346,12 @@ export class app2D
 
     // FRAMEBUFFER 1
     this.set_fb(this.framebuffers[0], w, h, gl)
-    this.draw_this(gl)
+    this.draw_to_canvas(gl)
     gl.bindTexture(gl.TEXTURE_2D, this.textures[0])
 
     // FRAMEBUFFER 2
     this.set_fb(this.framebuffers[1], w, h, gl)
-    this.draw_this(gl)
+    this.draw_to_canvas(gl)
     gl.bindTexture(gl.TEXTURE_2D, this.textures[1])
 
     // set step as false for drawing to canvas
@@ -372,7 +359,7 @@ export class app2D
 
     // DRAW TO CANVAS
     this.set_fb(null, w, h, gl)
-    this.draw_this(gl)
+    this.draw_to_canvas(gl)
   }
 
   private set_fb(fbo, width, height, gl): void
@@ -383,24 +370,13 @@ export class app2D
     gl.viewport(0, 0, width, height)
   }
 
-  private draw_this(gl: WebGL2RenderingContext): void
+  private draw_to_canvas(gl: WebGL2RenderingContext): void
   {
     // Draw the rectangle.
     var primitiveType = gl.TRIANGLES;
     var offset = 0;
     var count = 6;
     gl.drawArrays(primitiveType, offset, count);
-  }
-
-  private read(): void
-  {
-    let gl = this.context
-    let w = this.canvas.width
-    let h = this.canvas.height
-    // set texture uniform as pixels
-    let pixels: Uint8Array = new Uint8Array(w * h * 4)
-    gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
-    this.prev_pixels = pixels
   }
 
   /* Draws and then requests a draw for the next frame */
@@ -421,118 +397,90 @@ export class app2D
     this.draw()
   }
 
-  public mouse_draw(rel_x: number, rel_y: number, brush_size: number)
+  // ############################
+  // BRUSH DRAW / ERASE FUNCTIONS
+  // ############################
+
+  private set_brush(size) 
   {
-    let pixels = this.prev_pixels
-    let w = this.canvas.width
-    let h = this.canvas.height
-
-    rel_y = 1.0 - rel_y
-    let x = Math.floor(w * rel_x)
-    let y = Math.floor(h * rel_y)
-
-    let rng = new Rand((rel_x * rel_y).toString())
-
-    // fill in pixels
-    for (let i = y - brush_size; i < y + brush_size; i++)
+		this.brush_size = size
+		let arr_size = size*size*4
+		this.brush_1 = new Uint8Array(arr_size)
+		this.brush_0 = new Uint8Array(arr_size)
+    let rng = new Rand()
+		for (let i=0; i < arr_size; i++)
     {
-      for (let j = x - brush_size; j < x + brush_size; j++)
-      {  
-        const idx = (i * w + j) * 4
-        // make sure index is not out of range
-        if (idx < pixels.length && idx > -1) 
-        {
-          // used to draw a circle
-          if (Vec2.distance(new Vec2([x, y]), new Vec2([j, i])) <= brush_size)
-          {
-            switch (this.mode)
-            {
-              case shader_mode.alpha:
-                // get new random value
-                let x = 0
-                if (this.auto == automata.cgol) 
-                {
-                  if (rng.next() > 0.5) x = 255
-                }
-                else 
-                {
-                  x = Math.floor(255 * rng.next())
-                }
-                pixels[idx+3] = x
-                break
-              case shader_mode.rgb:
-              case shader_mode.bnw:
-              case shader_mode.acid:
-                // get 3 random values
-                let r = 0
-                let g = 0
-                let b = 0
-                if (this.auto == automata.cgol)
-                {
-                  if (rng.next() > 0.5) r = 255
-                  if (rng.next() > 0.5) g = 255
-                  if (rng.next() > 0.5) b = 255
-                } 
-                else
-                {
-                  r = Math.floor(255 * rng.next())
-                  g = Math.floor(255 * rng.next())
-                  b = Math.floor(255 * rng.next())
-                } 
-                pixels[idx] = r
-                pixels[idx+1] = g
-                pixels[idx+2] = b
-            }
-          } 
-        }
-      }
-    }
-    // set prev pixels to display
-    this.prev_pixels = pixels
+			this.brush_1[i] = rng.next() * 255;
+			this.brush_0[i] = 0;
+		}
+	}
+
+  private randomize_brush()
+  {
+		let arr_size = this.brush_size*this.brush_size*4
+		this.brush_1 = new Uint8Array(arr_size)
+    let rng = new Rand()
+		for (let i=0; i < arr_size; i++) 
+    {
+			this.brush_1[i] = rng.next() * 255;
+			this.brush_0[i] = 0;
+		}
   }
 
-  public mouse_erase(rel_x: number, rel_y: number, brush_size: number)
+  public mouse_draw(rel_x: number, rel_y: number, brush_size: number)
   {
-    let pixels = this.prev_pixels
+    let gl = this.context
     let w = this.canvas.width
     let h = this.canvas.height
+		rel_y = 1.0 - rel_y
 
-    rel_y = 1.0 - rel_y
     let x = Math.floor(w * rel_x)
     let y = Math.floor(h * rel_y)
+    x = x - Math.floor(this.brush_size / 2) // center brush
+		y = y - Math.floor(this.brush_size / 2)
 
-    // fill in pixels
-    for (let i = y - brush_size; i < y + brush_size; i++)
-    {
-      for (let j = x - brush_size; j < x + brush_size; j++)
-      {
-        // access pixel at (x, y) by using (y * width) + (x * 4)
-        const idx = (i * w + j) * 4
-        // make sure index is not out of range
-        if (idx < pixels.length && idx > -1) 
-        {
-          // used to draw a circle
-          if (Vec2.distance(new Vec2([x, y]), new Vec2([j, i])) <= brush_size)
-          {
-            switch (this.mode)
-            {
-              case shader_mode.alpha:
-                pixels[idx+3] = 0
-                break
-              case shader_mode.rgb:
-              case shader_mode.bnw:
-              case shader_mode.acid:
-                pixels[idx] = 0
-                pixels[idx+1] = 0
-                pixels[idx+2] = 0
-                break
-            }
-          } 
-        }
-      }
-    }
-    // set prev pixels to display
-    this.prev_pixels = pixels
+
+    this.randomize_brush()
+		let brush_arr = this.brush_1
+		gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, this.brush_size, this.brush_size, gl.RGBA, gl.UNSIGNED_BYTE, brush_arr)
+    this.draw_to_canvas(gl)
+  }
+
+  public mouse_erase(rel_x: number, rel_y: number)
+  {
+    let gl = this.context
+    let w = this.canvas.width
+    let h = this.canvas.height
+		rel_y = 1.0 - rel_y
+
+    let x = Math.floor(w * rel_x)
+    let y = Math.floor(h * rel_y)
+    x = x - Math.floor(this.brush_size / 2) // center brush
+		y = y - Math.floor(this.brush_size / 2)
+
+		let brush_arr = this.brush_0
+		gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, this.brush_size, this.brush_size, gl.RGBA, gl.UNSIGNED_BYTE, brush_arr)
+    this.draw_to_canvas(gl)
+  }
+
+  // #################
+  // UTILITY FUNCTIONS
+  // #################
+
+  public start(): void
+  { 
+    this.pause = false
+    this.reset()
+  }
+
+  public toggle_pause(): void
+  {
+    this.pause = !this.pause
+  }
+
+  public end(): void
+  {
+    // idk something ?
   }
 
   public toggle_automata(): void
@@ -563,11 +511,6 @@ export class app2D
   {
     this.toggle_automata()
   }
-
-
-  // ##############################
-  // #  Framebuffer Optimization  #
-  // ##############################
 
   private create_setup_texture(gl: WebGL2RenderingContext): WebGLTexture
   {

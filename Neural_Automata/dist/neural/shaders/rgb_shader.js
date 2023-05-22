@@ -10,12 +10,12 @@ void main()
 `;
 export const rgb_fragment = `
 precision mediump float;
-uniform vec4 u_color;
 uniform sampler2D u_texture;
 uniform float u_kernel[9];
 uniform float u_time;
 uniform vec2 u_res;
 uniform bool u_step;
+uniform bool u_pause;
 varying vec2 v_pos;
 
 float activation(float x)
@@ -25,7 +25,7 @@ float activation(float x)
 
 void main()
 {
-  if (u_step)
+  if (u_step && !u_pause)
   {
     vec2 position = gl_FragCoord.xy / u_res.xy;
 

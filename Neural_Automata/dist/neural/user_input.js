@@ -125,15 +125,6 @@ export class user_input {
                         break;
                 }
                 break;
-            case 'KeyX':
-                switch (this.neural_app.curr_app) {
-                    case 'app2d':
-                        this.neural_app.app2d.toggle_step();
-                        break;
-                    case 'app3d':
-                        break;
-                }
-                break;
             default:
                 console.log('Key : \'', key.code, '\' was pressed.');
                 break;
@@ -218,7 +209,7 @@ export class user_input {
                 case 2:
                     {
                         if (this.neural_app.curr_app == 'app2d') {
-                            this.neural_app.app2d.mouse_erase(x, y, 32);
+                            this.neural_app.app2d.mouse_erase(x, y);
                         }
                         else if (this.neural_app.curr_app == 'app3d') {
                             this.neural_app.app3d.camera_zoom(dy);
@@ -280,7 +271,7 @@ export class user_input {
                 case 2:
                     {
                         if (this.neural_app.curr_app == 'app2d') {
-                            this.neural_app.app2d.mouse_erase(x, y, 32);
+                            this.neural_app.app2d.mouse_erase(x, y);
                         }
                         else if (this.neural_app.curr_app == 'app3d') {
                         }

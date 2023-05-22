@@ -10,11 +10,11 @@ void main()
 `;
 export const alpha_fragment = `
 precision mediump float;
-uniform vec4 u_color;
 uniform sampler2D u_texture;
 uniform float u_kernel[9];
 uniform float u_time;
 uniform vec2 u_res;
+uniform bool u_step;
 varying vec2 v_pos;
 
 float activation(float x)
@@ -24,21 +24,27 @@ float activation(float x)
 
 void main()
 {
-    vec2 position = gl_FragCoord.xy / u_res.xy;
-
-    float sum = 
-          texture2D(u_texture, (gl_FragCoord.xy + vec2( 1.0, -1.0)) / u_res.xy).a * u_kernel[0]
-        + texture2D(u_texture, (gl_FragCoord.xy + vec2( 0.0, -1.0)) / u_res.xy).a * u_kernel[1]
-        + texture2D(u_texture, (gl_FragCoord.xy + vec2(-1.0, -1.0)) / u_res.xy).a * u_kernel[2]
-        + texture2D(u_texture, (gl_FragCoord.xy + vec2( 1.0,  0.0)) / u_res.xy).a * u_kernel[3]
-        + texture2D(u_texture, (gl_FragCoord.xy + vec2( 0.0,  0.0)) / u_res.xy).a * u_kernel[4]
-        + texture2D(u_texture, (gl_FragCoord.xy + vec2(-1.0,  0.0)) / u_res.xy).a * u_kernel[5]
-        + texture2D(u_texture, (gl_FragCoord.xy + vec2( 1.0,  1.0)) / u_res.xy).a * u_kernel[6]
-        + texture2D(u_texture, (gl_FragCoord.xy + vec2( 0.0,  1.0)) / u_res.xy).a * u_kernel[7]
-        + texture2D(u_texture, (gl_FragCoord.xy + vec2(-1.0,  1.0)) / u_res.xy).a * u_kernel[8];
-    
-    float x = activation(sum);
-    gl_FragColor = vec4(0.0, 0.0, 0.0, x) + u_color;
+    if (u_step)
+    {
+        vec2 position = gl_FragCoord.xy / u_res.xy;
+        float sum = 
+            texture2D(u_texture, (gl_FragCoord.xy + vec2( 1.0, -1.0)) / u_res.xy).a * u_kernel[0]
+            + texture2D(u_texture, (gl_FragCoord.xy + vec2( 0.0, -1.0)) / u_res.xy).a * u_kernel[1]
+            + texture2D(u_texture, (gl_FragCoord.xy + vec2(-1.0, -1.0)) / u_res.xy).a * u_kernel[2]
+            + texture2D(u_texture, (gl_FragCoord.xy + vec2( 1.0,  0.0)) / u_res.xy).a * u_kernel[3]
+            + texture2D(u_texture, (gl_FragCoord.xy + vec2( 0.0,  0.0)) / u_res.xy).a * u_kernel[4]
+            + texture2D(u_texture, (gl_FragCoord.xy + vec2(-1.0,  0.0)) / u_res.xy).a * u_kernel[5]
+            + texture2D(u_texture, (gl_FragCoord.xy + vec2( 1.0,  1.0)) / u_res.xy).a * u_kernel[6]
+            + texture2D(u_texture, (gl_FragCoord.xy + vec2( 0.0,  1.0)) / u_res.xy).a * u_kernel[7]
+            + texture2D(u_texture, (gl_FragCoord.xy + vec2(-1.0,  1.0)) / u_res.xy).a * u_kernel[8];
+        
+        float x = activation(sum);
+        gl_FragColor = vec4(0.0, 0.0, 0.0, x);
+    }
+    else
+    {
+        gl_FragColor = texture2D(u_texture, (gl_FragCoord.xy) / u_res.xy).rgba;
+    } 
 }
 `;
 //# sourceMappingURL=alpha_shader.js.map
