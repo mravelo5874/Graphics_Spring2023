@@ -17,6 +17,7 @@ uniform sampler2D u_texture;
 uniform float u_kernel[9];
 uniform float u_time;
 uniform vec2 u_res;
+uniform bool u_step;
 varying vec2 v_pos;
 
 float activation(float x)
@@ -26,6 +27,8 @@ float activation(float x)
 
 void main()
 {
+  if (u_step)
+  {
     vec2 position = gl_FragCoord.xy / u_res.xy;
 
     float sum_r = 
@@ -66,5 +69,10 @@ void main()
     float b = activation(sum_b);
 
     gl_FragColor = vec4(r, g, b, 1.0);
+  }
+  else
+  {
+    gl_FragColor = texture2D(u_texture, (gl_FragCoord.xy) / u_res.xy).rgba;
+  }
 }
 `

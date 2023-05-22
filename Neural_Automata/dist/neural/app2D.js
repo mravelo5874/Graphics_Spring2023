@@ -33,6 +33,7 @@ export class app2D {
     canvas;
     context;
     pause = false;
+    step = false;
     mode;
     auto;
     program;
@@ -52,6 +53,9 @@ export class app2D {
     }
     toggle_pause() {
         this.pause = !this.pause;
+    }
+    toggle_step() {
+        this.step = !this.step;
     }
     end() {
         // idk something ?
@@ -174,6 +178,10 @@ export class app2D {
         // set time uniform
         const time_loc = gl.getUniformLocation(program, 'u_time');
         gl.uniform1f(time_loc, 0.0);
+        // set step uniform
+        const step_loc = gl.getUniformLocation(this.program, 'u_step');
+        this.step = true;
+        gl.uniform1f(step_loc, 1);
         // Fill the texture with random states
         const w = this.canvas.width;
         const h = this.canvas.height;
@@ -273,6 +281,12 @@ export class app2D {
         // set time uniform
         const time_loc = gl.getUniformLocation(this.program, 'u_time');
         gl.uniform1f(time_loc, this.neural_app.get_elapsed_time());
+        // set step uniform
+        const step_loc = gl.getUniformLocation(this.program, 'u_step');
+        if (this.step)
+            gl.uniform1f(step_loc, 1);
+        else
+            gl.uniform1f(step_loc, 0);
         // set position attribute
         const pos_loc = gl.getAttribLocation(this.program, 'a_pos');
         gl.enableVertexAttribArray(pos_loc);

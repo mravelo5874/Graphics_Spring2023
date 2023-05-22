@@ -25,6 +25,7 @@ export class app2D
   public canvas: HTMLCanvasElement
   private context: WebGL2RenderingContext
   private pause: boolean = false
+  private step: boolean = false
   public mode: shader_mode
   public auto: automata
   
@@ -51,6 +52,11 @@ export class app2D
   public toggle_pause(): void
   {
     this.pause = !this.pause
+  }
+
+  public toggle_step(): void
+  {
+    this.step = !this.step
   }
 
   public end(): void
@@ -188,6 +194,11 @@ export class app2D
     // set time uniform
     const time_loc = gl.getUniformLocation(program, 'u_time')
     gl.uniform1f(time_loc, 0.0)
+    
+    // set step uniform
+    const step_loc = gl.getUniformLocation(this.program, 'u_step')
+    this.step = true
+    gl.uniform1f(step_loc, 1)
 
     // Fill the texture with random states
     const w = this.canvas.width
@@ -305,6 +316,11 @@ export class app2D
     // set time uniform
     const time_loc = gl.getUniformLocation(this.program, 'u_time')
     gl.uniform1f(time_loc, this.neural_app.get_elapsed_time())
+
+    // set step uniform
+    const step_loc = gl.getUniformLocation(this.program, 'u_step')
+    if (this.step) gl.uniform1f(step_loc, 1)
+    else gl.uniform1f(step_loc, 0)
 
     // set position attribute
     const pos_loc = gl.getAttribLocation(this.program, 'a_pos')
