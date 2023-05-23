@@ -61,21 +61,33 @@ export class app3D {
     function_texture;
     // pause all sims
     pause = false;
+    prev_width;
     constructor(_neural) {
         this.neural_app = _neural;
         this.canvas = _neural.canvas;
         this.context = _neural.context;
         this.pause = false;
+        this.prev_width = -1;
         // create geometry + volume
         this.cube = new cube();
         // change size of volume if on mobile device
-        if (this.canvas.width >= 600)
-            this.auto_volume = new automata_volume(64, rules.grow());
-        else if (this.canvas.width <= 600)
-            this.auto_volume = new automata_volume(16, rules.grow());
+        this.set_volume_size();
         // set initial volume
         this.volume = volume_type.perlin;
         this.color = colormap.ygb;
+    }
+    set_volume_size() {
+        if (this.canvas.width !== this.prev_width) {
+            this.prev_width = this.canvas.width;
+            if (this.auto_volume)
+                this.auto_volume.destroy();
+            if (this.canvas.width >= 600) {
+                this.auto_volume = new automata_volume(64, rules.grow());
+            }
+            else if (this.canvas.width <= 600) {
+                this.auto_volume = new automata_volume(32, rules.grow());
+            }
+        }
     }
     load_colormap(path) {
         let gl = this.context;
@@ -135,9 +147,12 @@ export class app3D {
         }
     }
     end() {
-        // stop perlin and rule workers
-        this.auto_volume.stop_perlin();
-        this.auto_volume.stop_rule();
+        if (this.auto_volume) {
+            // stop workers
+            this.auto_volume.stop_perlin();
+            this.auto_volume.stop_rule();
+            this.auto_volume.stop_neural();
+        }
     }
     camera_zoom(zoom) {
         let dist = this.camera.distance();
@@ -209,10 +224,7 @@ export class app3D {
     }
     reset(_type = this.volume, _reset_cam = true) {
         // change size of volume if on mobile device
-        if (this.canvas.width >= 600)
-            this.auto_volume = new automata_volume(64, rules.grow());
-        else if (this.canvas.width <= 600)
-            this.auto_volume = new automata_volume(16, rules.grow());
+        this.set_volume_size();
         // stop perlin
         this.pause = false;
         this.auto_volume.stop_perlin();
@@ -285,7 +297,12 @@ export class app3D {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         if (_reset_cam) {
             // reset camera
-            this.camera = new Camera(new Vec3([0, 0, -2]), new Vec3([0, 0, 0]), new Vec3([0, 1, 0]), 45, this.canvas.width / this.canvas.height, 0.1, 1000.0);
+            if (this.canvas.width >= 600) {
+                this.camera = new Camera(new Vec3([0, 0, -2]), new Vec3([0, 0, 0]), new Vec3([0, 1, 0]), 45, this.canvas.width / this.canvas.height, 0.1, 1000.0);
+            }
+            else if (this.canvas.width <= 600) {
+                this.camera = new Camera(new Vec3([0, 0, -4]), new Vec3([0, 0, 0]), new Vec3([0, 1, 0]), 45, this.canvas.width / this.canvas.height, 0.1, 1000.0);
+            }
         }
         // program
         let frag = simple_3d_fragment;

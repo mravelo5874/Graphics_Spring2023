@@ -33,10 +33,13 @@ export class neural {
     fps_node;
     res_node;
     constructor() {
+        // canvas & context 🎵
         this.canvas = document.getElementById('canvas');
         this.context = webgl_util.request_context(this.canvas);
+        // start apps
         this.app2d = new app2D(this);
         this.app3d = new app3D(this);
+        // add bg and input
         this.bg_color = new Vec4([0.0, 0.0, 0.0, 1.0]);
         this.user_input = new user_input(this.canvas, this);
         this.curr_app = 'app2d';
@@ -80,6 +83,8 @@ export class neural {
         btn.addEventListener("click", () => {
             this.user_input.randomize();
         });
+        // start apps 🧨
+        this.app2d.start();
     }
     get_delta_time() { return this.curr_delta_time; }
     get_elapsed_time() { return Date.now() - this.start_time; }

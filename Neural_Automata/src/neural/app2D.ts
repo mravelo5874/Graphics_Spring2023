@@ -1,5 +1,4 @@
 import { utils } from './utils.js'
-import { Vec2 } from '../lib/TSM.js'
 import { alpha_vertex, alpha_fragment } from './shaders/alpha_shader.js' 
 import { rgb_vertex, rgb_fragment } from './shaders/rgb_shader.js'
 import { bnw_vertex, bnw_fragment } from './shaders/bnw_shader.js'

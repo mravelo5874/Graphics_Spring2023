@@ -55,6 +55,13 @@ export class automata_volume
     public get_volume(): Uint8Array { return this.volume_uint8 }
     public set_rule(_rule: rule): void { this.my_rule = _rule }
 
+    public destroy():void 
+    {
+        if (this.neural_worker) this.neural_worker.terminate()
+        if (this.rule_worker) this.rule_worker.terminate()
+        if (this.perlin_worker) this.perlin_worker.terminate()
+    }
+
     public create_empty_volume(_size: number): number[][][]
     {
         let v: number[][][] = []
@@ -125,6 +132,7 @@ export class automata_volume
         if (!this.neural_running)
         {
             this.init_neural_cells()
+            if (this.neural_worker) this.neural_worker.terminate()
             this.neural_worker = new Worker('neural/workers/neural_worker.js', {type: 'module'})
             this.neural_running = true
             this.neural_loop()
@@ -262,6 +270,7 @@ export class automata_volume
     {
         if (!this.perlin_running)
         {
+            if (this.perlin_worker) this.perlin_worker.terminate()
             this.perlin_worker = new Worker('neural/workers/perlin_worker.js', {type: 'module'})
             this.perlin_running = true
             this.perlin_offset = Vec3.zero.copy()
@@ -358,6 +367,7 @@ export class automata_volume
         if (!this.rule_running)
         {
             this.init_rule_cells()
+            if (this.rule_worker) this.rule_worker.terminate()
             this.rule_worker = new Worker('neural/workers/rule_worker.js', {type: 'module'})
             this.rule_running = true
             this.rule_loop()
@@ -398,7 +408,6 @@ export class automata_volume
 
     private create_uint8(): void
     {
-        // console.log('creating uint8 array')
         this.volume_uint8 = new Uint8Array(this.size * this.size * this.size)
         for (let x = 0; x < this.size; x++)
         {

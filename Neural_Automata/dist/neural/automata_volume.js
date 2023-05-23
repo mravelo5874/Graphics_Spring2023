@@ -41,6 +41,14 @@ export class automata_volume {
     get_size() { return this.size; }
     get_volume() { return this.volume_uint8; }
     set_rule(_rule) { this.my_rule = _rule; }
+    destroy() {
+        if (this.neural_worker)
+            this.neural_worker.terminate();
+        if (this.rule_worker)
+            this.rule_worker.terminate();
+        if (this.perlin_worker)
+            this.perlin_worker.terminate();
+    }
     create_empty_volume(_size) {
         let v = [];
         for (let x = 0; x < _size; x++) {
@@ -92,6 +100,8 @@ export class automata_volume {
     start_neural() {
         if (!this.neural_running) {
             this.init_neural_cells();
+            if (this.neural_worker)
+                this.neural_worker.terminate();
             this.neural_worker = new Worker('neural/workers/neural_worker.js', { type: 'module' });
             this.neural_running = true;
             this.neural_loop();
@@ -189,6 +199,8 @@ export class automata_volume {
     }
     start_perlin() {
         if (!this.perlin_running) {
+            if (this.perlin_worker)
+                this.perlin_worker.terminate();
             this.perlin_worker = new Worker('neural/workers/perlin_worker.js', { type: 'module' });
             this.perlin_running = true;
             this.perlin_offset = Vec3.zero.copy();
@@ -256,6 +268,8 @@ export class automata_volume {
     start_rule() {
         if (!this.rule_running) {
             this.init_rule_cells();
+            if (this.rule_worker)
+                this.rule_worker.terminate();
             this.rule_worker = new Worker('neural/workers/rule_worker.js', { type: 'module' });
             this.rule_running = true;
             this.rule_loop();
@@ -286,7 +300,6 @@ export class automata_volume {
         }
     }
     create_uint8() {
-        // console.log('creating uint8 array')
         this.volume_uint8 = new Uint8Array(this.size * this.size * this.size);
         for (let x = 0; x < this.size; x++) {
             for (let y = 0; y < this.size; y++) {

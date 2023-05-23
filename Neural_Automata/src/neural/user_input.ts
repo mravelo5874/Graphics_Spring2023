@@ -158,8 +158,6 @@ export class user_input
             let auto = Math.floor(rng.next() * (automata.END - 1))
             // randomize shade
             let shade = Math.floor(rng.next() * (shader_mode.END - 1))
-            if (auto == automata.cgol)
-                shade = Math.floor(rng.next() * (shader_mode.acid - 1))
             this.neural_app.app2d.reset(auto, shade)
         }
     }
