@@ -36,101 +36,158 @@ export class user_input
         if (this.key_lock) return
         this.key_lock = true
 
-        switch (key.code) 
+        // switch (key.code) 
+        // {
+        //     // switch between 2d and 3d app
+        //     case 'Space':
+        //         this.neural_app.toggle_apps()
+        //         break
+        //     // toggle modes
+        //     case 'ShiftLeft':
+        //         switch (this.neural_app.curr_app)
+        //         {
+        //             case 'app2d':
+        //                 this.neural_app.app2d.toggle_shader()
+        //                 break
+        //             case 'app3d':
+        //                 this.neural_app.app3d.toggle_colormap()
+        //                 break
+        //         }
+        //         break
+        //     case 'ControlLeft':
+        //         switch (this.neural_app.curr_app)
+        //         {
+        //             case 'app2d':
+        //                 this.neural_app.app2d.toggle_automata()
+        //                 break
+        //             case 'app3d':
+        //                 this.neural_app.app3d.toggle_volume()
+        //                 break
+        //         }
+        //         break
+        //     case 'KeyR': 
+        //         switch (this.neural_app.curr_app)
+        //         {
+        //             case 'app2d':
+        //                 this.neural_app.app2d.reset()
+        //                 break
+        //             case 'app3d':
+        //                 this.neural_app.app3d.reset()
+        //                 break
+        //         }
+        //         break
+        //     case 'KeyP':
+        //         switch (this.neural_app.curr_app)
+        //         {
+        //             case 'app2d':
+        //                 this.neural_app.app2d.toggle_pause()
+        //                 break
+        //             case 'app3d':
+        //                 this.neural_app.app3d.toggle_pause()
+        //                 break
+        //         }
+        //         break
+        //     case 'Backquote':
+        //         if (this.neural_app.curr_app == 'app2d')
+        //             this.neural_app.app2d.reset(automata.cgol)
+        //         break
+        //     case 'ArrowUp':
+        //         if (this.neural_app.curr_app == 'app3d')
+        //             this.neural_app.app3d.camera_zoom(-20)
+        //         break
+        //     case 'ArrowDown':
+        //         if (this.neural_app.curr_app == 'app3d')
+        //             this.neural_app.app3d.camera_zoom(20)
+        //         break
+        //     case 'ArrowLeft':
+        //         switch (this.neural_app.curr_app)
+        //         {
+        //             case 'app2d':
+        //                 this.neural_app.app2d.go_left()
+        //                 break
+        //             case 'app3d':
+        //                 this.neural_app.app3d.go_left()
+        //                 break
+        //         }
+        //         break
+        //     case 'ArrowRight':
+        //         switch (this.neural_app.curr_app)
+        //         {
+        //             case 'app2d':
+        //                 this.neural_app.app2d.go_right()
+        //                 break
+        //             case 'app3d':
+        //                 this.neural_app.app3d.go_right()
+        //                 break
+        //         }
+        //         break
+        //     case 'KeyZ':
+        //         switch (this.neural_app.curr_app)
+        //         {
+        //             case 'app3d':
+        //                 this.neural_app.app3d.reset(volume_type.neural)
+        //                 this.neural_app.app3d.randomize_kernel()
+        //                 break
+        //         }
+        //         break
+        //     default:
+        //         console.log('Key : \'', key.code, '\' was pressed.');
+        //         break
+        // }
+    }
+
+    public toggle_shade(rev: boolean)
+    {
+        switch (this.neural_app.curr_app)
         {
-            // switch between 2d and 3d app
-            case 'Space':
-                this.neural_app.toggle_apps()
+            case 'app2d':
+                if (rev) this.neural_app.app2d.shader_right()
+                else this.neural_app.app2d.shader_left()
                 break
-            // toggle modes
-            case 'ShiftLeft':
-                switch (this.neural_app.curr_app)
-                {
-                    case 'app2d':
-                        this.neural_app.app2d.toggle_shader()
-                        break
-                    case 'app3d':
-                        this.neural_app.app3d.toggle_colormap()
-                        break
-                }
+            case 'app3d':
+                if (rev) this.neural_app.app3d.colormap_right()
+                else this.neural_app.app3d.colormap_left()
                 break
-            case 'ControlLeft':
-                switch (this.neural_app.curr_app)
-                {
-                    case 'app2d':
-                        this.neural_app.app2d.toggle_automata()
-                        break
-                    case 'app3d':
-                        this.neural_app.app3d.toggle_volume()
-                        break
-                }
+        }
+    }
+
+    public toggle_automata(rev: boolean)
+    {
+        switch (this.neural_app.curr_app)
+        {
+            case 'app2d':
+                if (rev) this.neural_app.app2d.go_right()
+                else this.neural_app.app2d.go_left()
                 break
-            case 'KeyR': 
-                switch (this.neural_app.curr_app)
-                {
-                    case 'app2d':
-                        this.neural_app.app2d.reset()
-                        break
-                    case 'app3d':
-                        this.neural_app.app3d.reset()
-                        break
-                }
+            case 'app3d':
+                if (rev) this.neural_app.app3d.go_right()
+                else this.neural_app.app3d.go_left()
                 break
-            case 'KeyP':
-                switch (this.neural_app.curr_app)
-                {
-                    case 'app2d':
-                        this.neural_app.app2d.toggle_pause()
-                        break
-                    case 'app3d':
-                        this.neural_app.app3d.toggle_pause()
-                        break
-                }
+        }
+    }
+
+    public reset()
+    {
+        switch (this.neural_app.curr_app)
+        {
+            case 'app2d':
+                this.neural_app.app2d.reset()
                 break
-            case 'Backquote':
-                if (this.neural_app.curr_app == 'app2d')
-                    this.neural_app.app2d.reset(automata.cgol)
+            case 'app3d':
+                this.neural_app.app3d.reset()
                 break
-            case 'ArrowUp':
-                if (this.neural_app.curr_app == 'app3d')
-                    this.neural_app.app3d.camera_zoom(-20)
+        }
+    }
+
+    public toggle_pause()
+    {
+        switch (this.neural_app.curr_app)
+        {
+            case 'app2d':
+                this.neural_app.app2d.toggle_pause()
                 break
-            case 'ArrowDown':
-                if (this.neural_app.curr_app == 'app3d')
-                    this.neural_app.app3d.camera_zoom(20)
-                break
-            case 'ArrowLeft':
-                switch (this.neural_app.curr_app)
-                {
-                    case 'app2d':
-                        this.neural_app.app2d.go_left()
-                        break
-                    case 'app3d':
-                        this.neural_app.app3d.go_left()
-                        break
-                }
-                break
-            case 'ArrowRight':
-                switch (this.neural_app.curr_app)
-                {
-                    case 'app2d':
-                        this.neural_app.app2d.go_right()
-                        break
-                    case 'app3d':
-                        this.neural_app.app3d.go_right()
-                        break
-                }
-                break
-            case 'KeyZ':
-                switch (this.neural_app.curr_app)
-                {
-                    case 'app3d':
-                        this.neural_app.app3d.randomize_kernel()
-                        break
-                }
-                break
-            default:
-                console.log('Key : \'', key.code, '\' was pressed.');
+            case 'app3d':
+                this.neural_app.app3d.toggle_pause()
                 break
         }
     }
@@ -208,7 +265,7 @@ export class user_input
                 {
                     if (this.neural_app.curr_app == 'app2d')
                     { 
-                        this.neural_app.app2d.mouse_draw(x, y, 32)
+                        this.neural_app.app2d.mouse_erase(x, y)
                     }
                     else if (this.neural_app.curr_app == 'app3d')
                     {
@@ -234,7 +291,7 @@ export class user_input
                 {
                     if (this.neural_app.curr_app == 'app2d')
                     { 
-                        this.neural_app.app2d.mouse_erase(x, y)
+                        this.neural_app.app2d.mouse_draw(x, y)
                     }
                     else if (this.neural_app.curr_app == 'app3d')
                     {
@@ -285,7 +342,7 @@ export class user_input
                 {
                     if (this.neural_app.curr_app == 'app2d')
                     { 
-                        this.neural_app.app2d.mouse_draw(x, y, 32)
+                        this.neural_app.app2d.mouse_draw(x, y)
                     }
                     else if (this.neural_app.curr_app == 'app3d')
                     {

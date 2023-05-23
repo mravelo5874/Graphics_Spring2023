@@ -27,7 +27,7 @@ export var shader_mode;
     shader_mode[shader_mode["acid"] = 3] = "acid";
     shader_mode[shader_mode["END"] = 4] = "END";
 })(shader_mode || (shader_mode = {}));
-export class app2D {
+class app2D {
     neural_app;
     canvas;
     context;
@@ -41,7 +41,8 @@ export class app2D {
     textures;
     framebuffers;
     // brush stuff
-    brush_size;
+    static max_brush = 250;
+    brush_size = 100;
     brush_1;
     brush_0;
     constructor(_neural) {
@@ -50,7 +51,7 @@ export class app2D {
         this.auto = automata.worms;
         this.canvas = _neural.canvas;
         this.context = _neural.context;
-        this.set_brush(128);
+        this.set_brush(this.brush_size);
     }
     // ####################
     // MAIN WEBGL FUNCTIONS
@@ -59,6 +60,7 @@ export class app2D {
         this.auto = auto;
         this.mode = mode;
         let gl = this.context;
+        this.neural_app.brush_node.nodeValue = this.brush_size.toFixed(0).toString();
         gl.disable(gl.CULL_FACE);
         gl.disable(gl.DEPTH_TEST);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -368,7 +370,7 @@ export class app2D {
             this.brush_0[i] = 0;
         }
     }
-    mouse_draw(rel_x, rel_y, brush_size) {
+    mouse_draw(rel_x, rel_y) {
         let gl = this.context;
         let w = this.canvas.width;
         let h = this.canvas.height;
@@ -412,25 +414,41 @@ export class app2D {
         let a = this.auto;
         a -= 1;
         if (a < 0)
-            a = automata.cgol - 1;
+            a = automata.END - 1;
         this.reset(a, this.mode);
     }
-    toggle_shader() {
+    shader_left() {
         let m = this.mode;
         m -= 1;
         if (m < 0)
             m = shader_mode.END - 1;
         this.reset(this.auto, m);
     }
+    shader_right() {
+        let m = this.mode;
+        m += 1;
+        if (m > shader_mode.END - 1)
+            m = 0;
+        this.reset(this.auto, m);
+    }
     go_left() {
         let a = this.auto;
         a += 1;
-        if (a > automata.cgol - 1)
+        if (a > automata.END - 1)
             a = 0;
         this.reset(a, this.mode);
     }
     go_right() {
         this.toggle_automata();
+    }
+    delta_brush(delta) {
+        this.brush_size += delta;
+        if (this.brush_size <= 0)
+            this.brush_size = 0;
+        if (this.brush_size >= app2D.max_brush)
+            this.brush_size = app2D.max_brush;
+        this.neural_app.brush_node.nodeValue = this.brush_size.toFixed(0).toString();
+        this.set_brush(this.brush_size);
     }
     create_setup_texture(gl) {
         var texture = gl.createTexture();
@@ -444,4 +462,5 @@ export class app2D {
         return texture;
     }
 }
+export { app2D };
 //# sourceMappingURL=app2D.js.map

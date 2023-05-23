@@ -209,11 +209,19 @@ export class app3D {
                 break;
         }
     }
-    toggle_colormap() {
+    colormap_left() {
         let c = this.color;
         c -= 1;
         if (c < 0)
             c = colormap.END - 1;
+        this.color = c;
+        this.set_colormap(c);
+    }
+    colormap_right() {
+        let c = this.color;
+        c += 1;
+        if (c > colormap.END - 1)
+            c = 0;
         this.color = c;
         this.set_colormap(c);
     }

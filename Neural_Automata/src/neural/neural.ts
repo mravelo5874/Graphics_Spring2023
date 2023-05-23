@@ -35,9 +35,12 @@ export class neural
     public static canvas_to_disp_size: Map<HTMLCanvasElement, number[]>
 
     // ui nodes
+    private ui_window: HTMLDivElement
+    private ui_open: boolean
     public auto_node: Text;
     public shade_node: Text;
     public mode_node: Text;
+    public brush_node: Text;
     public fps_node: Text;
     public res_node: Text;
 
@@ -79,6 +82,12 @@ export class neural
         mode_element?.appendChild(this.mode_node)
         this.mode_node.nodeValue = ''
 
+        // add brush text element to screen
+        const brush_element = document.querySelector("#brush")
+        this.brush_node = document.createTextNode("")
+        brush_element?.appendChild(this.brush_node)
+        this.brush_node.nodeValue = ''
+
         // add fps text element to screen
         const fps_element = document.querySelector("#fps")
         this.fps_node = document.createTextNode("")
@@ -97,10 +106,33 @@ export class neural
         this.resize_observer.observe(this.canvas, { box: 'content-box' })
 
         // handle randomize button
-        var btn = document.getElementById("random_button") as HTMLButtonElement
-        btn.addEventListener("click", () => {
+        var rndm_btn = document.getElementById("randomize_button") as HTMLButtonElement
+        rndm_btn.addEventListener("click", () => {
             this.user_input.randomize()
         });
+
+        // handle pause button
+        var pause_btn = document.getElementById("pause_button") as HTMLButtonElement
+        pause_btn.addEventListener("click", () => {
+            this.user_input.toggle_pause()
+        });
+
+        // handle randomize button
+        var reset_btn = document.getElementById("reset_button") as HTMLButtonElement
+        reset_btn.addEventListener("click", () => {
+            this.user_input.reset()
+        });
+
+        // handle ui button
+        this.ui_open = false
+        this.ui_window = document.getElementById("ui_window") as HTMLDivElement
+        var main_btn = document.getElementById("main_button") as HTMLButtonElement
+        main_btn.addEventListener("click", () => {
+            this.toggle_ui_window()
+        });
+        
+        
+        this.setup_ui_buttons()
 
         // start apps 🧨
         this.app2d.start()
@@ -130,6 +162,19 @@ export class neural
     public start_render()
     {
         window.requestAnimationFrame(() => this.draw_loop())
+    }
+
+    private toggle_ui_window()
+    {
+        this.ui_open = !this.ui_open
+        if (this.ui_open)
+        {
+            this.ui_window.style.cssText='scale:100%;';
+        }
+        else
+        {
+            this.ui_window.style.cssText='scale:0%;';
+        }
     }
 
     public draw_loop()
@@ -260,6 +305,33 @@ export class neural
         }
 
         return needResize;
+    }
+
+    private setup_ui_buttons(): void
+    {
+        // automata buttons
+        var a_0 = document.getElementById("a-") as HTMLButtonElement
+        a_0.addEventListener("click", () => { this.user_input.toggle_automata(false) });
+        var a_1 = document.getElementById("a+") as HTMLButtonElement
+        a_1.addEventListener("click", () => { this.user_input.toggle_automata(true) });
+
+        // mode buttons
+        var b_0 = document.getElementById("b-") as HTMLButtonElement
+        b_0.addEventListener("click", () => { this.toggle_apps() });
+        var b_1 = document.getElementById("b+") as HTMLButtonElement
+        b_1.addEventListener("click", () => { this.toggle_apps() });
+
+        // shade buttons
+        var c_0 = document.getElementById("c-") as HTMLButtonElement
+        c_0.addEventListener("click", () => { this.user_input.toggle_shade(false) });
+        var c_1 = document.getElementById("c+") as HTMLButtonElement
+        c_1.addEventListener("click", () => { this.user_input.toggle_shade(true) });
+
+        // brush buttons
+        var d_0 = document.getElementById("d-") as HTMLButtonElement
+        d_0.addEventListener("click", () => { this.app2d.delta_brush(-10) });
+        var d_1 = document.getElementById("d+") as HTMLButtonElement
+        d_1.addEventListener("click", () => { this.app2d.delta_brush(10) });
     }
 }
 

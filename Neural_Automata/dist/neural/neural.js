@@ -27,9 +27,12 @@ export class neural {
     resize_observer;
     static canvas_to_disp_size;
     // ui nodes
+    ui_window;
+    ui_open;
     auto_node;
     shade_node;
     mode_node;
+    brush_node;
     fps_node;
     res_node;
     constructor() {
@@ -64,6 +67,11 @@ export class neural {
         this.mode_node = document.createTextNode("");
         mode_element?.appendChild(this.mode_node);
         this.mode_node.nodeValue = '';
+        // add brush text element to screen
+        const brush_element = document.querySelector("#brush");
+        this.brush_node = document.createTextNode("");
+        brush_element?.appendChild(this.brush_node);
+        this.brush_node.nodeValue = '';
         // add fps text element to screen
         const fps_element = document.querySelector("#fps");
         this.fps_node = document.createTextNode("");
@@ -79,10 +87,28 @@ export class neural {
         this.resize_observer = new ResizeObserver(this.on_resize);
         this.resize_observer.observe(this.canvas, { box: 'content-box' });
         // handle randomize button
-        var btn = document.getElementById("random_button");
-        btn.addEventListener("click", () => {
+        var rndm_btn = document.getElementById("randomize_button");
+        rndm_btn.addEventListener("click", () => {
             this.user_input.randomize();
         });
+        // handle pause button
+        var pause_btn = document.getElementById("pause_button");
+        pause_btn.addEventListener("click", () => {
+            this.user_input.toggle_pause();
+        });
+        // handle randomize button
+        var reset_btn = document.getElementById("reset_button");
+        reset_btn.addEventListener("click", () => {
+            this.user_input.reset();
+        });
+        // handle ui button
+        this.ui_open = false;
+        this.ui_window = document.getElementById("ui_window");
+        var main_btn = document.getElementById("main_button");
+        main_btn.addEventListener("click", () => {
+            this.toggle_ui_window();
+        });
+        this.setup_ui_buttons();
         // start apps 🧨
         this.app2d.start();
     }
@@ -104,6 +130,15 @@ export class neural {
     }
     start_render() {
         window.requestAnimationFrame(() => this.draw_loop());
+    }
+    toggle_ui_window() {
+        this.ui_open = !this.ui_open;
+        if (this.ui_open) {
+            this.ui_window.style.cssText = 'scale:100%;';
+        }
+        else {
+            this.ui_window.style.cssText = 'scale:0%;';
+        }
     }
     draw_loop() {
         // update canvas size
@@ -203,6 +238,28 @@ export class neural {
             canvas.height = displayHeight;
         }
         return needResize;
+    }
+    setup_ui_buttons() {
+        // automata buttons
+        var a_0 = document.getElementById("a-");
+        a_0.addEventListener("click", () => { this.user_input.toggle_automata(false); });
+        var a_1 = document.getElementById("a+");
+        a_1.addEventListener("click", () => { this.user_input.toggle_automata(true); });
+        // mode buttons
+        var b_0 = document.getElementById("b-");
+        b_0.addEventListener("click", () => { this.toggle_apps(); });
+        var b_1 = document.getElementById("b+");
+        b_1.addEventListener("click", () => { this.toggle_apps(); });
+        // shade buttons
+        var c_0 = document.getElementById("c-");
+        c_0.addEventListener("click", () => { this.user_input.toggle_shade(false); });
+        var c_1 = document.getElementById("c+");
+        c_1.addEventListener("click", () => { this.user_input.toggle_shade(true); });
+        // brush buttons
+        var d_0 = document.getElementById("d-");
+        d_0.addEventListener("click", () => { this.app2d.delta_brush(-10); });
+        var d_1 = document.getElementById("d+");
+        d_1.addEventListener("click", () => { this.app2d.delta_brush(10); });
     }
 }
 export function init_neural() {

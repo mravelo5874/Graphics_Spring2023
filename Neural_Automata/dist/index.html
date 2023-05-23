@@ -21,111 +21,160 @@
     width: 100vw;
     height: 100vh;
   }
+  #main_button {
+    /* margin */
+    margin-left: 0em;
+    margin-top: 0em;
+
+    /* position */
+    position: absolute;
+    bottom:0px;
+    left:0px;
+  }
+  .ui_button {
+    background-color: rgba(0, 0, 0, 0.85);
+    margin-left: 0.5em;
+    margin-top: 1em;
+
+    /* text */
+    color: white;
+    font-family: monospace;
+    font-size:16px;
+    text-align:center;
+
+    /* padding */
+    padding-top: 0.5em;
+    padding-left: 0.7em;
+    padding-right: 0.7em;
+    padding-bottom: 0.5em;
+  }
+  .small_button {
+    background-color: rgba(0, 0, 0, 0.85);
+    margin-top: 0.25em;
+
+    /* text */
+    color: white;
+    font-family: monospace;
+    font-size:16px;
+    text-align:center;
+
+    /* padding */
+    padding-top: 0.1em;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    padding-bottom: 0.1em;
+  }
+  #ui_window {
+    scale: 0%; /* start closed */
+    background-color: rgba(0, 0, 0, 0.85);
+
+    /* text */
+    color: white;
+    font-family: monospace;
+    font-size: 16px;
+    text-align:left;
+
+    /* padding */
+    padding-top: 2em;
+    padding-left: 2em;
+    padding-right: 2em;
+    padding-bottom: 3em;
+    
+    /* position */
+    position: absolute;
+    bottom:0px;
+    left:0px;
+
+    /* border */
+    border: 2px;
+    border-style: solid;
+    border-color: white;
+    border-radius:5%;    
+  }
+  #ui_row {
+    /* flex */
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+  #ui_column {
+    /* flex */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  #ui_labels {
+    width: 175px;
+    text-align: center;
+  }
+  .ui_label {
+    margin-top: 0.5em;
+  }
 
   /* MOBILE */
   @media only screen and (max-width: 600px)
   {
-    ::-webkit-scrollbar {
-      -webkit-appearance: none;
-    }
-    #overlay_info {
-      scale: 100%; /* make visible on mobile */
-
-      background-color: rgba(0, 0, 0, 0.85);
-      color: white;
-      font-family: monospace;
-      padding: 1em;
-  
-      /* position */
-      position: absolute;
-      top:5px;
-      left:5px;
-      text-align:left;
-    }
-    #overlay_user {
-      scale: 0%; /* remove on mobile */
-    }
-    #random_button {
-      scale: 150%; /* make larger */
-
-      background-color: rgba(0, 0, 0, 0.85);
-      color: white;
-      font-family: monospace;
-      padding: 0.5em;
-      
-      /* position */
-      position: absolute;
-      bottom:16px;
-      right:32px;
-      text-align:center;
-    }
-    #paper_button {
-      scale: 100%; /* make visible on mobile */
-    }
+    
   }
 
   /* DESKTOP */
   @media only screen and (min-width: 600px)
   {
-    #overlay_info {
-      background-color: rgba(0, 0, 0, 0.85);
-      color: white;
-      font-family: monospace;
-      padding: 1em;
-  
-      /* position */
-      position: absolute;
-      right:10px;
-      bottom:20px;
-      text-align:left;
-    }
-    #overlay_user {
-      background-color: rgba(0, 0, 0, 0.85);
-      color: white;
-      font-family: monospace;
-      padding: 1em;
-  
-      /* position */
-      position: absolute;
-      left:10px;
-      bottom:10px;
-      text-align:left;
-    }
-    #random_button {
-      scale: 150%; /* make larger */
-
-      background-color: rgba(0, 0, 0, 0.85);
-      color: white;
-      font-family: monospace;
-      padding: 0.5em;
-      
-      /* position */
-      position: absolute;
-      bottom:16px;
-      right:44px;
-      text-align:center;
-    }
-    #paper_button {
-      scale: 0%; /* remove on desktop */
-    }
+    
   }
 </style>
 </head>
 
 <body>
 <canvas id="canvas"></canvas>
+<div id="ui_window">
+  <div id="ui_row">
+    <div id="ui_column">
+      <button id="a-" class="small_button"><</button>
+      <button id="b-" class="small_button"><</button>
+      <button id="c-" class="small_button"><</button>
+      <button id="d-" class="small_button"><</button>
+    </div>
+    <div id="ui_column">
+      <div id="ui_labels">
+        <div class="ui_label">auto: <span id="auto" style="color:rgb(0, 255, 0)"></span></div>
+        <div class="ui_label">mode: <span id="mode" style="color:rgb(255, 208, 0)"></span></div>
+        <div class="ui_label">shade: <span id="shade" style="color:rgb(255, 136, 0)"></span></div>
+        <div class="ui_label">brush: <span id="brush" style="color:rgb(255, 72, 0)"></span></div>
+      </div>
+    </div>
+    <div id="ui_column">
+      <button id="a+" class="small_button">></button>
+      <button id="b+" class="small_button">></button>
+      <button id="c+" class="small_button">></button>
+      <button id="d+" class="small_button">></button>
+    </div>
+  </div>
+  
+  <div id="ui_row">
+    <button id="randomize_button" class="ui_button">randomize!</button>
+    <button id="pause_button" class="ui_button">pause</button>
+    <button id="reset_button" class="ui_button">reset</button>
+  </div>
+
+  <br/>
+
+  <div id="ui_row">
+    <div id="ui_column">
+      <div style="font-size:16px;text-align:left;">res: <span id="res" style="color:rgb(0, 183, 255)"></span></div>
+      <div style="font-size:16px;text-align:left;">fps: <span id="fps" style="color:rgb(255, 0, 234)"></span></div>
+      <div id="paper_button" style="font-size:16px"><a target="_blank" href="paper.pdf"><p style="color:rgb(255, 255, 255);margin-block-start:0.5em;margin-block-end:0em;">[read paper]</p></a></div>
+    </div>
+  </div>
+</div>
+<button id="main_button" class="ui_button">i</button>
+
 
 <div id="overlay_info">
-  <div style="font-size:16px">automata: <span id="auto" style="color:rgb(0, 255, 0)"></span></div>
-  <div style="font-size:16px">shade: <span id="shade" style="color:rgb(255, 208, 0)"></span></div>
-  <div style="font-size:16px">mode: <span id="mode" style="color:rgb(255, 136, 0)"></span></div>
-  <div style="font-size:16px">res: <span id="res" style="color:rgb(0, 183, 255)"></span></div>
-  <div style="font-size:16px">fps: <span id="fps" style="color:rgb(255, 0, 234)"></span></div>
-  <div id="paper_button" style="font-size:16px"><a target="_blank" href="paper.pdf"><p style="color:rgb(255, 255, 255);margin-block-start:0.5em;margin-block-end:0em;">[read paper]</p></a></div>
 </div>
-
 <button id="random_button">RANDOMIZE!</button>
-
 <div id="overlay_user">
   <div style="font-size:16px;color:rgb(161, 120, 255);">[controls]</div>
   <div style="font-size:16px"><span style="color:rgb(0, 255, 0)">left ctrl:</span> change automata</div>
@@ -137,6 +186,7 @@
   <div style="font-size:16px"><span style="color:rgb(255, 0, 106)">r:</span> reset</div>
   <div style="font-size:16px"><a target="_blank" href="paper.pdf"><p style="color:rgb(255, 255, 255)">[read paper]</p></a></div>
 </div>
+
 
 <script>var exports = {};</script>
 <script type="module" src="./index.js"></script>

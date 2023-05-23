@@ -36,7 +36,8 @@ export class app2D
   private framebuffers: WebGLFramebuffer[]
 
   // brush stuff
-  private brush_size: number
+  private static max_brush: number = 250
+  private brush_size: number = 100
   private brush_1: Uint8Array
   private brush_0: Uint8Array
   
@@ -47,7 +48,7 @@ export class app2D
     this.auto = automata.worms
     this.canvas = _neural.canvas
     this.context = _neural.context
-    this.set_brush(128)
+    this.set_brush(this.brush_size)
   }
 
   // ####################
@@ -59,6 +60,7 @@ export class app2D
     this.auto = auto
     this.mode = mode
     let gl = this.context
+    this.neural_app.brush_node.nodeValue = this.brush_size.toFixed(0).toString()
 
     gl.disable(gl.CULL_FACE)
     gl.disable(gl.DEPTH_TEST)
@@ -426,7 +428,7 @@ export class app2D
 		}
   }
 
-  public mouse_draw(rel_x: number, rel_y: number, brush_size: number)
+  public mouse_draw(rel_x: number, rel_y: number)
   {
     let gl = this.context
     let w = this.canvas.width
@@ -486,11 +488,11 @@ export class app2D
   {
     let a = this.auto
     a -= 1
-    if (a < 0) a = automata.cgol - 1
+    if (a < 0) a = automata.END - 1
     this.reset(a, this.mode)
   }
 
-  public toggle_shader(): void
+  public shader_left(): void
   {
     let m = this.mode
     m -= 1
@@ -498,17 +500,34 @@ export class app2D
     this.reset(this.auto, m)
   }
 
+  public shader_right(): void
+  {
+    let m = this.mode
+    m += 1
+    if (m > shader_mode.END - 1) m = 0
+    this.reset(this.auto, m)
+  }
+
   public go_left()
   {
     let a = this.auto
     a += 1
-    if (a > automata.cgol - 1) a = 0
+    if (a > automata.END - 1) a = 0
     this.reset(a, this.mode)
   }
 
   public go_right()
   {
     this.toggle_automata()
+  }
+
+  public delta_brush(delta: number)
+  {
+    this.brush_size += delta
+    if (this.brush_size <= 0) this.brush_size = 0
+    if (this.brush_size >= app2D.max_brush) this.brush_size = app2D.max_brush
+    this.neural_app.brush_node.nodeValue = this.brush_size.toFixed(0).toString()
+    this.set_brush(this.brush_size)
   }
 
   private create_setup_texture(gl: WebGL2RenderingContext): WebGLTexture
