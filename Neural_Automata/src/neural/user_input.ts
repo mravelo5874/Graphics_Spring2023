@@ -3,12 +3,16 @@ import { neural } from './neural.js'
 import { Vec3 } from '../lib/TSM.js'
 import { colormap, volume_type } from './app3D.js'
 import  Rand  from "../lib/rand-seed/Rand.js"
+import { app2D } from './app2D.js'
+import { utils } from './utils.js'
 
 export class user_input
 {
     private neural_app: neural
     public mouse_down: boolean = false
     private key_lock: boolean = false
+    private can_randomize: boolean = true
+    private can_reset: boolean = true
     private prev_x: number
     private prev_y: number
 
@@ -36,91 +40,6 @@ export class user_input
         if (this.key_lock) return
         this.key_lock = true
 
-        // switch (key.code) 
-        // {
-        //     // switch between 2d and 3d app
-        //     case 'Space':
-        //         this.neural_app.toggle_apps()
-        //         break
-        //     // toggle modes
-        //     case 'ShiftLeft':
-        //         switch (this.neural_app.curr_app)
-        //         {
-        //             case 'app2d':
-        //                 this.neural_app.app2d.toggle_shader()
-        //                 break
-        //             case 'app3d':
-        //                 this.neural_app.app3d.toggle_colormap()
-        //                 break
-        //         }
-        //         break
-        //     case 'ControlLeft':
-        //         switch (this.neural_app.curr_app)
-        //         {
-        //             case 'app2d':
-        //                 this.neural_app.app2d.toggle_automata()
-        //                 break
-        //             case 'app3d':
-        //                 this.neural_app.app3d.toggle_volume()
-        //                 break
-        //         }
-        //         break
-        //     case 'KeyR': 
-        //         switch (this.neural_app.curr_app)
-        //         {
-        //             case 'app2d':
-        //                 this.neural_app.app2d.reset()
-        //                 break
-        //             case 'app3d':
-        //                 this.neural_app.app3d.reset()
-        //                 break
-        //         }
-        //         break
-        //     case 'KeyP':
-        //         switch (this.neural_app.curr_app)
-        //         {
-        //             case 'app2d':
-        //                 this.neural_app.app2d.toggle_pause()
-        //                 break
-        //             case 'app3d':
-        //                 this.neural_app.app3d.toggle_pause()
-        //                 break
-        //         }
-        //         break
-        //     case 'Backquote':
-        //         if (this.neural_app.curr_app == 'app2d')
-        //             this.neural_app.app2d.reset(automata.cgol)
-        //         break
-        //     case 'ArrowUp':
-        //         if (this.neural_app.curr_app == 'app3d')
-        //             this.neural_app.app3d.camera_zoom(-20)
-        //         break
-        //     case 'ArrowDown':
-        //         if (this.neural_app.curr_app == 'app3d')
-        //             this.neural_app.app3d.camera_zoom(20)
-        //         break
-        //     case 'ArrowLeft':
-        //         switch (this.neural_app.curr_app)
-        //         {
-        //             case 'app2d':
-        //                 this.neural_app.app2d.go_left()
-        //                 break
-        //             case 'app3d':
-        //                 this.neural_app.app3d.go_left()
-        //                 break
-        //         }
-        //         break
-        //     case 'ArrowRight':
-        //         switch (this.neural_app.curr_app)
-        //         {
-        //             case 'app2d':
-        //                 this.neural_app.app2d.go_right()
-        //                 break
-        //             case 'app3d':
-        //                 this.neural_app.app3d.go_right()
-        //                 break
-        //         }
-        //         break
         //     case 'KeyZ':
         //         switch (this.neural_app.curr_app)
         //         {
@@ -130,10 +49,6 @@ export class user_input
         //                 break
         //         }
         //         break
-        //     default:
-        //         console.log('Key : \'', key.code, '\' was pressed.');
-        //         break
-        // }
     }
 
     public toggle_shade(rev: boolean)
@@ -168,6 +83,9 @@ export class user_input
 
     public reset()
     {
+        if (!this.can_reset) return
+        this.can_reset = false
+
         switch (this.neural_app.curr_app)
         {
             case 'app2d':
@@ -177,6 +95,12 @@ export class user_input
                 this.neural_app.app3d.reset()
                 break
         }
+
+         // add delay between randomizations
+         (async () => { 
+            await utils.delay(500)
+            this.can_reset = true
+        })();
     }
 
     public toggle_pause()
@@ -194,6 +118,9 @@ export class user_input
 
     public randomize()
     {
+        if (!this.can_randomize) return
+        this.can_randomize = false
+
         let rng = new Rand(Date.now().toString())
         // determin between 2d and 3d
         if (rng.next() > 0.5)
@@ -202,7 +129,7 @@ export class user_input
             this.neural_app.set_3d()
             // randomize automata
             let auto = Math.floor(rng.next() * (volume_type.END - 1))
-            this.neural_app.app3d.reset(auto)
+            this.neural_app.app3d.reset(auto, false)
             // randomize shade
             let color = Math.floor(rng.next() * (colormap.END - 1))
             this.neural_app.app3d.set_colormap(color)
@@ -217,6 +144,19 @@ export class user_input
             let shade = Math.floor(rng.next() * (shader_mode.END - 1))
             this.neural_app.app2d.reset(auto, shade)
         }
+
+        // randomize brush
+        let brush = rng.next() * app2D.max_brush
+        this.neural_app.app2d.set_brush(brush)
+        // randomize zoom
+        let zoom = rng.next() * this.neural_app.app3d.max_zoom
+        this.neural_app.app3d.set_zoom(zoom);
+
+        // add delay between randomizations
+        (async () => { 
+            await utils.delay(500)
+            this.can_randomize = true
+        })();
     }
 
     private on_key_up(key: KeyboardEvent)

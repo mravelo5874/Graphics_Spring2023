@@ -51,7 +51,6 @@ class app2D {
         this.auto = automata.worms;
         this.canvas = _neural.canvas;
         this.context = _neural.context;
-        this.set_brush(this.brush_size);
     }
     // ####################
     // MAIN WEBGL FUNCTIONS
@@ -60,7 +59,6 @@ class app2D {
         this.auto = auto;
         this.mode = mode;
         let gl = this.context;
-        this.neural_app.brush_node.nodeValue = this.brush_size.toFixed(0).toString();
         gl.disable(gl.CULL_FACE);
         gl.disable(gl.DEPTH_TEST);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -360,6 +358,8 @@ class app2D {
             this.brush_1[i] = rng.next() * 255;
             this.brush_0[i] = 0;
         }
+        // set node value
+        this.neural_app.brush_node.nodeValue = this.brush_size.toFixed(0).toString();
     }
     randomize_brush() {
         let arr_size = this.brush_size * this.brush_size * 4;
@@ -447,7 +447,6 @@ class app2D {
             this.brush_size = 0;
         if (this.brush_size >= app2D.max_brush)
             this.brush_size = app2D.max_brush;
-        this.neural_app.brush_node.nodeValue = this.brush_size.toFixed(0).toString();
         this.set_brush(this.brush_size);
     }
     create_setup_texture(gl) {

@@ -36,8 +36,8 @@ export class app2D
   private framebuffers: WebGLFramebuffer[]
 
   // brush stuff
-  private static max_brush: number = 250
-  private brush_size: number = 100
+  public static max_brush: number = 250
+  public brush_size: number = 100
   private brush_1: Uint8Array
   private brush_0: Uint8Array
   
@@ -48,7 +48,6 @@ export class app2D
     this.auto = automata.worms
     this.canvas = _neural.canvas
     this.context = _neural.context
-    this.set_brush(this.brush_size)
   }
 
   // ####################
@@ -60,7 +59,6 @@ export class app2D
     this.auto = auto
     this.mode = mode
     let gl = this.context
-    this.neural_app.brush_node.nodeValue = this.brush_size.toFixed(0).toString()
 
     gl.disable(gl.CULL_FACE)
     gl.disable(gl.DEPTH_TEST)
@@ -402,8 +400,8 @@ export class app2D
   // BRUSH DRAW / ERASE FUNCTIONS
   // ############################
 
-  private set_brush(size) 
-  {
+  public set_brush(size: number): void 
+  {  
 		this.brush_size = size
 		let arr_size = size*size*4
 		this.brush_1 = new Uint8Array(arr_size)
@@ -414,6 +412,9 @@ export class app2D
 			this.brush_1[i] = rng.next() * 255;
 			this.brush_0[i] = 0;
 		}
+
+    // set node value
+    this.neural_app.brush_node.nodeValue = this.brush_size.toFixed(0).toString()
 	}
 
   private randomize_brush()
@@ -526,7 +527,6 @@ export class app2D
     this.brush_size += delta
     if (this.brush_size <= 0) this.brush_size = 0
     if (this.brush_size >= app2D.max_brush) this.brush_size = app2D.max_brush
-    this.neural_app.brush_node.nodeValue = this.brush_size.toFixed(0).toString()
     this.set_brush(this.brush_size)
   }
 

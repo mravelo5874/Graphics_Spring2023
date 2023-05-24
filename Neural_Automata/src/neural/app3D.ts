@@ -32,12 +32,13 @@ export class app3D
 
     // camera
     public camera: Camera
+    private zoom: number = 3.0
     public cam_sense: number = 0.25
     public rot_speed: number = 0.03
     public zoom_speed: number = 0.005
 
-    private min_zoom: number = 1
-    private max_zoom: number = 12
+    public min_zoom: number = 0.0
+    public max_zoom: number = 8.0
 
     // geometry
     public cube: cube
@@ -167,18 +168,36 @@ export class app3D
         }
     }
 
-    public camera_zoom(zoom: number)
+    public camera_zoom(_zoom: number)
     {
         let dist: number = this.camera.distance()
 
         // do not zoom if too far away or too close
-        if (dist > this.max_zoom && zoom > 0)
+        if (dist + (_zoom*this.zoom_speed) > this.max_zoom)
             return
-        else if (dist < this.min_zoom && zoom < 0)
+        else if (dist + (_zoom*this.zoom_speed) < this.min_zoom)
             return
 
         // offset camera
-        this.camera.offsetDist(zoom* this.zoom_speed)
+        this.camera.offsetDist(_zoom*this.zoom_speed)
+        this.zoom = this.camera.distance()
+        this.neural_app.zoom_node.nodeValue = this.zoom.toFixed(2).toString()
+    }
+
+    public set_zoom(_zoom: number)
+    {
+        this.zoom = _zoom
+        // offset camera
+        this.camera = new Camera(
+            new Vec3([0, 0, -this.zoom]),
+            new Vec3([0, 0, 0]),
+            new Vec3([0, 1, 0]),
+            45,
+            this.canvas.width / this.canvas.height,
+            0.1,
+            1000.0
+        )
+        this.neural_app.zoom_node.nodeValue = this.zoom.toFixed(2).toString()
     }
 
     public toggle_volume()
@@ -337,33 +356,10 @@ export class app3D
         let gl = this.context
         gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 
+        // reset camera
         if (_reset_cam)
         {
-            // reset camera
-            if (this.canvas.width >= 600) 
-            {
-                this.camera = new Camera(
-                    new Vec3([0, 0,-2]),
-                    new Vec3([0, 0, 0]),
-                    new Vec3([0, 1, 0]),
-                    45,
-                    this.canvas.width / this.canvas.height,
-                    0.1,
-                    1000.0
-                )
-            }
-            else if (this.canvas.width <= 600)
-            {
-                this.camera = new Camera(
-                    new Vec3([0, 0,-4]),
-                    new Vec3([0, 0, 0]),
-                    new Vec3([0, 1, 0]),
-                    45,
-                    this.canvas.width / this.canvas.height,
-                    0.1,
-                    1000.0
-                )
-            }
+            this.set_zoom(this.zoom)
         }
         
         // program

@@ -45,11 +45,12 @@ export class app3D {
     context;
     // camera
     camera;
+    zoom = 3.0;
     cam_sense = 0.25;
     rot_speed = 0.03;
     zoom_speed = 0.005;
-    min_zoom = 1;
-    max_zoom = 12;
+    min_zoom = 0.0;
+    max_zoom = 8.0;
     // geometry
     cube;
     volume;
@@ -154,15 +155,23 @@ export class app3D {
             this.auto_volume.stop_neural();
         }
     }
-    camera_zoom(zoom) {
+    camera_zoom(_zoom) {
         let dist = this.camera.distance();
         // do not zoom if too far away or too close
-        if (dist > this.max_zoom && zoom > 0)
+        if (dist + (_zoom * this.zoom_speed) > this.max_zoom)
             return;
-        else if (dist < this.min_zoom && zoom < 0)
+        else if (dist + (_zoom * this.zoom_speed) < this.min_zoom)
             return;
         // offset camera
-        this.camera.offsetDist(zoom * this.zoom_speed);
+        this.camera.offsetDist(_zoom * this.zoom_speed);
+        this.zoom = this.camera.distance();
+        this.neural_app.zoom_node.nodeValue = this.zoom.toFixed(2).toString();
+    }
+    set_zoom(_zoom) {
+        this.zoom = _zoom;
+        // offset camera
+        this.camera = new Camera(new Vec3([0, 0, -this.zoom]), new Vec3([0, 0, 0]), new Vec3([0, 1, 0]), 45, this.canvas.width / this.canvas.height, 0.1, 1000.0);
+        this.neural_app.zoom_node.nodeValue = this.zoom.toFixed(2).toString();
     }
     toggle_volume() {
         let v = this.volume;
@@ -303,14 +312,9 @@ export class app3D {
         // get context
         let gl = this.context;
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        // reset camera
         if (_reset_cam) {
-            // reset camera
-            if (this.canvas.width >= 600) {
-                this.camera = new Camera(new Vec3([0, 0, -2]), new Vec3([0, 0, 0]), new Vec3([0, 1, 0]), 45, this.canvas.width / this.canvas.height, 0.1, 1000.0);
-            }
-            else if (this.canvas.width <= 600) {
-                this.camera = new Camera(new Vec3([0, 0, -4]), new Vec3([0, 0, 0]), new Vec3([0, 1, 0]), 45, this.canvas.width / this.canvas.height, 0.1, 1000.0);
-            }
+            this.set_zoom(this.zoom);
         }
         // program
         let frag = simple_3d_fragment;

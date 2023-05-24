@@ -48,6 +48,10 @@
     padding-right: 0.7em;
     padding-bottom: 0.5em;
   }
+  .ui_button:hover {
+    background-color: rgba(255, 255, 255, 0.85);
+    color: black;
+  }
   .small_button {
     background-color: rgba(0, 0, 0, 0.85);
     margin-top: 0.25em;
@@ -63,6 +67,10 @@
     padding-left: 0.2em;
     padding-right: 0.2em;
     padding-bottom: 0.1em;
+  }
+  .small_button:hover {
+    background-color: rgba(255, 255, 255, 0.85);
+    color: black;
   }
   #ui_window {
     scale: 0%; /* start closed */
@@ -106,11 +114,12 @@
     align-items: center;
   }
   #ui_labels {
-    width: 175px;
+    width: 165px;
     text-align: center;
+    margin-bottom: 0.5em;
   }
   .ui_label {
-    margin-top: 0.5em;
+    margin-top: 0.6em;
   }
 
   /* MOBILE */
@@ -136,6 +145,7 @@
       <button id="b-" class="small_button"><</button>
       <button id="c-" class="small_button"><</button>
       <button id="d-" class="small_button"><</button>
+      <button id="e-" class="small_button"><</button>
     </div>
     <div id="ui_column">
       <div id="ui_labels">
@@ -143,6 +153,7 @@
         <div class="ui_label">mode: <span id="mode" style="color:rgb(255, 208, 0)"></span></div>
         <div class="ui_label">shade: <span id="shade" style="color:rgb(255, 136, 0)"></span></div>
         <div class="ui_label">brush: <span id="brush" style="color:rgb(255, 72, 0)"></span></div>
+        <div class="ui_label">zoom: <span id="zoom" style="color:rgb(189, 118, 255)"></span></div>
       </div>
     </div>
     <div id="ui_column">
@@ -150,11 +161,15 @@
       <button id="b+" class="small_button">></button>
       <button id="c+" class="small_button">></button>
       <button id="d+" class="small_button">></button>
+      <button id="e+" class="small_button">></button>
     </div>
   </div>
   
   <div id="ui_row">
     <button id="randomize_button" class="ui_button">randomize!</button>
+  </div>
+
+  <div id="ui_row">
     <button id="pause_button" class="ui_button">pause</button>
     <button id="reset_button" class="ui_button">reset</button>
   </div>
@@ -169,24 +184,7 @@
     </div>
   </div>
 </div>
-<button id="main_button" class="ui_button">i</button>
-
-
-<div id="overlay_info">
-</div>
-<button id="random_button">RANDOMIZE!</button>
-<div id="overlay_user">
-  <div style="font-size:16px;color:rgb(161, 120, 255);">[controls]</div>
-  <div style="font-size:16px"><span style="color:rgb(0, 255, 0)">left ctrl:</span> change automata</div>
-  <div style="font-size:16px"><span style="color:rgb(255, 208, 0)">left shift:</span> change shade</div>
-  <div style="font-size:16px"><span style="color:rgb(255, 136, 0)">space:</span> swap 2D/3D </div>
-  <div style="font-size:16px"><span style="color:rgb(0, 183, 255)">mouse:</span> interact</div>
-  <div style="font-size:16px"><span style="color:rgb(108, 130, 255)">arrows:</span> stuff</div>
-  <div style="font-size:16px"><span style="color:rgb(255, 0, 234)">p:</span> stop/start</div>
-  <div style="font-size:16px"><span style="color:rgb(255, 0, 106)">r:</span> reset</div>
-  <div style="font-size:16px"><a target="_blank" href="paper.pdf"><p style="color:rgb(255, 255, 255)">[read paper]</p></a></div>
-</div>
-
+<button id="main_button" class="ui_button">gui</button>
 
 <script>var exports = {};</script>
 <script type="module" src="./index.js"></script>

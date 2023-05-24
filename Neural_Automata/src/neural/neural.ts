@@ -41,6 +41,7 @@ export class neural
     public shade_node: Text;
     public mode_node: Text;
     public brush_node: Text;
+    public zoom_node: Text;
     public fps_node: Text;
     public res_node: Text;
 
@@ -88,6 +89,12 @@ export class neural
         brush_element?.appendChild(this.brush_node)
         this.brush_node.nodeValue = ''
 
+        // add zoom text element to screen
+        const zoom_element = document.querySelector("#zoom")
+        this.zoom_node = document.createTextNode("")
+        zoom_element?.appendChild(this.zoom_node)
+        this.zoom_node.nodeValue = ''
+
         // add fps text element to screen
         const fps_element = document.querySelector("#fps")
         this.fps_node = document.createTextNode("")
@@ -130,12 +137,14 @@ export class neural
         main_btn.addEventListener("click", () => {
             this.toggle_ui_window()
         });
-        
-        
+
+        // setup ui buttons
         this.setup_ui_buttons()
 
         // start apps 🧨
+        this.app3d.start()
         this.app2d.start()
+        this.app2d.set_brush(this.app2d.brush_size)
     }
 
     public get_delta_time(): number { return this.curr_delta_time }
@@ -144,7 +153,7 @@ export class neural
     public set_2d()
     {
         this.resize_canvas_to_display_size(this.canvas);
-        this.mode_node.nodeValue = '2D'
+        this.mode_node.nodeValue = 'app2D'
         this.curr_app = 'app2d'
         this.app3d.end()
         this.app2d.start()
@@ -153,7 +162,7 @@ export class neural
     public set_3d()
     {
         this.resize_canvas_to_display_size(this.canvas);
-        this.mode_node.nodeValue = '3D'
+        this.mode_node.nodeValue = 'app3D'
         this.curr_app = 'app3d'
         this.app2d.end()
         this.app3d.start()
@@ -332,6 +341,12 @@ export class neural
         d_0.addEventListener("click", () => { this.app2d.delta_brush(-10) });
         var d_1 = document.getElementById("d+") as HTMLButtonElement
         d_1.addEventListener("click", () => { this.app2d.delta_brush(10) });
+
+        // brush buttons
+        var e_0 = document.getElementById("e-") as HTMLButtonElement
+        e_0.addEventListener("click", () => { this.app3d.camera_zoom(-20) });
+        var e_1 = document.getElementById("e+") as HTMLButtonElement
+        e_1.addEventListener("click", () => { this.app3d.camera_zoom(20) });
     }
 }
 
