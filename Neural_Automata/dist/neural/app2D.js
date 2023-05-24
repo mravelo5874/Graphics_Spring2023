@@ -32,7 +32,6 @@ class app2D {
     canvas;
     context;
     pause = false;
-    step = false;
     mode;
     auto;
     program;
@@ -215,7 +214,6 @@ class app2D {
         gl.uniform1f(time_loc, 0.0);
         // set step uniform
         const step_loc = gl.getUniformLocation(this.program, 'u_step');
-        this.step = true;
         gl.uniform1f(step_loc, 1);
         // set pause uniform
         const pause_loc = gl.getUniformLocation(this.program, 'u_pause');

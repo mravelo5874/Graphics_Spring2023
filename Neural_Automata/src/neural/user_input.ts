@@ -98,7 +98,7 @@ export class user_input
 
          // add delay between randomizations
          (async () => { 
-            await utils.delay(500)
+            await utils.delay(100)
             this.can_reset = true
         })();
     }
@@ -154,7 +154,7 @@ export class user_input
 
         // add delay between randomizations
         (async () => { 
-            await utils.delay(500)
+            await utils.delay(100)
             this.can_randomize = true
         })();
     }

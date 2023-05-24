@@ -24,7 +24,6 @@ export class app2D
   public canvas: HTMLCanvasElement
   private context: WebGL2RenderingContext
   private pause: boolean = false
-  private step: boolean = false
   public mode: shader_mode
   public auto: automata
   
@@ -237,7 +236,6 @@ export class app2D
     
     // set step uniform
     const step_loc = gl.getUniformLocation(this.program, 'u_step')
-    this.step = true
     gl.uniform1f(step_loc, 1)
 
     // set pause uniform

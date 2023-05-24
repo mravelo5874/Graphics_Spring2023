@@ -88,7 +88,7 @@ export class user_input {
         }
         // add delay between randomizations
         (async () => {
-            await utils.delay(500);
+            await utils.delay(100);
             this.can_reset = true;
         })();
     }
@@ -135,7 +135,7 @@ export class user_input {
         this.neural_app.app3d.set_zoom(zoom);
         // add delay between randomizations
         (async () => {
-            await utils.delay(500);
+            await utils.delay(100);
             this.can_randomize = true;
         })();
     }
