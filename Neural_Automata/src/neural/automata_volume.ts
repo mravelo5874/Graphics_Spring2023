@@ -23,9 +23,7 @@ export class automata_volume
     private perlin_running: boolean = false
 
     // rules stuff
-    private static WORKER_DEPTH: number = 2
-    private rule_workers: Worker[]
-    private rule_worker_bounds: Vec3[][]
+    private rule_worker: Worker
     private rule_running: boolean = false
 
     // neural stuff
@@ -60,15 +58,7 @@ export class automata_volume
     public destroy():void 
     {
         if (this.neural_worker) this.neural_worker.terminate()
-
-        // terminate rule workers
-        for (let i = 0; i < this.rule_workers.length; i++)
-        {
-            if (this.rule_workers[i]) this.rule_workers[i].terminate()
-        }
-        this.rule_workers = []
-        
-        
+        if (this.rule_worker) this.rule_worker.terminate()
         if (this.perlin_worker) this.perlin_worker.terminate()
     }
 
@@ -377,74 +367,31 @@ export class automata_volume
         if (!this.rule_running)
         {
             this.init_rule_cells()
-            // terminate rule workers and 
-            for (let i = 0; i < this.rule_workers.length; i++)
-            {
-                if (this.rule_workers[i]) this.rule_workers[i].terminate()
-            }
-            this.rule_workers = []
-            // instantiate new rule workers
-            this.recurrsive_assign_workers(automata_volume.WORKER_DEPTH, Vec3.zero, new Vec3([this.size, this.size, this.size]));
-
+            if (this.rule_worker) this.rule_worker.terminate()
+            this.rule_worker = new Worker('neural/workers/rule_worker.js', {type: 'module'})
             this.rule_running = true
             this.rule_loop()
         }
-    }
-
-    private recurrsive_assign_workers(depth: number, min_bv: Vec3, max_bv: Vec3)
-    {
-        // split cube volume into 8 smaller cubes
-        const min: Vec3 = min_bv.copy()
-        const max: Vec3 = max_bv.copy()
-        const cen: Vec3 = max_bv.copy().add(min_bv.copy()).scale(0.5);
-        this.rule_worker_bounds = []
-        
-        // TODO this...
-        // worker 0
-        var worker0 = new Worker('neural/workers/rule_worker.js', {type: 'module'})
-        this.rule_workers.push(worker0)
-        this.rule_worker_bounds[0] = []
-        this.rule_worker_bounds[0].push(min.copy())
-        this.rule_worker_bounds[0].push(cen.copy())
-
-        // worker 1
-        var worker1 = new Worker('neural/workers/rule_worker.js', {type: 'module'})
-        this.rule_workers.push(worker1)
-        this.rule_worker_bounds[1] = []
-        this.rule_worker_bounds[1].push(min.copy())
-        this.rule_worker_bounds[1].push(cen.copy())
-
-
-
-        var worker2 = new Worker('neural/workers/rule_worker.js', {type: 'module'})
-        
-        this.rule_workers.push(worker2)
-
-
     }
 
     private rule_loop()
     {
         if (!this.rule_running) return
 
-        for (let i = 0; i < this.rule_workers.length; i++)
-        {
-            this.rule_workers[i].postMessage([i, this.size, this.cells, this.my_rule, this.volume])
-        }
-        
-        // this.rule_worker.onmessage = (event) => 
-        // {   
-        //     if (this.rule_running)
-        //     {
-        //         // recieve message from worker and update volume
-        //         this.cells = event.data[0]
-        //         this.volume = event.data[1]
-        //         this.create_uint8()
+        this.rule_worker.postMessage([this.size, this.cells, this.my_rule, this.volume])
+        this.rule_worker.onmessage = (event) => 
+        {   
+            if (this.rule_running)
+            {
+                // recieve message from worker and update volume
+                this.cells = event.data[0]
+                this.volume = event.data[1]
+                this.create_uint8()
 
-        //         // start again
-        //         this.rule_loop()
-        //     }
-        // }
+                // start again
+                this.rule_loop()
+            }
+        }
     }
 
     public stop_rule(): void
@@ -452,12 +399,7 @@ export class automata_volume
         if (this.rule_running)
         {
             this.rule_running = false
-            // terminate rule workers
-            for (let i = 0; i < this.rule_workers.length; i++)
-            {
-                if (this.rule_workers[i]) this.rule_workers[i].terminate()
-            }
-            this.rule_workers = []
+            this.rule_worker.terminate()
             // clear volume and cells
             this.volume = this.create_empty_volume(this.size)
             this.cells = this.create_empty_volume(this.size)

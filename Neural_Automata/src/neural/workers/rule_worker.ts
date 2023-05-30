@@ -3,11 +3,10 @@ import { rule, neighborhood_type } from "../rules.js"
 
 onmessage = function(event)
 {
-    const work_index = event.data[0]
-    const size: number = event.data[1]
-    const cells: number[][][] = event.data[2]
-    const my_rule: rule = event.data[3]
-    const volume: number[][][] = event.data[4]
+    const size: number = event.data[0]
+    const cells: number[][][] = event.data[1]
+    const my_rule: rule = event.data[2]
+    const volume: number[][][] = event.data[3]
 
     const moore_offsets: Vec3[] = [
         new Vec3([-1, -1, -1]),
@@ -114,8 +113,6 @@ onmessage = function(event)
         }
     }
     update = c
-
-    // TODO: change range of calculations to subset of cube based on worker index
 
     let change: boolean = false
     for (let x = 0; x < size; x++)
