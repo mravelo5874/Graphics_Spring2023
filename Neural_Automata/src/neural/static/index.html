@@ -21,7 +21,17 @@
     width: 100vw;
     height: 100vh;
   }
-  #main_button {
+  #ui_2d_button {
+     /* margin */
+     margin-right: 0em;
+     margin-top: 0em;
+ 
+     /* position */
+     position: absolute;
+     bottom:0px;
+     right:0px;
+  }
+  #gui_button {
     /* margin */
     margin-left: 0em;
     margin-top: 0em;
@@ -72,8 +82,8 @@
     background-color: rgba(255, 255, 255, 0.85);
     color: black;
   }
-  #ui_window {
-    scale: 0%; /* start closed */
+
+  .ui_window {
     background-color: rgba(0, 0, 0, 0.85);
 
     /* text */
@@ -87,33 +97,44 @@
     padding-left: 2em;
     padding-right: 2em;
     padding-bottom: 3em;
-    
-    /* position */
-    position: absolute;
-    bottom:0px;
-    left:0px;
 
     /* border */
     border: 2px;
     border-style: solid;
     border-color: white;
-    border-radius:5%;    
+    border-radius:5%;
   }
-  #ui_row {
+  #ui_2d_window {
+    scale: 0%; /* start closed */
+
+    /* position */
+    position: absolute;
+    bottom:0px;
+    right:0px;
+  }
+  #gui_window {
+    scale: 100%; /* start opened */
+
+    /* position */
+    position: absolute;
+    bottom:0px;
+    left:0px;
+  }
+  .ui_row {
     /* flex */
     display: flex;
     flex-direction: row;
     justify-content: center;
     align-items: center;
   }
-  #ui_column {
+  .ui_column {
     /* flex */
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
   }
-  #ui_labels {
+  .ui_labels {
     width: 165px;
     text-align: center;
     margin-bottom: 0.5em;
@@ -138,17 +159,17 @@
 
 <body>
 <canvas id="canvas"></canvas>
-<div id="ui_window">
-  <div id="ui_row">
-    <div id="ui_column">
+<div id="gui_window" class="ui_window">
+  <div class="ui_row">
+    <div class="ui_column">
       <button id="a-" class="small_button"><</button>
       <button id="b-" class="small_button"><</button>
       <button id="c-" class="small_button"><</button>
       <button id="d-" class="small_button"><</button>
       <button id="e-" class="small_button"><</button>
     </div>
-    <div id="ui_column">
-      <div id="ui_labels">
+    <div class="ui_column">
+      <div class="ui_labels">
         <div class="ui_label">auto: <span id="auto" style="color:rgb(0, 255, 0)"></span></div>
         <div class="ui_label">mode: <span id="mode" style="color:rgb(255, 208, 0)"></span></div>
         <div class="ui_label">shade: <span id="shade" style="color:rgb(255, 136, 0)"></span></div>
@@ -156,7 +177,7 @@
         <div class="ui_label">zoom: <span id="zoom" style="color:rgb(189, 118, 255)"></span></div>
       </div>
     </div>
-    <div id="ui_column">
+    <div class="ui_column">
       <button id="a+" class="small_button">></button>
       <button id="b+" class="small_button">></button>
       <button id="c+" class="small_button">></button>
@@ -165,26 +186,37 @@
     </div>
   </div>
   
-  <div id="ui_row">
+  <div class="ui_row">
     <button id="randomize_button" class="ui_button">randomize!</button>
   </div>
 
-  <div id="ui_row">
+  <div class="ui_row">
     <button id="pause_button" class="ui_button">pause</button>
     <button id="reset_button" class="ui_button">reset</button>
   </div>
 
   <br/>
 
-  <div id="ui_row">
-    <div id="ui_column">
+  <div class="ui_row">
+    <div class="ui_column">
       <div style="font-size:16px;text-align:left;">res: <span id="res" style="color:rgb(0, 183, 255)"></span></div>
       <div style="font-size:16px;text-align:left;">fps: <span id="fps" style="color:rgb(255, 0, 234)"></span></div>
       <div id="paper_button" style="font-size:16px"><a target="_blank" href="paper.pdf"><p style="color:rgb(255, 255, 255);margin-block-start:0.5em;margin-block-end:0em;">[read paper]</p></a></div>
     </div>
   </div>
 </div>
-<button id="main_button" class="ui_button">gui</button>
+<button id="gui_button" class="ui_button">gui</button>
+
+<div id="ui_2d_window" class="ui_window">
+  <div class="ui_row">
+    <div class="ui_column">
+      <button class="small_button">x</button>
+      <button class="small_button">y</button>
+      <button class="small_button">z</button>
+    </div>
+  </div>
+</div>
+<button id="ui_2d_button" class="ui_button">2d</button>
 
 <script>var exports = {};</script>
 <script type="module" src="./index.js"></script>

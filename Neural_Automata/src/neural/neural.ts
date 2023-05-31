@@ -131,9 +131,9 @@ export class neural
         });
 
         // handle ui button
-        this.ui_open = false
-        this.ui_window = document.getElementById("ui_window") as HTMLDivElement
-        var main_btn = document.getElementById("main_button") as HTMLButtonElement
+        this.ui_open = true
+        this.ui_window = document.getElementById("gui_window") as HTMLDivElement
+        var main_btn = document.getElementById("gui_button") as HTMLButtonElement
         main_btn.addEventListener("click", () => {
             this.toggle_ui_window()
         });

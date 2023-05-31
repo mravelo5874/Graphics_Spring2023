@@ -6,6 +6,7 @@ import { acid_vertex, acid_fragment } from './shaders/acid_shader.js'
 import { kernels_2d } from './kernels_2d.js'
 import { activations_2d } from './activations_2d.js'
 import { neural } from './neural.js'
+import { ui_2d } from './ui/ui_2d.js'
 import  Rand  from "../lib/rand-seed/Rand.js"
 
 export enum automata
@@ -34,6 +35,8 @@ export class app2D
   private textures: WebGLTexture[]
   private framebuffers: WebGLFramebuffer[]
 
+  public ui: ui_2d
+
   // brush stuff
   public static max_brush: number = 250
   public brush_size: number = 100
@@ -47,6 +50,9 @@ export class app2D
     this.auto = automata.worms
     this.canvas = _neural.canvas
     this.context = _neural.context
+
+    // set ui
+    this.ui = new ui_2d(this.canvas)
   }
 
   // ####################

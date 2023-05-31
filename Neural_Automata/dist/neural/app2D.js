@@ -5,6 +5,7 @@ import { bnw_vertex, bnw_fragment } from './shaders/bnw_shader.js';
 import { acid_vertex, acid_fragment } from './shaders/acid_shader.js';
 import { kernels_2d } from './kernels_2d.js';
 import { activations_2d } from './activations_2d.js';
+import { ui_2d } from './ui/ui_2d.js';
 import Rand from "../lib/rand-seed/Rand.js";
 export var automata;
 (function (automata) {
@@ -39,6 +40,7 @@ class app2D {
     buffer;
     textures;
     framebuffers;
+    ui;
     // brush stuff
     static max_brush = 250;
     brush_size = 100;
@@ -50,6 +52,8 @@ class app2D {
         this.auto = automata.worms;
         this.canvas = _neural.canvas;
         this.context = _neural.context;
+        // set ui
+        this.ui = new ui_2d(this.canvas);
     }
     // ####################
     // MAIN WEBGL FUNCTIONS
