@@ -1,12 +1,13 @@
 export class ui_2d {
     ui_open;
     ui_window;
+    ui_button;
     constructor(canvas) {
         // handle ui button
         this.ui_open = false;
         this.ui_window = document.getElementById("ui_2d_window");
-        var main_btn = document.getElementById("ui_2d_button");
-        main_btn.addEventListener("click", () => {
+        this.ui_button = document.getElementById("ui_2d_button");
+        this.ui_button.addEventListener("click", () => {
             this.toggle_ui_window();
         });
     }

@@ -4,6 +4,8 @@ import { user_input } from './user_input.js';
 import { webgl_util } from './webgl_util.js';
 import { utils } from './utils.js';
 import { Vec4 } from "../lib/TSM.js";
+import { info_ui } from './ui/info_ui.js';
+import { option_ui } from './ui/option_ui.js';
 // http-server dist -c-1
 // this is the main program where everything happens 
 export class neural {
@@ -26,16 +28,9 @@ export class neural {
     // used for canvas resize
     resize_observer;
     static canvas_to_disp_size;
-    // ui nodes
-    ui_window;
-    ui_open;
-    auto_node;
-    shade_node;
-    mode_node;
-    brush_node;
-    zoom_node;
-    fps_node;
-    res_node;
+    // ui windows
+    info_ui;
+    option_ui;
     constructor() {
         // canvas & context 🎵
         this.canvas = document.getElementById('canvas');
@@ -53,41 +48,9 @@ export class neural {
         this.prev_fps_time = Date.now();
         this.curr_delta_time = 0;
         this.fps = 0;
-        // add automata text element to screen
-        const auto_element = document.querySelector("#auto");
-        this.auto_node = document.createTextNode("");
-        auto_element?.appendChild(this.auto_node);
-        this.auto_node.nodeValue = '';
-        // add shader text element to screen
-        const shade_element = document.querySelector("#shade");
-        this.shade_node = document.createTextNode("");
-        shade_element?.appendChild(this.shade_node);
-        this.shade_node.nodeValue = '';
-        // add mode text element to screen
-        const mode_element = document.querySelector("#mode");
-        this.mode_node = document.createTextNode("");
-        mode_element?.appendChild(this.mode_node);
-        this.mode_node.nodeValue = '';
-        // add brush text element to screen
-        const brush_element = document.querySelector("#brush");
-        this.brush_node = document.createTextNode("");
-        brush_element?.appendChild(this.brush_node);
-        this.brush_node.nodeValue = '';
-        // add zoom text element to screen
-        const zoom_element = document.querySelector("#zoom");
-        this.zoom_node = document.createTextNode("");
-        zoom_element?.appendChild(this.zoom_node);
-        this.zoom_node.nodeValue = '';
-        // add fps text element to screen
-        const fps_element = document.querySelector("#fps");
-        this.fps_node = document.createTextNode("");
-        fps_element?.appendChild(this.fps_node);
-        this.fps_node.nodeValue = '';
-        // add res text element to screen
-        const res_element = document.querySelector("#res");
-        this.res_node = document.createTextNode("");
-        res_element?.appendChild(this.res_node);
-        this.res_node.nodeValue = '';
+        // set ui
+        this.info_ui = new info_ui(this.canvas);
+        this.option_ui = new option_ui(this.canvas);
         // handle canvas resize
         neural.canvas_to_disp_size = new Map([[this.canvas, [512, 512]]]);
         this.resize_observer = new ResizeObserver(this.on_resize);
@@ -107,13 +70,6 @@ export class neural {
         reset_btn.addEventListener("click", () => {
             this.user_input.reset();
         });
-        // handle ui button
-        this.ui_open = true;
-        this.ui_window = document.getElementById("gui_window");
-        var main_btn = document.getElementById("gui_button");
-        main_btn.addEventListener("click", () => {
-            this.toggle_ui_window();
-        });
         // setup ui buttons
         this.setup_ui_buttons();
         // start apps 🧨
@@ -125,29 +81,20 @@ export class neural {
     get_elapsed_time() { return Date.now() - this.start_time; }
     set_2d() {
         this.resize_canvas_to_display_size(this.canvas);
-        this.mode_node.nodeValue = 'app2D';
+        this.option_ui.mode_node.nodeValue = 'app2D';
         this.curr_app = 'app2d';
         this.app3d.end();
         this.app2d.start();
     }
     set_3d() {
         this.resize_canvas_to_display_size(this.canvas);
-        this.mode_node.nodeValue = 'app3D';
+        this.option_ui.mode_node.nodeValue = 'app3D';
         this.curr_app = 'app3d';
         this.app2d.end();
         this.app3d.start();
     }
     start_render() {
         window.requestAnimationFrame(() => this.draw_loop());
-    }
-    toggle_ui_window() {
-        this.ui_open = !this.ui_open;
-        if (this.ui_open) {
-            this.ui_window.style.cssText = 'scale:100%;';
-        }
-        else {
-            this.ui_window.style.cssText = 'scale:0%;';
-        }
     }
     draw_loop() {
         // update canvas size
@@ -186,7 +133,7 @@ export class neural {
             this.fps = this.frame_count;
             this.frame_count = 0;
             this.prev_fps_time = Date.now();
-            this.fps_node.nodeValue = this.fps.toFixed(0);
+            this.info_ui.fps_node.nodeValue = this.fps.toFixed(0);
         }
         // request next frame to be drawn
         window.requestAnimationFrame(() => this.draw_loop());
@@ -237,7 +184,7 @@ export class neural {
     resize_canvas_to_display_size(canvas) {
         // Get the size the browser is displaying the canvas in device pixels.
         const [displayWidth, displayHeight] = neural.canvas_to_disp_size.get(canvas);
-        this.res_node.nodeValue = displayWidth + ' x ' + displayHeight;
+        this.info_ui.res_node.nodeValue = displayWidth + ' x ' + displayHeight;
         // Check if the canvas is not the same size.
         const needResize = canvas.width !== displayWidth ||
             canvas.height !== displayHeight;

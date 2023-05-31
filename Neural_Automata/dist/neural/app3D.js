@@ -165,13 +165,13 @@ export class app3D {
         // offset camera
         this.camera.offsetDist(_zoom * this.zoom_speed);
         this.zoom = this.camera.distance();
-        this.neural_app.zoom_node.nodeValue = this.zoom.toFixed(2).toString();
+        this.neural_app.option_ui.zoom_node.nodeValue = this.zoom.toFixed(2).toString();
     }
     set_zoom(_zoom) {
         this.zoom = _zoom;
         // offset camera
         this.camera = new Camera(new Vec3([0, 0, -this.zoom]), new Vec3([0, 0, 0]), new Vec3([0, 1, 0]), 45, this.canvas.width / this.canvas.height, 0.1, 1000.0);
-        this.neural_app.zoom_node.nodeValue = this.zoom.toFixed(2).toString();
+        this.neural_app.option_ui.zoom_node.nodeValue = this.zoom.toFixed(2).toString();
     }
     toggle_volume() {
         let v = this.volume;
@@ -194,27 +194,27 @@ export class app3D {
         switch (_color) {
             case colormap.cool_warm:
                 this.function_texture = this.load_colormap('../colormaps/cool-warm-paraview.png');
-                this.neural_app.shade_node.nodeValue = 'cool-warm';
+                this.neural_app.option_ui.shade_node.nodeValue = 'cool-warm';
                 break;
             case colormap.green:
                 this.function_texture = this.load_colormap('../colormaps/samsel-linear-green.png');
-                this.neural_app.shade_node.nodeValue = 'green';
+                this.neural_app.option_ui.shade_node.nodeValue = 'green';
                 break;
             case colormap.plasma:
                 this.function_texture = this.load_colormap('../colormaps/matplotlib-plasma.png');
-                this.neural_app.shade_node.nodeValue = 'plasma';
+                this.neural_app.option_ui.shade_node.nodeValue = 'plasma';
                 break;
             case colormap.rainbow:
                 this.function_texture = this.load_colormap('../colormaps/rainbow.png');
-                this.neural_app.shade_node.nodeValue = 'rainbow';
+                this.neural_app.option_ui.shade_node.nodeValue = 'rainbow';
                 break;
             case colormap.virdis:
                 this.function_texture = this.load_colormap('../colormaps/matplotlib-virdis.png');
-                this.neural_app.shade_node.nodeValue = 'virdis';
+                this.neural_app.option_ui.shade_node.nodeValue = 'virdis';
                 break;
             case colormap.ygb:
                 this.function_texture = this.load_colormap('../colormaps/samsel-linear-ygb-1211g.png');
-                this.neural_app.shade_node.nodeValue = 'ygb';
+                this.neural_app.option_ui.shade_node.nodeValue = 'ygb';
                 break;
         }
     }
@@ -251,59 +251,59 @@ export class app3D {
         this.volume = _type;
         switch (_type) {
             case volume_type.neural:
-                this.neural_app.auto_node.nodeValue = 'neural';
+                this.neural_app.option_ui.auto_node.nodeValue = 'neural';
                 this.auto_volume.set_neural(neural_type.worms);
                 this.auto_volume.start_neural();
                 break;
             case volume_type.sphere:
                 this.auto_volume.sphere_volume();
-                this.neural_app.auto_node.nodeValue = 'sphere';
+                this.neural_app.option_ui.auto_node.nodeValue = 'sphere';
                 break;
             case volume_type.organized:
-                this.neural_app.auto_node.nodeValue = 'organized';
+                this.neural_app.option_ui.auto_node.nodeValue = 'organized';
                 this.auto_volume.organize_volume();
                 break;
             case volume_type.random:
-                this.neural_app.auto_node.nodeValue = 'random';
+                this.neural_app.option_ui.auto_node.nodeValue = 'random';
                 this.auto_volume.binary_randomize_volume(Date.now().toString(), 0.8);
                 break;
             case volume_type.perlin:
-                this.neural_app.auto_node.nodeValue = 'perlin';
+                this.neural_app.option_ui.auto_node.nodeValue = 'perlin';
                 this.auto_volume.perlin_volume(Date.now().toString(), Vec3.zero);
                 this.auto_volume.start_perlin();
                 break;
             case volume_type.grow:
-                this.neural_app.auto_node.nodeValue = 'grow';
+                this.neural_app.option_ui.auto_node.nodeValue = 'grow';
                 this.auto_volume.set_rule(rules.grow());
                 this.auto_volume.sphere_volume(3);
                 this.auto_volume.start_rule();
                 break;
             case volume_type.amoeba:
-                this.neural_app.auto_node.nodeValue = 'amoeba';
+                this.neural_app.option_ui.auto_node.nodeValue = 'amoeba';
                 this.auto_volume.set_rule(rules.amoeba());
                 this.auto_volume.binary_randomize_volume(Date.now().toString(), 0.8);
                 this.auto_volume.start_rule();
                 break;
             case volume_type.clouds:
-                this.neural_app.auto_node.nodeValue = 'clouds';
+                this.neural_app.option_ui.auto_node.nodeValue = 'clouds';
                 this.auto_volume.set_rule(rules.clouds());
                 this.auto_volume.binary_randomize_volume(Date.now().toString(), 0.62);
                 this.auto_volume.start_rule();
                 break;
             case volume_type.caves:
-                this.neural_app.auto_node.nodeValue = 'caves';
+                this.neural_app.option_ui.auto_node.nodeValue = 'caves';
                 this.auto_volume.set_rule(rules.caves());
                 this.auto_volume.binary_randomize_volume(Date.now().toString(), 0.62);
                 this.auto_volume.start_rule();
                 break;
             case volume_type.crystal:
-                this.neural_app.auto_node.nodeValue = 'crystal';
+                this.neural_app.option_ui.auto_node.nodeValue = 'crystal';
                 this.auto_volume.set_rule(rules.crystal());
                 this.auto_volume.sphere_volume(2);
                 this.auto_volume.start_rule();
                 break;
             case volume_type.arch:
-                this.neural_app.auto_node.nodeValue = 'arch';
+                this.neural_app.option_ui.auto_node.nodeValue = 'arch';
                 this.auto_volume.set_rule(rules.arch());
                 this.auto_volume.sphere_volume(3);
                 this.auto_volume.start_rule();

@@ -5,7 +5,6 @@ import { bnw_vertex, bnw_fragment } from './shaders/bnw_shader.js';
 import { acid_vertex, acid_fragment } from './shaders/acid_shader.js';
 import { kernels_2d } from './kernels_2d.js';
 import { activations_2d } from './activations_2d.js';
-import { ui_2d } from './ui/ui_2d.js';
 import Rand from "../lib/rand-seed/Rand.js";
 export var automata;
 (function (automata) {
@@ -40,7 +39,6 @@ class app2D {
     buffer;
     textures;
     framebuffers;
-    ui;
     // brush stuff
     static max_brush = 250;
     brush_size = 100;
@@ -52,8 +50,6 @@ class app2D {
         this.auto = automata.worms;
         this.canvas = _neural.canvas;
         this.context = _neural.context;
-        // set ui
-        this.ui = new ui_2d(this.canvas);
     }
     // ####################
     // MAIN WEBGL FUNCTIONS
@@ -71,20 +67,20 @@ class app2D {
         switch (mode) {
             default:
             case shader_mode.rgb:
-                this.neural_app.shade_node.nodeValue = 'rgb';
+                this.neural_app.option_ui.shade_node.nodeValue = 'rgb';
                 break;
             case shader_mode.alpha:
-                this.neural_app.shade_node.nodeValue = 'alpha';
+                this.neural_app.option_ui.shade_node.nodeValue = 'alpha';
                 frag = alpha_fragment;
                 vert = alpha_vertex;
                 break;
             case shader_mode.bnw:
-                this.neural_app.shade_node.nodeValue = 'bnw';
+                this.neural_app.option_ui.shade_node.nodeValue = 'bnw';
                 frag = bnw_fragment;
                 vert = bnw_vertex;
                 break;
             case shader_mode.acid:
-                this.neural_app.shade_node.nodeValue = 'acid';
+                this.neural_app.option_ui.shade_node.nodeValue = 'acid';
                 frag = acid_fragment;
                 vert = acid_vertex;
                 break;
@@ -94,39 +90,39 @@ class app2D {
             default:
             case automata.worms:
                 frag = frag.replace('[AF]', activations_2d.worms_activation());
-                this.neural_app.auto_node.nodeValue = 'worms';
+                this.neural_app.option_ui.auto_node.nodeValue = 'worms';
                 break;
             case automata.drops:
                 frag = frag.replace('[AF]', activations_2d.drops_activation());
-                this.neural_app.auto_node.nodeValue = 'drops';
+                this.neural_app.option_ui.auto_node.nodeValue = 'drops';
                 break;
             case automata.waves:
                 frag = frag.replace('[AF]', activations_2d.waves_activation());
-                this.neural_app.auto_node.nodeValue = 'waves';
+                this.neural_app.option_ui.auto_node.nodeValue = 'waves';
                 break;
             case automata.paths:
                 frag = frag.replace('[AF]', activations_2d.paths_activation());
-                this.neural_app.auto_node.nodeValue = 'paths';
+                this.neural_app.option_ui.auto_node.nodeValue = 'paths';
                 break;
             case automata.stars:
                 frag = frag.replace('[AF]', activations_2d.stars_activation());
-                this.neural_app.auto_node.nodeValue = 'stars';
+                this.neural_app.option_ui.auto_node.nodeValue = 'stars';
                 break;
             case automata.cells:
                 frag = frag.replace('[AF]', activations_2d.cells_activation());
-                this.neural_app.auto_node.nodeValue = 'cells';
+                this.neural_app.option_ui.auto_node.nodeValue = 'cells';
                 break;
             case automata.slime:
                 frag = frag.replace('[AF]', activations_2d.slime_activation());
-                this.neural_app.auto_node.nodeValue = 'slime';
+                this.neural_app.option_ui.auto_node.nodeValue = 'slime';
                 break;
             case automata.lands:
                 frag = frag.replace('[AF]', activations_2d.lands_activation());
-                this.neural_app.auto_node.nodeValue = 'lands';
+                this.neural_app.option_ui.auto_node.nodeValue = 'lands';
                 break;
             case automata.cgol:
                 frag = frag.replace('[AF]', activations_2d.gol_activation());
-                this.neural_app.auto_node.nodeValue = 'c-gol';
+                this.neural_app.option_ui.auto_node.nodeValue = 'c-gol';
                 break;
         }
         // create shaders
@@ -361,7 +357,7 @@ class app2D {
             this.brush_0[i] = 0;
         }
         // set node value
-        this.neural_app.brush_node.nodeValue = this.brush_size.toFixed(0).toString();
+        this.neural_app.option_ui.brush_node.nodeValue = this.brush_size.toFixed(0).toString();
     }
     randomize_brush() {
         let arr_size = this.brush_size * this.brush_size * 4;
