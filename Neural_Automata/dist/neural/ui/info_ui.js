@@ -4,12 +4,11 @@ export class info_ui {
     ui_button;
     fps_node;
     res_node;
-    constructor(canvas) {
+    constructor() {
         // handle ui button
-        this.ui_open = true;
+        this.ui_open = false;
         this.ui_window = document.getElementById("info_window");
         this.ui_button = document.getElementById("info_button");
-        this.ui_button.style.cssText = 'background-color:white;color:rgba(0, 0, 0, 0.85);';
         this.ui_button.addEventListener("click", () => {
             this.toggle_ui_window();
         });

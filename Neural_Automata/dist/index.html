@@ -36,8 +36,6 @@
 
   .ui_button {
     background-color: rgba(0, 0, 0, 0.85);
-    margin-left: 0.5em;
-    margin-top: 1em;
 
     /* text */
     color: white;
@@ -96,6 +94,16 @@
     bottom:0px;
     right:0px;
   }
+  #filter_button {
+    /* margin */
+    margin-right: 0em;
+    margin-top: 0em;
+
+    /* position */
+    position: absolute;
+    top:0px;
+    left:0px;
+  }
 
   /*
   // ###########
@@ -125,7 +133,7 @@
     border-radius:5%;
   }
   #opt_window {
-    scale: 0%; /* start closed */
+    scale: 100%; /* start open */
 
     /* position */
     position: absolute;
@@ -133,12 +141,20 @@
     left:0px;
   }
   #info_window {
-    scale: 100%; /* start opened */
+    scale: 0%; /* start closed */
 
     /* position */
     position: absolute;
     bottom:0px;
     right:0px;
+  }
+  #filter_window {
+    scale: 0%; /* start closed */
+
+    /* position */
+    position: absolute;
+    top:0px;
+    left:0px;
   }
 
   /*
@@ -186,6 +202,37 @@
 
 <body>
 <canvas id="canvas"></canvas>
+<div id="filter_window" class="ui_window">
+  <h2>kernel</h2>
+  <div class="ui_row">
+    <div class="ui_column">
+      <input type="number">
+      <input type="number">
+      <input type="number">
+    </div>
+    <div class="ui_column">
+      <input type="number">
+      <input type="number">
+      <input type="number">
+    </div>
+    <div class="ui_column">
+      <input type="number">
+      <input type="number">
+      <input type="number">
+    </div>
+  </div>
+  
+  <br/>
+
+  <h2>activation function</h2>
+  <div class="ui_row">
+    <textarea>
+    </textarea>
+  </div>
+</div>
+<button id="filter_button" class="ui_button">filter</button>
+
+
 <div id="info_window" class="ui_window">
   <div class="ui_row">
     <div class="ui_column">
@@ -225,12 +272,12 @@
   </div>
   
   <div class="ui_row">
-    <button id="randomize_button" class="ui_button">randomize!</button>
+    <button id="randomize_button" class="ui_button" style="margin:0.5em;">randomize!</button>
   </div>
 
   <div class="ui_row">
-    <button id="pause_button" class="ui_button">pause</button>
-    <button id="reset_button" class="ui_button">reset</button>
+    <button id="pause_button" class="ui_button" style="margin:0.5em;">pause</button>
+    <button id="reset_button" class="ui_button" style="margin:0.5em;">reset</button>
   </div>
 </div>
 <button id="opt_button" class="ui_button">options</button>

@@ -4,8 +4,10 @@ import { user_input } from './user_input.js';
 import { webgl_util } from './webgl_util.js';
 import { utils } from './utils.js';
 import { Vec4 } from "../lib/TSM.js";
+// ui imports
 import { info_ui } from './ui/info_ui.js';
 import { option_ui } from './ui/option_ui.js';
+import { filter_ui } from './ui/filter_ui.js';
 // http-server dist -c-1
 // this is the main program where everything happens 
 export class neural {
@@ -31,6 +33,7 @@ export class neural {
     // ui windows
     info_ui;
     option_ui;
+    filter_ui;
     constructor() {
         // canvas & context 🎵
         this.canvas = document.getElementById('canvas');
@@ -49,29 +52,15 @@ export class neural {
         this.curr_delta_time = 0;
         this.fps = 0;
         // set ui
-        this.info_ui = new info_ui(this.canvas);
-        this.option_ui = new option_ui(this.canvas);
+        this.info_ui = new info_ui();
+        this.option_ui = new option_ui();
+        this.filter_ui = new filter_ui();
         // handle canvas resize
         neural.canvas_to_disp_size = new Map([[this.canvas, [512, 512]]]);
         this.resize_observer = new ResizeObserver(this.on_resize);
         this.resize_observer.observe(this.canvas, { box: 'content-box' });
-        // handle randomize button
-        var rndm_btn = document.getElementById("randomize_button");
-        rndm_btn.addEventListener("click", () => {
-            this.user_input.randomize();
-        });
-        // handle pause button
-        var pause_btn = document.getElementById("pause_button");
-        pause_btn.addEventListener("click", () => {
-            this.user_input.toggle_pause();
-        });
-        // handle randomize button
-        var reset_btn = document.getElementById("reset_button");
-        reset_btn.addEventListener("click", () => {
-            this.user_input.reset();
-        });
         // setup ui buttons
-        this.setup_ui_buttons();
+        this.setup_buttons();
         // start apps 🧨
         this.app3d.start();
         this.app2d.start();
@@ -195,7 +184,22 @@ export class neural {
         }
         return needResize;
     }
-    setup_ui_buttons() {
+    setup_buttons() {
+        // handle randomize button
+        var rndm_btn = document.getElementById("randomize_button");
+        rndm_btn.addEventListener("click", () => {
+            this.user_input.randomize();
+        });
+        // handle pause button
+        var pause_btn = document.getElementById("pause_button");
+        pause_btn.addEventListener("click", () => {
+            this.user_input.toggle_pause();
+        });
+        // handle reset button
+        var reset_btn = document.getElementById("reset_button");
+        reset_btn.addEventListener("click", () => {
+            this.user_input.reset();
+        });
         // automata buttons
         var a_0 = document.getElementById("a-");
         a_0.addEventListener("click", () => { this.user_input.toggle_automata(false); });

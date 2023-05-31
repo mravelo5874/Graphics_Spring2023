@@ -4,8 +4,10 @@ import { user_input } from './user_input.js'
 import { webgl_util } from './webgl_util.js'
 import { utils } from './utils.js'
 import { Vec4 } from "../lib/TSM.js";
+// ui imports
 import { info_ui } from './ui/info_ui.js'
 import { option_ui } from './ui/option_ui.js'
+import { filter_ui } from './ui/filter_ui.js'
 
 // http-server dist -c-1
 // this is the main program where everything happens 
@@ -39,6 +41,7 @@ export class neural
     // ui windows
     public info_ui: info_ui
     public option_ui: option_ui
+    public filter_ui: filter_ui
 
     constructor()
     {
@@ -63,6 +66,7 @@ export class neural
         // set ui
         this.info_ui = new info_ui()
         this.option_ui = new option_ui()
+        this.filter_ui = new filter_ui()
         
         // handle canvas resize
         neural.canvas_to_disp_size = new Map([[this.canvas, [512, 512]]])
@@ -253,7 +257,7 @@ export class neural
         reset_btn.addEventListener("click", () => {
             this.user_input.reset()
         });
-        
+
         // automata buttons
         var a_0 = document.getElementById("a-") as HTMLButtonElement
         a_0.addEventListener("click", () => { this.user_input.toggle_automata(false) });

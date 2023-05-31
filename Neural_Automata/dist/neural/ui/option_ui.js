@@ -7,11 +7,12 @@ export class option_ui {
     mode_node;
     brush_node;
     zoom_node;
-    constructor(canvas) {
+    constructor() {
         // handle ui button
-        this.ui_open = false;
+        this.ui_open = true;
         this.ui_window = document.getElementById("opt_window");
         this.ui_button = document.getElementById("opt_button");
+        this.ui_button.style.cssText = 'background-color:white;color:rgba(0, 0, 0, 0.85);';
         this.ui_button.addEventListener("click", () => {
             this.toggle_ui_window();
         });
